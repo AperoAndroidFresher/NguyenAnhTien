@@ -61,6 +61,8 @@ import com.example.learnjetpackcompose.ui.theme.LearnJetPackComposeTheme
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.Image as Image1
 
+import com.example.learnjetpackcompose.MainProfileScreen
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,7 +76,8 @@ class MainActivity : ComponentActivity() {
 //
 //                }
                 Surface(){
-                    CustomEditing()
+//                    CustomEditing()
+                    MainProfileScreen()
                 }
             }
         }
@@ -546,7 +549,7 @@ fun NoEdit(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(20.dp))
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(
@@ -558,14 +561,14 @@ fun NoEdit(modifier: Modifier = Modifier) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    modifier = Modifier.fillMaxWidth().padding(8.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     label = { Text("Enter your name") },
                     singleLine = true
                 )
             }
 
             Column(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier.fillMaxWidth().weight(1f).padding(start = 8.dp),
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text(text = "Phone", style = MaterialTheme.typography.labelLarge)
@@ -573,7 +576,7 @@ fun NoEdit(modifier: Modifier = Modifier) {
                 OutlinedTextField(
                     value = phoneNumber,
                     onValueChange = { phoneNumber = it },
-                    modifier = Modifier.fillMaxWidth().padding(start = 8.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     label = { Text("Enter your Phone") },
                     singleLine = true
                 )
@@ -614,7 +617,7 @@ fun NoEdit(modifier: Modifier = Modifier) {
 
         Button(
             onClick = { showDialog = true },
-            modifier = Modifier.align(Alignment.End)
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Text("Submit")
         }
@@ -662,6 +665,7 @@ fun NoEdit(modifier: Modifier = Modifier) {
                 delay(2000)
                 showDialog = false
             }
+
         }
     }
 }
