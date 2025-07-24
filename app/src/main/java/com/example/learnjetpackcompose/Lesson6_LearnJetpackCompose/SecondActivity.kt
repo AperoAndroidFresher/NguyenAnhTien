@@ -539,7 +539,7 @@ fun NoEdit(modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier.fillMaxWidth().weight(1f).padding(end = 8.dp),
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text(text = "Name", style = MaterialTheme.typography.labelLarge)
@@ -547,14 +547,14 @@ fun NoEdit(modifier: Modifier = Modifier) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    modifier = Modifier.fillMaxWidth().padding(8.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     label = { Text("Enter your name") },
                     singleLine = true
                 )
             }
 
             Column(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier.fillMaxWidth().weight(1f).padding(start = 8.dp),
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text(text = "Phone", style = MaterialTheme.typography.labelLarge)
@@ -562,7 +562,7 @@ fun NoEdit(modifier: Modifier = Modifier) {
                 OutlinedTextField(
                     value = phoneNumber,
                     onValueChange = { phoneNumber = it },
-                    modifier = Modifier.fillMaxWidth().padding(start = 8.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     label = { Text("Enter your Phone") },
                     singleLine = true
                 )
