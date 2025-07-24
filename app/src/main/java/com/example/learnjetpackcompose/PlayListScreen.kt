@@ -278,7 +278,7 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
 
             Text(
                 text = song.name,
-                modifier = Modifier.padding(6.dp),
+                modifier = Modifier.padding(start = 10.dp).align(Alignment.CenterHorizontally).basicMarquee(),
                 style = MaterialTheme.typography.titleSmall,
                 fontSize = 20.sp,
                 color = Color.White
@@ -286,7 +286,7 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = song.singer,
-//                modifier = Modifier.padding(10.dp),
+                modifier = Modifier.padding(start = 10.dp).basicMarquee(),
                 color = Color.White.copy(alpha = 0.8f),
                 fontSize = 18.sp
 
@@ -321,7 +321,7 @@ fun PlaylistLinear(songs: List<Song>, onToggleView: () -> Unit, onRemoveSong: (S
 
             Row(){
                 IconButton(
-                    modifier = Modifier.align(Alignment.CenterVertically)
+                    modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)
                         .size(40.dp),
                     onClick = {
                         println("Go to playlist grid")
@@ -336,7 +336,9 @@ fun PlaylistLinear(songs: List<Song>, onToggleView: () -> Unit, onRemoveSong: (S
                 }
 
                 IconButton(
-                    modifier = Modifier.align(Alignment.CenterVertically),
+                    modifier = Modifier.padding(10.dp)
+                        .align(Alignment.CenterVertically)
+                        .size(40.dp),
                     onClick = {
                         println("More button clicked")
                     },
@@ -379,7 +381,8 @@ fun PlaylistGrid(songs: List<Song>, onToggleView: () -> Unit, onRemoveSong: (Son
 
             Row(){
                 IconButton(
-                    modifier = Modifier.align(Alignment.CenterVertically),
+                    modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)
+                        .size(40.dp),
                     onClick = {
                         println("Return Playlist linear")
                         onToggleView()
