@@ -2,6 +2,7 @@ package com.example.learnjetpackcompose
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,7 +59,7 @@ fun SongCardList(song: Song, onRemoveSong: (Song) -> Unit){
 
     Card(
         modifier = Modifier.fillMaxWidth()
-            .padding(16.dp),
+            .padding(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ){
         Row(
@@ -76,7 +77,7 @@ fun SongCardList(song: Song, onRemoveSong: (Song) -> Unit){
             Column(){
                 Text(
                     text = song.name,
-                    modifier = Modifier.padding(10.dp),
+                    modifier = Modifier.padding(10.dp).width(150.dp).basicMarquee(),
                     style = MaterialTheme.typography.titleSmall,
                     fontSize = 20.sp,
                     color = Color.White
@@ -84,13 +85,14 @@ fun SongCardList(song: Song, onRemoveSong: (Song) -> Unit){
                 Text(
                     text = song.singer,
                     modifier = Modifier.padding(start = 10.dp),
-                    color = Color.White
+                    color = Color.White.copy(alpha = 0.7f),
                 )
             }
 
+            Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = song.playtime,
-                modifier = Modifier.padding(start = 130.dp).align(Alignment.CenterVertically),
+                modifier = Modifier.align(Alignment.CenterVertically),
                 color = Color.White,
                 fontSize = 20.sp
             )
@@ -113,7 +115,7 @@ fun SongCardList(song: Song, onRemoveSong: (Song) -> Unit){
                 DropdownMenu(
                     expanded = showDropdownMenu,
                     onDismissRequest = { showDropdownMenu = false },
-                    modifier = Modifier.background(Color.DarkGray)
+                    modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Color.DarkGray)
                 ) {
                     DropdownMenuItem(
                         text = {
@@ -202,7 +204,7 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
                         modifier = Modifier
                             .clip(CircleShape)
                             .size(30.dp)
-                            .background(Color.DarkGray),
+                            .background(Color.DarkGray.copy(alpha = 0.6f)),
                         onClick = {
                             showDropdownMenu = true
                         },
@@ -217,7 +219,7 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
                     DropdownMenu(
                         expanded = showDropdownMenu,
                         onDismissRequest = { showDropdownMenu = false },
-                        modifier = Modifier.background(Color.DarkGray)
+                        modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Color.DarkGray)
                     ) {
                         DropdownMenuItem(
                             text = {
@@ -276,21 +278,23 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
 
             Text(
                 text = song.name,
-                modifier = Modifier.padding(10.dp),
+                modifier = Modifier.padding(6.dp),
                 style = MaterialTheme.typography.titleSmall,
                 fontSize = 20.sp,
                 color = Color.White
             )
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = song.singer,
-                modifier = Modifier.padding(10.dp),
-                color = Color.DarkGray,
-                fontSize = 20.sp
+//                modifier = Modifier.padding(10.dp),
+                color = Color.White.copy(alpha = 0.8f),
+                fontSize = 18.sp
 
             )
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = song.playtime,
-                modifier = Modifier.padding(10.dp),
+
                 color = Color.White,
                 fontSize = 20.sp
             )
@@ -441,21 +445,21 @@ fun PlaylistScreen(listSongs: List<Song>) {
 @Composable
 fun PlaylistPreview(){
     val songs = listOf(
-        Song("Song 1", "Singer 1", "3:45", R.drawable.rose),
-        Song("Song 2", "Singer 2", "4:20", R.drawable.music1),
-        Song("Song 3", "Singer 3", "5:10", R.drawable.music2),
-        Song("Song 4", "Singer 4", "3:55", R.drawable.music3),
-        Song("Song 5", "Singer 5", "4:40", R.drawable.music4),
-        Song("Song 6", "Singer 6", "5:25", R.drawable.music5),
-        Song("Song 7", "Singer 7", "3:30", R.drawable.music1),
-        Song("Song 8", "Singer 8", "4:15", R.drawable.music2),
-        Song("Song 9", "Singer 9", "5:05", R.drawable.music3),
-        Song("Song  10", "Singer 10", "3:50", R.drawable.music4),
-        Song("Song 11", "Singer 11", "4:35", R.drawable.music5),
-        Song("Song 12", "Singer 12", "5:20", R.drawable.rose),
-        Song("Song 13", "Singer 13", "3:40", R.drawable.music2),
-        Song("Song 14", "Singer 14", "4:25", R.drawable.music3),
-        Song("Song 15", "Singer 15", "5:15", R.drawable.music4)
+        Song("Ordinary", "Alex Warren", "3:45", R.drawable.rose),
+        Song("APT", "ROSE, Bruno Mars", "4:20", R.drawable.music1),
+        Song("Azizam", "Ed Sheeran", "5:10", R.drawable.music2),
+        Song("Bad Dreams", "Teddy Swims", "3:55", R.drawable.music3),
+        Song("Anxiety", "Doechii", "4:40", R.drawable.music4),
+        Song("Messy", "Rose", "5:25", R.drawable.music5),
+        Song("BIRDS OF A FEATHER", "Billie Eilish", "3:30", R.drawable.music1),
+        Song("back to friends", "sombr", "4:15", R.drawable.music2),
+        Song("Sorry I'm Here for someone Else", "Benson Boone", "5:05", R.drawable.music3),
+        Song("More to Lose", "Miley Cyrus", "3:50", R.drawable.music4),
+        Song("Love Me Not", "Ravyn Lenae", "4:35", R.drawable.music5),
+        Song("No One Noticed", "The Marias", "5:20", R.drawable.rose),
+        Song("Die With A Smile", "Lady Gaga, Bruno Mars", "3:40", R.drawable.music2),
+        Song("Luther", "Kendrick Lamar", "4:25", R.drawable.music3),
+        Song("Lose Control", "Teddy Swims", "5:15", R.drawable.music4)
     )
 //    PlaylistLinear(songs)
 //    PlaylistGrid(songs)
