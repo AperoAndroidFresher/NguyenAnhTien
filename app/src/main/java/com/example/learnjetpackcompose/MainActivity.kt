@@ -78,7 +78,8 @@ class MainActivity : ComponentActivity() {
                 Surface(){
 //                    CustomEditing()
 //                    MainProfileScreen()
-                    PlaylistPreview()
+//                    PlaylistPreview()
+                    PreviewSwitchTheme()
                 }
             }
         }

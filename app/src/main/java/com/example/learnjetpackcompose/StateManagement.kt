@@ -9,11 +9,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,35 +32,46 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup // Import Popup
 import androidx.compose.ui.window.PopupProperties // Import PopupProperties (tùy chọn)
+import com.example.learnjetpackcompose.ui.theme.LearnJetPackComposeTheme
 import kotlinx.coroutines.delay
 
 
 @Composable
 fun MainProfileScreen() {
     var isEditing by remember { mutableStateOf(false) }
-
+    var isDark by remember { mutableStateOf(false) }
     Surface(color = MaterialTheme.colorScheme.background) {
         if (isEditing) {
-            ProfileEditing(
-                onBackToView = { isEditing = false }
-            )
+            LearnJetPackComposeTheme(darkTheme = isDark) {
+                ProfileEditing(
+                    onBackToView = { isEditing = false }
+                )
+            }
         } else {
-            ProfileNoEdit(
-                onEditClick = { isEditing = true }
-            )
+            LearnJetPackComposeTheme(darkTheme = isDark) {
+                ProfileNoEdit(
+                    onEditClick = { isEditing = true },
+                    isDark  = isDark, onToggleTheme = {isDark = !isDark}
+                )
+            }
         }
     }
 }
 
 @Composable
-fun ProfileNoEdit(onEditClick: () -> Unit) {
+fun ProfileNoEdit(modifier: Modifier = Modifier,
+                  onEditClick: () -> Unit,
+                  isDark: Boolean,
+                  onToggleTheme: () -> Unit) {
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
 
         Row(
             modifier = Modifier
@@ -65,23 +79,40 @@ fun ProfileNoEdit(onEditClick: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(modifier = Modifier.width(16.dp))
+            IconButton(
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .background(MaterialTheme.colorScheme.background)
+                    .size(40.dp),
+                onClick = {
+                    onToggleTheme()
+                },
+            ) {
+                Icon(
+                    painter = painterResource( id = if (isDark) R.drawable.nightmode else R.drawable.daymode),
+                    contentDescription = "Menu",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
 
             Text(
                 text = "MY INFORMATION",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.CenterVertically),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.headlineMedium,
+                fontSize = 24.sp
             )
-            Box(
+            IconButton(
                 modifier = Modifier
-                    .size(48.dp)
-                    .clickable { onEditClick() },
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
+                    .align(Alignment.CenterVertically).background(MaterialTheme.colorScheme.background)
+                    .size(40.dp),
+                onClick = {onEditClick()}
+            ){
+                Icon(
                     painter = painterResource(id = R.drawable.edit),
-                    contentDescription = "Edit Profile",
-                    modifier = Modifier.size(32.dp)
+                    contentDescription = "Edit",
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -105,24 +136,36 @@ fun ProfileNoEdit(onEditClick: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "NAME", style = MaterialTheme.typography.labelMedium)
+                Text(text = "NAME",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(4.dp))
-                // Dùng Text để hiển thị dữ liệu, không phải OutlinedTextField cho chế độ xem
+
                 OutlinedTextField(
                     value = "",
+                    shape = RoundedCornerShape(13.dp),
+                    modifier = Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(13.dp)),
                     onValueChange = {},
-                    placeholder = { Text("Enter your name...", style = MaterialTheme.typography.bodyMedium)},
+                    placeholder = { Text("Enter your name...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary)},
                     singleLine = true
                 )
             }
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "PHONE NUMBER", style = MaterialTheme.typography.labelMedium)
+                Text(text = "PHONE NUMBER",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(4.dp))
                 OutlinedTextField(
                     value = "",
+                    shape = RoundedCornerShape(13.dp),
+                    modifier = Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(13.dp)),
                     onValueChange = {},
-                    placeholder = { Text("Enter your phone...", style = MaterialTheme.typography.bodyMedium)},
+                    placeholder = { Text("Enter your phone...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary)},
                     singleLine = true
                 )
             }
@@ -131,13 +174,18 @@ fun ProfileNoEdit(onEditClick: () -> Unit) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Column(modifier = Modifier.fillMaxWidth()) {
-            Text(text = "UNIVERSITY NAME", style = MaterialTheme.typography.labelMedium)
+            Text(text = "UNIVERSITY NAME",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(4.dp))
             OutlinedTextField(
                 value = "",
+                shape = RoundedCornerShape(13.dp),
+                modifier = Modifier.fillMaxWidth().border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(13.dp)),
                 onValueChange = {},
-                placeholder = { Text("Enter University...", style = MaterialTheme.typography.bodyMedium)},
-                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Enter university...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary)},
                 singleLine = true
             )
         }
@@ -145,13 +193,19 @@ fun ProfileNoEdit(onEditClick: () -> Unit) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Column(modifier = Modifier.fillMaxWidth()) {
-            Text(text = "DESCRIBE YOURSELF", style = MaterialTheme.typography.labelMedium)
+            Text(text = "DESCRIBE YOURSELF",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(4.dp))
             OutlinedTextField(
                 value = "",
+                shape = RoundedCornerShape(13.dp),
+                modifier = Modifier.fillMaxWidth().height(150.dp).border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(13.dp)),
                 onValueChange = {},
-                placeholder = { Text("Enter Description...", style = MaterialTheme.typography.bodyMedium)},
-                modifier = Modifier.height(150.dp).fillMaxWidth(),
+                placeholder = { Text("Enter university...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary)},
+
                 singleLine = false
             )
         }
@@ -180,7 +234,8 @@ fun ProfileEditing(onBackToView: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -192,8 +247,10 @@ fun ProfileEditing(onBackToView: () -> Unit) {
         ) {
             Text(
                 text = "MY INFORMATION",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.CenterVertically),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.headlineMedium,
+                fontSize = 24.sp
             )
         }
 
@@ -217,28 +274,37 @@ fun ProfileEditing(onBackToView: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "NAME", style = MaterialTheme.typography.labelMedium)
+                Text(text = "NAME",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(4.dp))
                 OutlinedTextField(
                     value = name,
+
                     onValueChange = { newValue ->
                         name = newValue
                         nameError = !nameRegex.matches(newValue) && newValue.isNotEmpty()
                     },
-                    placeholder = { Text("Enter name...") },
+                    placeholder = { Text("Enter name...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary) },
+                    colors = TextFieldDefaults.colors(MaterialTheme.colorScheme.primary),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     isError = nameError,
                     supportingText = {
                         if (nameError) {
-                            Text("Chỉ chữ (A-Z, a-z, có dấu) và tối đa 30 ký tự", color = MaterialTheme.colorScheme.error)
+                            Text("Chỉ chữ (A-Z, a-z, có dấu) và tối đa 30 ký tự",
+                                color = MaterialTheme.colorScheme.error)
                         }
                     }
                 )
             }
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "PHONE NUMBER", style = MaterialTheme.typography.labelMedium)
+                Text(text = "PHONE NUMBER",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(4.dp))
                 OutlinedTextField(
                     value = phoneNumber,
@@ -246,13 +312,18 @@ fun ProfileEditing(onBackToView: () -> Unit) {
                         phoneNumber = newValue
                         phoneNumberError = !phoneNumberRegex.matches(newValue) && newValue.isNotEmpty()
                     },
-                    placeholder = { Text("Your phone...") },
+                    placeholder = { Text("Your phone...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary) },
+//                    shape = RoundedCornerShape(13.dp),
                     modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.colors(MaterialTheme.colorScheme.primary),
                     singleLine = true,
                     isError = phoneNumberError,
                     supportingText = {
                         if (phoneNumberError) {
-                            Text("Chỉ được nhập số", color = MaterialTheme.colorScheme.error)
+                            Text("Chỉ được nhập số",
+                                color = MaterialTheme.colorScheme.error)
                         }
                     }
                 )
@@ -262,7 +333,9 @@ fun ProfileEditing(onBackToView: () -> Unit) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Column(modifier = Modifier.fillMaxWidth()) {
-            Text(text = "UNIVERSITY NAME", style = MaterialTheme.typography.labelMedium)
+            Text(text = "UNIVERSITY NAME",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(4.dp))
             OutlinedTextField(
                 value = universityName,
@@ -270,13 +343,17 @@ fun ProfileEditing(onBackToView: () -> Unit) {
                     universityName = newValue
                     universityNameError = !universityNameRegex.matches(newValue) && newValue.isNotEmpty()
                 },
-                placeholder = { Text("Your university name...") },
+                placeholder = { Text("Your university name...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary) },
+                colors = TextFieldDefaults.colors(MaterialTheme.colorScheme.primary),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = universityNameError,
                 supportingText = {
                     if (universityNameError) {
-                        Text("Chỉ được nhập chữ, dấu chấm, gạch ngang, nháy đơn", color = MaterialTheme.colorScheme.error)
+                        Text("Chỉ được nhập chữ, dấu chấm, gạch ngang, nháy đơn",
+                            color = MaterialTheme.colorScheme.error)
                     }
                 }
             )
@@ -285,15 +362,19 @@ fun ProfileEditing(onBackToView: () -> Unit) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Column(modifier = Modifier.fillMaxWidth()) {
-            Text(text = "DESCRIBE YOURSELF", style = MaterialTheme.typography.labelMedium)
+            Text(text = "DESCRIBE YOURSELF",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(4.dp))
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                placeholder = { Text("Enter a description...") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp),
+                placeholder = { Text("Enter a description...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary) },
+                shape = RoundedCornerShape(13.dp),
+                modifier = Modifier.fillMaxWidth().height(150.dp).border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(13.dp)),
+
                 singleLine = false
             )
         }
@@ -318,8 +399,8 @@ fun ProfileEditing(onBackToView: () -> Unit) {
                     .width(150.dp)
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black,
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surfaceTint,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
                 ),
                 shape = RoundedCornerShape(10.dp)
             ) {
