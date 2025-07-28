@@ -52,9 +52,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learnjetpackcompose.R
-import org.burnoutcrew.reorderable.ReorderableItem
-import org.burnoutcrew.reorderable.detectReorderAfterLongPress
-import org.burnoutcrew.reorderable.rememberReorderableLazyListState
+//import org.burnoutcrew.reorderable.ReorderableItem
+//import org.burnoutcrew.reorderable.detectReorderAfterLongPress
+//import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 
 
 data class Song(val name: String, val singer: String, val playtime: String, val imageId: Int)
@@ -317,10 +317,10 @@ fun PlaylistLinear(songs: List<Song>,
                    onReorder: (Int, Int) -> Unit){
 
     val listState = rememberLazyListState()
-    val reorderState = rememberReorderableLazyListState(
-        listState = listState,
-        onMove = { from, to -> onReorder(from.index, to.index) }
-    )
+//    val reorderState = rememberReorderableLazyListState(
+//        listState = listState,
+//        onMove = { from, to -> onReorder(from.index, to.index) }
+//    )
     Column(modifier = Modifier.fillMaxSize()
         .background(color = Color.Black)
     ) {
@@ -370,35 +370,35 @@ fun PlaylistLinear(songs: List<Song>,
 
         }
 
-//        LazyColumn(){
-//            items(songs){playlist ->
-//                SongCardList(song = playlist, onRemoveSong = onRemoveSong )
-//            }
-//        }
-
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            items(
-                items = songs,
-                key = { it.name }
-            ) { song ->
-                ReorderableItem(reorderState, key = song.name) { isDragging ->
-                    val elevation = if (isDragging) 8.dp else 4.dp
-                    SongCardList(
-                        song = song,
-                        onRemoveSong = onRemoveSong,
-                        modifier = Modifier
-                            .detectReorderAfterLongPress(reorderState)
-                            .graphicsLayer {
-                                shadowElevation = elevation.toPx()
-                            }
-                    )
-                }
+        LazyColumn(){
+            items(songs){playlist ->
+                SongCardList(song = playlist, onRemoveSong = onRemoveSong )
             }
         }
+
+//        LazyColumn(
+//            state = listState,
+//            modifier = Modifier
+//                .fillMaxSize()
+//        ) {
+//            items(
+//                items = songs,
+//                key = { it.name }
+//            ) { song ->
+//                ReorderableItem(reorderState, key = song.name) { isDragging ->
+//                    val elevation = if (isDragging) 8.dp else 4.dp
+//                    SongCardList(
+//                        song = song,
+//                        onRemoveSong = onRemoveSong,
+//                        modifier = Modifier
+//                            .detectReorderAfterLongPress(reorderState)
+//                            .graphicsLayer {
+//                                shadowElevation = elevation.toPx()
+//                            }
+//                    )
+//                }
+//            }
+//        }
     }
 }
 

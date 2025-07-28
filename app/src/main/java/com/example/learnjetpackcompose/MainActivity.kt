@@ -71,7 +71,8 @@ class MainActivity : ComponentActivity() {
 //                    PreviewSwitchTheme()
 //                    SplashToLoginPreview()
 //                    SignUpScreenPreview()
-                    MainScreenPreview()
+//                    MainScreenPreview()
+                    NavigationApp()
                 }
             }
         }

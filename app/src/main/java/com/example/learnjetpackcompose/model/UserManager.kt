@@ -1,4 +1,4 @@
-package com.example.learnjetpackcompose
+package com.example.learnjetpackcompose.model
 
 object UserManager {
     private val userList = mutableListOf<User>()
