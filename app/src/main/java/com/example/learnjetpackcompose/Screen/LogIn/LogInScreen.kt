@@ -1,35 +1,25 @@
-package com.example.learnjetpackcompose.Screen
+package com.example.learnjetpackcompose.Screen.LogIn
 
-import android.graphics.drawable.Icon
-import android.media.Image
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.*
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,22 +27,20 @@ import androidx.compose.ui.unit.dp
 import com.example.learnjetpackcompose.R
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import androidx.lint.kotlin.metadata.Visibility
 import kotlinx.coroutines.delay
 
 @Composable
-fun loginScreen(
-    userName: String,
-    password: String,
-    onUserNameChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
+fun LoginScreen(
+    viewModel: LoginViewModel,
     onLoginClick: () -> Unit,
     onSignUpClick: () -> Unit
 ) {
+
+    val userName by viewModel.userName.collectAsState()
+    val password by viewModel.password.collectAsState()
+
     Column(
         modifier = Modifier.fillMaxSize().background(Color.Black)
     ){
@@ -74,9 +62,10 @@ fun loginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+//      UserName Textfield
         OutlinedTextField(
             value = userName,
-            onValueChange = onUserNameChange,
+            onValueChange = {viewModel.onUserNameChange(it)},
             label = { Text(text = "Username", color = Color.White.copy(0.7f)) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -87,8 +76,8 @@ fun loginScreen(
             ),
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = "Password Icon",
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "User Icon",
                     tint = Color.White.copy(alpha = 0.5f)
 
                 )
@@ -98,7 +87,7 @@ fun loginScreen(
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = password,
-            onValueChange = onPasswordChange,
+            onValueChange = {viewModel.onPasswordChange(it)},
             label = { Text(text = "Password", color = Color.White.copy(0.7f)) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -134,7 +123,7 @@ fun loginScreen(
         ){
             Checkbox(
                 checked = false,
-                onCheckedChange = {},
+                onCheckedChange = { viewModel.onRememberMeChange(it)},
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp)
             )
 
@@ -222,43 +211,43 @@ fun SplashScreen(onTimeout: () -> Unit) {
     }
 }
 
-@Composable
-fun MainScreen(){
-    var login by remember { mutableStateOf(true) }
-    var userName by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-
-    if (login) {
-        loginScreen(
-            userName = userName,
-            password = password,
-            onUserNameChange = {userName = it},
-            onPasswordChange = {password = it},
-            onLoginClick = {login = true},
-            onSignUpClick = {login = false}
-        )
-    }else{
-        SignUpScreen(
-            userName = userName,
-            password = password,
-            confirmPassword = confirmPassword,
-            email = email,
-            onUserNameChange = {userName = it},
-            onPasswordChange = {password = it},
-            onConfirmPasswordChange = {confirmPassword = it},
-            onEmailChange = {email = it},
-            onSignUpClick = {login = true},
-            onBackClick = {login = true}
-        )
-    }
-}
+//@Composable
+//fun MainScreen(){
+//    var login by remember { mutableStateOf(true) }
+//    var userName by remember { mutableStateOf("") }
+//    var password by remember { mutableStateOf("") }
+//    var confirmPassword by remember { mutableStateOf("") }
+//    var email by remember { mutableStateOf("") }
+//
+//    if (login) {
+//        loginScreen(
+//            userName = userName,
+//            password = password,
+//            onUserNameChange = {userName = it},
+//            onPasswordChange = {password = it},
+//            onLoginClick = {login = true},
+//            onSignUpClick = {login = false}
+//        )
+//    }else{
+//        SignUpScreen(
+//            userName = userName,
+//            password = password,
+//            confirmPassword = confirmPassword,
+//            email = email,
+//            onUserNameChange = {userName = it},
+//            onPasswordChange = {password = it},
+//            onConfirmPasswordChange = {confirmPassword = it},
+//            onEmailChange = {email = it},
+//            onSignUpClick = {login = true},
+//            onBackClick = {login = true}
+//        )
+//    }
+//}
 
 
 @Preview (showBackground = true)
 @Composable
 fun MainScreenPreview() {
 
-    MainScreen()
+//    MainScreen()
 }

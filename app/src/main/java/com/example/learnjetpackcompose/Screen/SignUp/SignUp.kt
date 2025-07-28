@@ -1,4 +1,4 @@
-package com.example.learnjetpackcompose.Screen
+package com.example.learnjetpackcompose.Screen.SignUp
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,11 +21,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,65 +41,31 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learnjetpackcompose.R
-import com.example.learnjetpackcompose.User
-import com.example.learnjetpackcompose.UserManager
-import com.example.learnjetpackcompose.ValidationUtils
+
 
 @Composable
 fun SignUpScreen(
-    userName: String,
-    password: String,
-    confirmPassword: String,
-    email: String,
-    onUserNameChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onConfirmPasswordChange: (String) -> Unit,
-    onEmailChange: (String) -> Unit,
+    viewModel: SignUpViewModel,
     onSignUpClick: () -> Unit,
     onBackClick: () -> Unit = {}
 ) {
-    var showPassword by remember { mutableStateOf(false) }
-    var showConfirmPassword by remember { mutableStateOf(false) }
-    var usernameError by remember { mutableStateOf<String?>(null) }
-    var passwordError by remember { mutableStateOf<String?>(null) }
-    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
-    var emailError by remember { mutableStateOf<String?>(null) }
-    var signUpMessage by remember { mutableStateOf<String?>(null) }
-    var isSignUpSuccess by remember { mutableStateOf(false) }
 
-    fun validateAndSignUp() {
-        usernameError = null
-        passwordError = null
-        confirmPasswordError = null
-        emailError = null
-        signUpMessage = null
-        isSignUpSuccess = false
+    val userName by viewModel.userName.collectAsState()
+    val password by viewModel.password.collectAsState()
+    val email by viewModel.email.collectAsState()
+    val confirmPassword by viewModel.confirmPassword.collectAsState()
 
-        usernameError = ValidationUtils.validateUsername(userName)
-        passwordError = ValidationUtils.validatePassword(password)
-        confirmPasswordError = ValidationUtils.validateConfirmPassword(password, confirmPassword)
-        emailError = ValidationUtils.validateEmail(email)
+    val usernameError by viewModel.userNameError.collectAsState()
+    val passwordError by viewModel.passwordError.collectAsState()
+    val confirmPasswordError by viewModel.confirmPasswordError.collectAsState()
+    val emailError by viewModel.emailError.collectAsState()
+    val signUpMessage by viewModel.signUpMessage.collectAsState()
+    val isSignUpSuccess by viewModel.signUpSuccess.collectAsState()
+    val showPassword by viewModel.showPassword.collectAsState()
+    val showConfirmPassword by viewModel.showConfirmPassword.collectAsState()
 
-        if (usernameError == null && passwordError == null &&
-            confirmPasswordError == null && emailError == null) {
 
-            val newUser = User(userName, email, password)
-            val success = UserManager.addUser(newUser)
 
-            if (success) {
-                signUpMessage = "Đăng ký thành công!"
-                isSignUpSuccess = true
-                onUserNameChange("")
-                onPasswordChange("")
-                onConfirmPasswordChange("")
-                onEmailChange("")
-                onBackClick()
-            } else {
-                signUpMessage = "Đăng ký thất bại! Username hoặc Email đã tồn tại."
-                isSignUpSuccess = false
-            }
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -142,8 +108,7 @@ fun SignUpScreen(
         OutlinedTextField(
             value = userName,
             onValueChange = {
-                onUserNameChange(it)
-                usernameError = null
+                viewModel.onUserNameChange(it)
             },
             label = { Text(text = "Username", color = Color.White.copy(0.7f)) },
             modifier = Modifier
@@ -180,8 +145,7 @@ fun SignUpScreen(
         OutlinedTextField(
             value = password,
             onValueChange = {
-                onPasswordChange(it)
-                passwordError = null
+                viewModel.onPasswordChange(it)
             },
             label = { Text(text = "Password", color = Color.White.copy(0.7f)) },
             modifier = Modifier
@@ -195,7 +159,7 @@ fun SignUpScreen(
                 )
             },
             trailingIcon = {
-                IconButton(onClick = { showPassword = !showPassword }) {
+                IconButton(onClick = { viewModel.toggleShowPassword()}) {
                     Icon(
                         painter = painterResource(id = R.drawable.visible),
                         contentDescription = if (showPassword) "Hide password" else "Show password",
@@ -227,8 +191,7 @@ fun SignUpScreen(
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = {
-                onConfirmPasswordChange(it)
-                confirmPasswordError = null
+                viewModel.onConfirmPasswordChange(it)
             },
             label = { Text(text = "Confirm Password", color = Color.White.copy(0.7f)) },
             modifier = Modifier
@@ -242,7 +205,7 @@ fun SignUpScreen(
                 )
             },
             trailingIcon = {
-                IconButton(onClick = { showConfirmPassword = !showConfirmPassword }) {
+                IconButton(onClick = { viewModel.toggleShowConfirmPassword() }) {
                     Icon(
                         painter = painterResource(id = R.drawable.visible),
                         contentDescription = if (showConfirmPassword) "Hide password" else "Show password",
@@ -275,8 +238,7 @@ fun SignUpScreen(
         OutlinedTextField(
             value = email,
             onValueChange = {
-                onEmailChange(it)
-                emailError = null
+                viewModel.onEmailChange(it)
             },
             label = { Text(text = "Email", color = Color.White.copy(0.7f)) },
             modifier = Modifier
@@ -323,7 +285,8 @@ fun SignUpScreen(
         }
 
         Button(
-            onClick = { validateAndSignUp() },
+            onClick = { viewModel.validateAndSignUp(onSuccess = onSignUpClick)
+                        onSignUpClick() },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -342,23 +305,3 @@ fun SignUpScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun SignUpScreenPreview() {
-    var userName by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-
-    SignUpScreen(
-        userName = userName,
-        password = password,
-        confirmPassword = confirmPassword,
-        email = email,
-        onUserNameChange = { userName = it },
-        onPasswordChange = { password = it },
-        onConfirmPasswordChange = { confirmPassword = it },
-        onEmailChange = { email = it },
-        onSignUpClick = {}
-    )
-}
