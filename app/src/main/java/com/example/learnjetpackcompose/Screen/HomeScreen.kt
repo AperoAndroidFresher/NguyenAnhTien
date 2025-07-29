@@ -1,13 +1,14 @@
 package com.example.learnjetpackcompose.Screen
 
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -33,7 +34,7 @@ import com.example.learnjetpackcompose.model.NavBottomItems
 import com.example.learnjetpackcompose.model.songs
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier){
+fun HomeScreen(modifier: Modifier = Modifier, onMyProfileClick: () -> Unit){
 
     val navItemsList = listOf(
         NavBottomItems("Home"),
@@ -55,7 +56,7 @@ fun HomeScreen(modifier: Modifier = Modifier){
             }
         } }
     ) {innerPadding ->
-        ContentScreen(modifier = Modifier.fillMaxSize().padding(innerPadding), selectedIndex = selectedIndex)
+        ContentScreen(modifier = Modifier.fillMaxSize().padding(innerPadding), selectedIndex = selectedIndex, onMyProfileClick = onMyProfileClick)
     }
 }
 
@@ -64,17 +65,19 @@ fun HomePage(onMyProfileClick:() -> Unit){
     Column(
         modifier = Modifier.fillMaxSize(),
 
-    ) {
+        ) {
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().padding(10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
         ){
+            Spacer(modifier = Modifier.width(10.dp))
             IconButton(
                 modifier = Modifier.padding(10.dp)
-                    .size(40.dp),
+                    .size(40.dp).align(Alignment.CenterVertically),
                 onClick = {
                     println("Go to playlist grid")
                     onMyProfileClick()
-                },
+                }
             ) {
                 Icon(
                     imageVector = Icons.Default.Settings,
@@ -96,10 +99,11 @@ fun LibraryPage(){
         Text(text = "Library Page", fontSize = 24.sp)
     }
 }
+
 @Composable
-fun ContentScreen(modifier: Modifier = Modifier, selectedIndex: Int) {
+fun ContentScreen(modifier: Modifier = Modifier, selectedIndex: Int, onMyProfileClick: () -> Unit) {
     when(selectedIndex) {
-        0 -> HomePage(onMyProfileClick = {})
+        0 -> HomePage(onMyProfileClick = onMyProfileClick)
         1 -> LibraryPage()
         2 -> PlaylistScreen(songs)
     }

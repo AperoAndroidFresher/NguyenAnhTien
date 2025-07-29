@@ -285,8 +285,7 @@ fun SignUpScreen(
         }
 
         Button(
-            onClick = { viewModel.validateAndSignUp(onSuccess = onSignUpClick)
-                        onSignUpClick() },
+            onClick = { viewModel.validateAndSignUp(onSuccess = onSignUpClick) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)

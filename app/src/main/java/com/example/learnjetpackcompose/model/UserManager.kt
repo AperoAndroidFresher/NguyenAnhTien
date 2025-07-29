@@ -1,7 +1,7 @@
 package com.example.learnjetpackcompose.model
 
 object UserManager {
-    private val userList = mutableListOf<User>()
+    private val userList = mutableListOf<User>( User("ad", "admin@admin.com", "Abc123!"))
 
     fun addUser(user: User): Boolean {
         if (userList.any { it.username == user.username }) {

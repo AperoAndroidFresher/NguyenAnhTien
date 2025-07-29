@@ -28,18 +28,45 @@ import com.example.learnjetpackcompose.R
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel,
-    onLoginClick: () -> Unit,
+    onLoginSuccess: () -> Unit,
     onSignUpClick: () -> Unit
 ) {
 
     val userName by viewModel.userName.collectAsState()
     val password by viewModel.password.collectAsState()
+    val rememberMe by viewModel.rememberMe.collectAsState()
+    val showPassword by viewModel.showPassword.collectAsState()
+    val loginSuccess by viewModel.loginSuccess.collectAsState()
+    val showLoginError by viewModel.showLoginError.collectAsState()
+
+    // Sử dụng LaunchedEffect để xử lý các sự kiện một lần
+    LaunchedEffect(loginSuccess) {
+        if (loginSuccess) {
+            // Thực hiện hành động khi đăng nhập thành công, ví dụ: điều hướng
+            onLoginSuccess()
+            viewModel.resetLoginState() // Đặt lại trạng thái sau khi điều hướng
+        }
+    }
+
+    // Sử dụng LaunchedEffect để xử lý hiển thị lỗi (ví dụ: Snackbar)
+    LaunchedEffect(showLoginError) {
+        if (showLoginError) {
+            // Hiển thị thông báo lỗi, ví dụ: một Snackbar
+            // (Bạn cần có ScaffoldState để hiển thị Snackbar)
+            // scaffoldState.snackbarHostState.showSnackbar("Tên đăng nhập hoặc mật khẩu không đúng!")
+            // Sau khi hiển thị, có thể reset lại trạng thái lỗi nếu bạn muốn nó biến mất sau một thời gian
+            // hoặc khi người dùng nhập lại.
+            // viewModel.resetLoginState() // Nếu bạn muốn lỗi chỉ hiện 1 lần rồi biến mất
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().background(Color.Black)
@@ -105,7 +132,9 @@ fun LoginScreen(
                 )
             },
             trailingIcon = {
-                IconButton(onClick = {}
+                IconButton(onClick = {
+                    viewModel.toggleShowPassword()
+                }
                 ){
                     Icon(
                         painter = painterResource(id = R.drawable.visible),
@@ -113,7 +142,9 @@ fun LoginScreen(
                         contentDescription = "Show password",
                         tint = Color.White)
                 }
-            }
+            },
+            visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+
         )
 
         Row(
@@ -136,7 +167,7 @@ fun LoginScreen(
         }
 
         Button(
-            onClick = onLoginClick,
+            onClick = viewModel::onLoginClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp).height(50.dp),
@@ -210,39 +241,6 @@ fun SplashScreen(onTimeout: () -> Unit) {
         onTimeout()
     }
 }
-
-//@Composable
-//fun MainScreen(){
-//    var login by remember { mutableStateOf(true) }
-//    var userName by remember { mutableStateOf("") }
-//    var password by remember { mutableStateOf("") }
-//    var confirmPassword by remember { mutableStateOf("") }
-//    var email by remember { mutableStateOf("") }
-//
-//    if (login) {
-//        loginScreen(
-//            userName = userName,
-//            password = password,
-//            onUserNameChange = {userName = it},
-//            onPasswordChange = {password = it},
-//            onLoginClick = {login = true},
-//            onSignUpClick = {login = false}
-//        )
-//    }else{
-//        SignUpScreen(
-//            userName = userName,
-//            password = password,
-//            confirmPassword = confirmPassword,
-//            email = email,
-//            onUserNameChange = {userName = it},
-//            onPasswordChange = {password = it},
-//            onConfirmPasswordChange = {confirmPassword = it},
-//            onEmailChange = {email = it},
-//            onSignUpClick = {login = true},
-//            onBackClick = {login = true}
-//        )
-//    }
-//}
 
 
 @Preview (showBackground = true)

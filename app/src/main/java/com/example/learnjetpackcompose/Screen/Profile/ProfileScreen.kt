@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -32,6 +33,18 @@ import androidx.compose.ui.window.PopupProperties // Import PopupProperties (tù
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.ui.theme.LearnJetPackComposeTheme
 import kotlinx.coroutines.delay
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import java.io.File
+import java.io.FileOutputStream
 
 
 @Composable
@@ -219,7 +232,8 @@ fun ProfileEditing(onBackToView: () -> Unit) {
     var universityName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
-    var showSuccessPopup by remember { mutableStateOf(false) } // Đổi tên biến trạng thái thành Popup
+    var showSuccessPopup by remember { mutableStateOf(false) }
+    var selectedImagePath by remember { mutableStateOf<String?>(null) }
 
     var nameError by remember { mutableStateOf(false) }
     var phoneNumberError by remember { mutableStateOf(false) }
@@ -229,11 +243,24 @@ fun ProfileEditing(onBackToView: () -> Unit) {
     val phoneNumberRegex = remember { "^[0-9]+$".toRegex() }
     val universityNameRegex = remember { "^[\\p{L} .'-]+$".toRegex() }
 
+    val context = LocalContext.current
+
+    // Launcher để chọn ảnh từ device
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            // Resize và lưu ảnh
+            val resizedImagePath = resizeAndSaveImage(context, it)
+            selectedImagePath = resizedImagePath
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.background)
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -254,18 +281,57 @@ fun ProfileEditing(onBackToView: () -> Unit) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Image(
-            painter = painterResource(id = R.drawable.rose),
-            contentDescription = "Profile Image",
-            modifier = Modifier
-                .size(140.dp)
-                .clip(CircleShape)
-                .border(2.dp, Color.LightGray, CircleShape),
-            contentScale = ContentScale.Crop
-        )
+        Box(
+            modifier = Modifier.fillMaxWidth()
+        ){
+            // Hiển thị ảnh dựa vào selectedImagePath hoặc ảnh mặc định
+            if (selectedImagePath != null) {
+                AsyncImage(
+                    model = selectedImagePath,
+                    contentDescription = "Profile Image",
+                    modifier = Modifier
+                        .size(140.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, Color.LightGray, CircleShape)
+                        .align(Alignment.Center),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.rose),
+                    contentDescription = "Profile Image",
+                    modifier = Modifier
+                        .size(140.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, Color.LightGray, CircleShape)
+                        .align(Alignment.Center),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            Box(
+                modifier = Modifier.align(Alignment.BottomCenter)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.5f)),
+            ){
+                IconButton(
+                    onClick = {
+                        // Mở image picker
+                        imagePickerLauncher.launch("image/*")
+                    }
+                ){
+                    Icon(
+                        painter = painterResource(id = R.drawable.camera),
+                        contentDescription = "Edit",
+                        tint = Color.White.copy(alpha = 0.8f),
+                        modifier = Modifier
+                            .size(30.dp)
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
-
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -278,7 +344,6 @@ fun ProfileEditing(onBackToView: () -> Unit) {
                 Spacer(modifier = Modifier.height(4.dp))
                 OutlinedTextField(
                     value = name,
-
                     onValueChange = { newValue ->
                         name = newValue
                         nameError = !nameRegex.matches(newValue) && newValue.isNotEmpty()
@@ -313,7 +378,6 @@ fun ProfileEditing(onBackToView: () -> Unit) {
                     placeholder = { Text("Your phone...",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary) },
-//                    shape = RoundedCornerShape(13.dp),
                     modifier = Modifier.fillMaxWidth(),
                     colors = TextFieldDefaults.colors(MaterialTheme.colorScheme.primary),
                     singleLine = true,
@@ -372,7 +436,6 @@ fun ProfileEditing(onBackToView: () -> Unit) {
                     color = MaterialTheme.colorScheme.primary) },
                 shape = RoundedCornerShape(13.dp),
                 modifier = Modifier.fillMaxWidth().height(150.dp).border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(13.dp)),
-
                 singleLine = false
             )
         }
@@ -410,13 +473,11 @@ fun ProfileEditing(onBackToView: () -> Unit) {
             }
         }
 
-
         if (showSuccessPopup) {
             Popup(
                 onDismissRequest = { showSuccessPopup = false },
                 properties = PopupProperties(focusable = true)
             ) {
-
                 Box(
                     modifier = Modifier.size(300.dp, 200.dp)
                         .background(Color.White, shape = RoundedCornerShape(8.dp))
@@ -427,7 +488,7 @@ fun ProfileEditing(onBackToView: () -> Unit) {
                         modifier = Modifier
                             .wrapContentSize()
                             .background(Color.White, shape = RoundedCornerShape(8.dp))
-                            .padding(24.dp), // Căn giữa nội dung trong Popup
+                            .padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -458,7 +519,6 @@ fun ProfileEditing(onBackToView: () -> Unit) {
                 }
             }
 
-
             LaunchedEffect(Unit) {
                 delay(4000)
                 showSuccessPopup = false
@@ -468,10 +528,35 @@ fun ProfileEditing(onBackToView: () -> Unit) {
     }
 }
 
+fun resizeAndSaveImage(context: Context, uri: Uri): String? {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val originalBitmap = BitmapFactory.decodeStream(inputStream)
+        inputStream?.close()
+        val resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, 300, 300, true)
+
+        Log.d("A12", "${resizedBitmap?.byteCount} ${resizedBitmap?.width} ${resizedBitmap?.height}")
+        val filename = "profile_image_${System.currentTimeMillis()}.jpg"
+        val file = File(context.filesDir, filename)
+
+        val outputStream = FileOutputStream(file)
+        resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+        outputStream.flush()
+        outputStream.close()
+
+        file.absolutePath
+    }catch (e: Exception){
+        e.printStackTrace()
+        null
+    }
+}
+
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 fun PreviewMainProfileScreen() {
     MaterialTheme {
-        MainProfileScreen()
+        ProfileEditing (
+            onBackToView = {}
+        )
     }
 }
