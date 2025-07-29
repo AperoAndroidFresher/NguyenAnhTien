@@ -18,6 +18,9 @@ data class SignUpNavKey(
 ) : NavKey
 
 @Serializable
+object SplashNavKey : NavKey
+
+@Serializable
 object HomeNavKey : NavKey
 
 @Serializable
