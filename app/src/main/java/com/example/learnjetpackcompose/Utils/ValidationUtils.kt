@@ -43,4 +43,26 @@ object ValidationUtils {
             else -> null
         }
     }
+
+    fun validatePhoneNumber(phoneNumber: String): String? {
+        val phonePattern = "^[0-9]{9,15}$".toRegex()
+        return when {
+            !phoneNumber.matches(phonePattern) -> "Invalid format"
+            else -> null
+        }
+    }
+    fun validateName(fullName: String): String? {
+        val namePattern = "^[\\p{L} ]{1,30}$".toRegex()
+        return when {
+            !fullName.matches(namePattern) -> "Invalid format"
+            else -> null
+        }
+    }
+    fun validateUniversity(university: String): String? {
+        val universityPattern = "^[\\p{L} .'-]+$".toRegex()
+        return when {
+            !university.matches(universityPattern) -> "Invalid format"
+            else -> null
+        }
+    }
 }

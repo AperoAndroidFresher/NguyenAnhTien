@@ -7,9 +7,9 @@ import androidx.navigation3.runtime.entry
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import com.example.learnjetpackcompose.Screen.HomeScreen
-import com.example.learnjetpackcompose.Screen.LogIn.LoginScreen
-import com.example.learnjetpackcompose.Screen.LogIn.LoginViewModel
-import com.example.learnjetpackcompose.Screen.LogIn.SplashScreen
+import com.example.learnjetpackcompose.Screen.Login.LoginScreen
+import com.example.learnjetpackcompose.Screen.Login.LoginViewModel
+import com.example.learnjetpackcompose.Screen.Login.SplashScreen
 
 import com.example.learnjetpackcompose.Screen.SignUp.SignUpScreen
 import com.example.learnjetpackcompose.Screen.SignUp.SignUpViewModel
@@ -49,10 +49,10 @@ fun NavigationApp(){
             }
             entry<HomeNavKey>{key ->
                 HomeScreen(
-                    onMyProfileClick = { backStack.add(ProfileNavKey) } // Thêm onMyProfileClick
+                    onMyProfileClick = { backStack.add(ProfileNavKey) }
                 )
             }
-            entry<ProfileNavKey>{key -> // Thêm entry cho ProfileNavKey
+            entry<ProfileNavKey>{key ->
                 MainProfileScreen()
             }
 
