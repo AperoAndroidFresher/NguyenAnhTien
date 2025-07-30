@@ -1,35 +1,25 @@
-package com.example.learnjetpackcompose.Screen
+package com.example.learnjetpackcompose.Screen.Login
 
-import android.graphics.drawable.Icon
-import android.media.Image
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.*
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,22 +27,38 @@ import androidx.compose.ui.unit.dp
 import com.example.learnjetpackcompose.R
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
-import androidx.lint.kotlin.metadata.Visibility
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
-fun loginScreen(
-    userName: String,
-    password: String,
-    onUserNameChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onLoginClick: () -> Unit,
+fun LoginScreen(
+    viewModel: LoginViewModel,
+    onLoginSuccess: () -> Unit,
     onSignUpClick: () -> Unit
 ) {
+
+    val state by viewModel.state.collectAsState()
+
+    // Sử dụng LaunchedEffect để xử lý các sự kiện một lần
+    LaunchedEffect(Unit) {
+        viewModel.effect.collectLatest{ effect ->
+            when (effect){
+                is LoginEffect.NavigateToHome -> {
+                    onLoginSuccess()
+                }
+                is LoginEffect.NavigateToSignUp -> {
+                    onSignUpClick()
+                }
+            }
+
+        }
+    }
+
+
     Column(
         modifier = Modifier.fillMaxSize().background(Color.Black)
     ){
@@ -74,9 +80,10 @@ fun loginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+//      UserName Textfield
         OutlinedTextField(
-            value = userName,
-            onValueChange = onUserNameChange,
+            value = state.username,
+            onValueChange = {viewModel.processIntent(LoginIntent.UsernameChanged(it))},
             label = { Text(text = "Username", color = Color.White.copy(0.7f)) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -87,8 +94,8 @@ fun loginScreen(
             ),
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = "Password Icon",
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "User Icon",
                     tint = Color.White.copy(alpha = 0.5f)
 
                 )
@@ -97,8 +104,8 @@ fun loginScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
-            value = password,
-            onValueChange = onPasswordChange,
+            value = state.password,
+            onValueChange = {viewModel.processIntent(LoginIntent.PasswordChanged(it))},
             label = { Text(text = "Password", color = Color.White.copy(0.7f)) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -116,7 +123,9 @@ fun loginScreen(
                 )
             },
             trailingIcon = {
-                IconButton(onClick = {}
+                IconButton(onClick = {
+                    viewModel.processIntent(LoginIntent.ShowPasswordVisibility)
+                }
                 ){
                     Icon(
                         painter = painterResource(id = R.drawable.visible),
@@ -124,7 +133,9 @@ fun loginScreen(
                         contentDescription = "Show password",
                         tint = Color.White)
                 }
-            }
+            },
+            visualTransformation = if (state.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+
         )
 
         Row(
@@ -134,7 +145,7 @@ fun loginScreen(
         ){
             Checkbox(
                 checked = false,
-                onCheckedChange = {},
+                onCheckedChange = { viewModel.processIntent(LoginIntent.RememberMeChanged(it))},
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp)
             )
 
@@ -147,7 +158,7 @@ fun loginScreen(
         }
 
         Button(
-            onClick = onLoginClick,
+            onClick = {viewModel.processIntent(LoginIntent.LoginClick)},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp).height(50.dp),
@@ -222,43 +233,10 @@ fun SplashScreen(onTimeout: () -> Unit) {
     }
 }
 
-@Composable
-fun MainScreen(){
-    var login by remember { mutableStateOf(true) }
-    var userName by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-
-    if (login) {
-        loginScreen(
-            userName = userName,
-            password = password,
-            onUserNameChange = {userName = it},
-            onPasswordChange = {password = it},
-            onLoginClick = {login = true},
-            onSignUpClick = {login = false}
-        )
-    }else{
-        SignUpScreen(
-            userName = userName,
-            password = password,
-            confirmPassword = confirmPassword,
-            email = email,
-            onUserNameChange = {userName = it},
-            onPasswordChange = {password = it},
-            onConfirmPasswordChange = {confirmPassword = it},
-            onEmailChange = {email = it},
-            onSignUpClick = {login = true},
-            onBackClick = {login = true}
-        )
-    }
-}
-
 
 @Preview (showBackground = true)
 @Composable
 fun MainScreenPreview() {
 
-    MainScreen()
+//    MainScreen()
 }

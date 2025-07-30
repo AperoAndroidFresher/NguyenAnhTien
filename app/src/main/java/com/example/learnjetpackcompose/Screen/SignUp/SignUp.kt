@@ -1,5 +1,6 @@
-package com.example.learnjetpackcompose.Screen
+package com.example.learnjetpackcompose.Screen.SignUp
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -21,11 +22,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -41,65 +44,32 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learnjetpackcompose.R
-import com.example.learnjetpackcompose.User
-import com.example.learnjetpackcompose.UserManager
-import com.example.learnjetpackcompose.ValidationUtils
+
 
 @Composable
 fun SignUpScreen(
-    userName: String,
-    password: String,
-    confirmPassword: String,
-    email: String,
-    onUserNameChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onConfirmPasswordChange: (String) -> Unit,
-    onEmailChange: (String) -> Unit,
+    viewModel: SignUpViewModel,
     onSignUpClick: () -> Unit,
     onBackClick: () -> Unit = {}
 ) {
-    var showPassword by remember { mutableStateOf(false) }
-    var showConfirmPassword by remember { mutableStateOf(false) }
-    var usernameError by remember { mutableStateOf<String?>(null) }
-    var passwordError by remember { mutableStateOf<String?>(null) }
-    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
-    var emailError by remember { mutableStateOf<String?>(null) }
-    var signUpMessage by remember { mutableStateOf<String?>(null) }
-    var isSignUpSuccess by remember { mutableStateOf(false) }
 
-    fun validateAndSignUp() {
-        usernameError = null
-        passwordError = null
-        confirmPasswordError = null
-        emailError = null
-        signUpMessage = null
-        isSignUpSuccess = false
+    val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
 
-        usernameError = ValidationUtils.validateUsername(userName)
-        passwordError = ValidationUtils.validatePassword(password)
-        confirmPasswordError = ValidationUtils.validateConfirmPassword(password, confirmPassword)
-        emailError = ValidationUtils.validateEmail(email)
-
-        if (usernameError == null && passwordError == null &&
-            confirmPasswordError == null && emailError == null) {
-
-            val newUser = User(userName, email, password)
-            val success = UserManager.addUser(newUser)
-
-            if (success) {
-                signUpMessage = "Đăng ký thành công!"
-                isSignUpSuccess = true
-                onUserNameChange("")
-                onPasswordChange("")
-                onConfirmPasswordChange("")
-                onEmailChange("")
-                onBackClick()
-            } else {
-                signUpMessage = "Đăng ký thất bại! Username hoặc Email đã tồn tại."
-                isSignUpSuccess = false
+    LaunchedEffect (Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                // Handle effects here
+                is SignUpEffect.NavigateToLogin -> {
+                    onSignUpClick()
+                }
+                is SignUpEffect.ShowMessage -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
+
 
     Column(
         modifier = Modifier
@@ -140,10 +110,9 @@ fun SignUpScreen(
 
         // Username Field
         OutlinedTextField(
-            value = userName,
+            value = state.username,
             onValueChange = {
-                onUserNameChange(it)
-                usernameError = null
+                viewModel.processIntent(SignUpIntent.UsernameChanged(it))
             },
             label = { Text(text = "Username", color = Color.White.copy(0.7f)) },
             modifier = Modifier
@@ -156,18 +125,18 @@ fun SignUpScreen(
                     tint = Color.White.copy(alpha = 0.5f)
                 )
             },
-            isError = usernameError != null,
+            isError = state.errors.usernameError != null,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                focusedBorderColor = if (usernameError != null) Color.Red else Color(0xFF06A0B5),
-                unfocusedBorderColor = if (usernameError != null) Color.Red else Color.White.copy(0.5f),
+                focusedBorderColor = if (state.errors.usernameError != null) Color.Red else Color(0xFF06A0B5),
+                unfocusedBorderColor = if (state.errors.usernameError != null) Color.Red else Color.White.copy(0.5f),
                 errorBorderColor = Color.Red
             )
         )
-        if (usernameError != null) {
+        if (state.errors.usernameError != null) {
             Text(
-                text = usernameError!!,
+                text = state.errors.usernameError!!,
                 color = Color.Red,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -178,10 +147,9 @@ fun SignUpScreen(
 
 
         OutlinedTextField(
-            value = password,
+            value = state.password,
             onValueChange = {
-                onPasswordChange(it)
-                passwordError = null
+                viewModel.processIntent(SignUpIntent.PasswordChanged(it))
             },
             label = { Text(text = "Password", color = Color.White.copy(0.7f)) },
             modifier = Modifier
@@ -195,27 +163,27 @@ fun SignUpScreen(
                 )
             },
             trailingIcon = {
-                IconButton(onClick = { showPassword = !showPassword }) {
+                IconButton(onClick = { viewModel.processIntent(SignUpIntent.ShowPassword)}) {
                     Icon(
                         painter = painterResource(id = R.drawable.visible),
-                        contentDescription = if (showPassword) "Hide password" else "Show password",
+                        contentDescription = if (state.isPasswordVisible) "Hide password" else "Show password",
                         tint = Color.White
                     )
                 }
             },
-            visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-            isError = passwordError != null,
+            visualTransformation = if (state.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            isError = state.errors.passwordError != null,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                focusedBorderColor = if (passwordError != null) Color.Red else Color(0xFF06A0B5),
-                unfocusedBorderColor = if (passwordError != null) Color.Red else Color.White.copy(0.5f),
+                focusedBorderColor = if (state.errors.passwordError != null) Color.Red else Color(0xFF06A0B5),
+                unfocusedBorderColor = if (state.errors.passwordError != null) Color.Red else Color.White.copy(0.5f),
                 errorBorderColor = Color.Red
             )
         )
-        if (passwordError != null) {
+        if (state.errors.passwordError != null) {
             Text(
-                text = passwordError!!,
+                text = state.errors.passwordError!!,
                 color = Color.Red,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -225,10 +193,9 @@ fun SignUpScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = confirmPassword,
+            value = state.confirmPassword,
             onValueChange = {
-                onConfirmPasswordChange(it)
-                confirmPasswordError = null
+                viewModel.processIntent(SignUpIntent.ConfirmPasswordChanged(it))
             },
             label = { Text(text = "Confirm Password", color = Color.White.copy(0.7f)) },
             modifier = Modifier
@@ -242,27 +209,27 @@ fun SignUpScreen(
                 )
             },
             trailingIcon = {
-                IconButton(onClick = { showConfirmPassword = !showConfirmPassword }) {
+                IconButton(onClick = { viewModel.processIntent(SignUpIntent.ShowConfirmPassword) }) {
                     Icon(
                         painter = painterResource(id = R.drawable.visible),
-                        contentDescription = if (showConfirmPassword) "Hide password" else "Show password",
+                        contentDescription = if (state.isConfirmPasswordVisible) "Hide password" else "Show password",
                         tint = Color.White
                     )
                 }
             },
-            visualTransformation = if (showConfirmPassword) VisualTransformation.None else PasswordVisualTransformation(),
-            isError = confirmPasswordError != null,
+            visualTransformation = if (state.isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            isError = state.errors.confirmPasswordError != null,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                focusedBorderColor = if (confirmPasswordError != null) Color.Red else Color(0xFF06A0B5),
-                unfocusedBorderColor = if (confirmPasswordError != null) Color.Red else Color.White.copy(0.5f),
+                focusedBorderColor = if (state.errors.confirmPasswordError != null) Color.Red else Color(0xFF06A0B5),
+                unfocusedBorderColor = if (state.errors.confirmPasswordError != null) Color.Red else Color.White.copy(0.5f),
                 errorBorderColor = Color.Red
             )
         )
-        if (confirmPasswordError != null) {
+        if (state.errors.confirmPasswordError != null) {
             Text(
-                text = confirmPasswordError!!,
+                text = state.errors.confirmPasswordError!!,
                 color = Color.Red,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -273,10 +240,9 @@ fun SignUpScreen(
 
 
         OutlinedTextField(
-            value = email,
+            value = state.email,
             onValueChange = {
-                onEmailChange(it)
-                emailError = null
+                viewModel.processIntent(SignUpIntent.EmailChanged(it))
             },
             label = { Text(text = "Email", color = Color.White.copy(0.7f)) },
             modifier = Modifier
@@ -289,18 +255,18 @@ fun SignUpScreen(
                     tint = Color.White.copy(alpha = 0.5f)
                 )
             },
-            isError = emailError != null,
+            isError = state.errors.emailError != null,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                focusedBorderColor = if (emailError != null) Color.Red else Color(0xFF06A0B5),
-                unfocusedBorderColor = if (emailError != null) Color.Red else Color.White.copy(0.5f),
+                focusedBorderColor = if (state.errors.emailError != null) Color.Red else Color(0xFF06A0B5),
+                unfocusedBorderColor = if (state.errors.emailError != null) Color.Red else Color.White.copy(0.5f),
                 errorBorderColor = Color.Red
             )
         )
-        if (emailError != null) {
+        if (state.errors.emailError != null) {
             Text(
-                text = emailError!!,
+                text = state.errors.emailError!!,
                 color = Color.Red,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -310,20 +276,8 @@ fun SignUpScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
 
-        if (signUpMessage != null) {
-            Text(
-                text = signUpMessage!!,
-                color = if (isSignUpSuccess) Color.Green else Color.Red,
-                fontSize = 14.sp,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(horizontal = 16.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
         Button(
-            onClick = { validateAndSignUp() },
+            onClick = { viewModel.processIntent(SignUpIntent.SignUpClicked) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -342,23 +296,3 @@ fun SignUpScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun SignUpScreenPreview() {
-    var userName by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-
-    SignUpScreen(
-        userName = userName,
-        password = password,
-        confirmPassword = confirmPassword,
-        email = email,
-        onUserNameChange = { userName = it },
-        onPasswordChange = { password = it },
-        onConfirmPasswordChange = { confirmPassword = it },
-        onEmailChange = { email = it },
-        onSignUpClick = {}
-    )
-}
