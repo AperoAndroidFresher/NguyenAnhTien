@@ -1,4 +1,4 @@
-package com.example.learnjetpackcompose.Screen.LogIn
+package com.example.learnjetpackcompose.Screen.Login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,6 +32,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun LoginScreen(
@@ -40,33 +41,23 @@ fun LoginScreen(
     onSignUpClick: () -> Unit
 ) {
 
-    val userName by viewModel.userName.collectAsState()
-    val password by viewModel.password.collectAsState()
-    val rememberMe by viewModel.rememberMe.collectAsState()
-    val showPassword by viewModel.showPassword.collectAsState()
-    val loginSuccess by viewModel.loginSuccess.collectAsState()
-    val showLoginError by viewModel.showLoginError.collectAsState()
+    val state by viewModel.state.collectAsState()
 
     // Sử dụng LaunchedEffect để xử lý các sự kiện một lần
-    LaunchedEffect(loginSuccess) {
-        if (loginSuccess) {
-            // Thực hiện hành động khi đăng nhập thành công, ví dụ: điều hướng
-            onLoginSuccess()
-            viewModel.resetLoginState() // Đặt lại trạng thái sau khi điều hướng
+    LaunchedEffect(Unit) {
+        viewModel.effect.collectLatest{ effect ->
+            when (effect){
+                is LoginEffect.NavigateToHome -> {
+                    onLoginSuccess()
+                }
+                is LoginEffect.NavigateToSignUp -> {
+                    onSignUpClick()
+                }
+            }
+
         }
     }
 
-    // Sử dụng LaunchedEffect để xử lý hiển thị lỗi (ví dụ: Snackbar)
-    LaunchedEffect(showLoginError) {
-        if (showLoginError) {
-            // Hiển thị thông báo lỗi, ví dụ: một Snackbar
-            // (Bạn cần có ScaffoldState để hiển thị Snackbar)
-            // scaffoldState.snackbarHostState.showSnackbar("Tên đăng nhập hoặc mật khẩu không đúng!")
-            // Sau khi hiển thị, có thể reset lại trạng thái lỗi nếu bạn muốn nó biến mất sau một thời gian
-            // hoặc khi người dùng nhập lại.
-            // viewModel.resetLoginState() // Nếu bạn muốn lỗi chỉ hiện 1 lần rồi biến mất
-        }
-    }
 
     Column(
         modifier = Modifier.fillMaxSize().background(Color.Black)
@@ -91,8 +82,8 @@ fun LoginScreen(
 
 //      UserName Textfield
         OutlinedTextField(
-            value = userName,
-            onValueChange = {viewModel.onUserNameChange(it)},
+            value = state.username,
+            onValueChange = {viewModel.processIntent(LoginIntent.UsernameChanged(it))},
             label = { Text(text = "Username", color = Color.White.copy(0.7f)) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -113,8 +104,8 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
-            value = password,
-            onValueChange = {viewModel.onPasswordChange(it)},
+            value = state.password,
+            onValueChange = {viewModel.processIntent(LoginIntent.PasswordChanged(it))},
             label = { Text(text = "Password", color = Color.White.copy(0.7f)) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -133,7 +124,7 @@ fun LoginScreen(
             },
             trailingIcon = {
                 IconButton(onClick = {
-                    viewModel.toggleShowPassword()
+                    viewModel.processIntent(LoginIntent.ShowPasswordVisibility)
                 }
                 ){
                     Icon(
@@ -143,7 +134,7 @@ fun LoginScreen(
                         tint = Color.White)
                 }
             },
-            visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+            visualTransformation = if (state.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
 
         )
 
@@ -154,7 +145,7 @@ fun LoginScreen(
         ){
             Checkbox(
                 checked = false,
-                onCheckedChange = { viewModel.onRememberMeChange(it)},
+                onCheckedChange = { viewModel.processIntent(LoginIntent.RememberMeChanged(it))},
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp)
             )
 
@@ -167,7 +158,7 @@ fun LoginScreen(
         }
 
         Button(
-            onClick = viewModel::onLoginClick,
+            onClick = {viewModel.processIntent(LoginIntent.LoginClick)},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp).height(50.dp),

@@ -1,120 +1,92 @@
 package com.example.learnjetpackcompose.Screen.SignUp
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.model.User
 import com.example.learnjetpackcompose.model.UserManager
 import com.example.learnjetpackcompose.Utils.ValidationUtils
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class SignUpViewModel : ViewModel() {
 
-    // Input state
-    private val _userName = MutableStateFlow("")
-    val userName: StateFlow<String> = _userName
+    private val _state = MutableStateFlow(SignUpState())
+    val state = _state.asStateFlow()
 
-    private val _password = MutableStateFlow("")
-    val password: StateFlow<String> = _password
+    private val _effect = Channel<SignUpEffect>()
+    val effect = _effect.receiveAsFlow()
 
-    private val _confirmPassword = MutableStateFlow("")
-    val confirmPassword: StateFlow<String> = _confirmPassword
+    fun processIntent(intent: SignUpIntent) {
+        when (intent) {
+            is SignUpIntent.ConfirmPasswordChanged -> {
+                _state.update { it.copy(confirmPassword = intent.confirmPassword) }
+            }
 
-    private val _email = MutableStateFlow("")
-    val email: StateFlow<String> = _email
+            SignUpIntent.ShowConfirmPassword -> {
+                _state.update { it.copy(isConfirmPasswordVisible = !it.isConfirmPasswordVisible) }
+            }
 
-    // Error state
-    private val _userNameError = MutableStateFlow<String?>(null)
-    val userNameError: StateFlow<String?> = _userNameError
+            is SignUpIntent.EmailChanged -> {
+                _state.update { it.copy(email = intent.email) }
+            }
 
-    private val _passwordError = MutableStateFlow<String?>(null)
-    val passwordError: StateFlow<String?> = _passwordError
+            is SignUpIntent.PasswordChanged -> {
+                _state.update { it.copy(password = intent.password) }
+            }
 
-    private val _confirmPasswordError = MutableStateFlow<String?>(null)
-    val confirmPasswordError: StateFlow<String?> = _confirmPasswordError
+            SignUpIntent.ShowPassword -> {
+                _state.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
+            }
 
-    private val _emailError = MutableStateFlow<String?>(null)
-    val emailError: StateFlow<String?> = _emailError
+            SignUpIntent.SignUpClicked -> {
+                validateAndSignUp()
+            }
 
-    private val _showPassword = MutableStateFlow(false)
-    val showPassword: StateFlow<Boolean> = _showPassword
-
-    private val _showConfirmPassword = MutableStateFlow(false)
-    val showConfirmPassword: StateFlow<Boolean> = _showConfirmPassword
-
-    // Feedback message
-    private val _signUpMessage = MutableStateFlow<String?>(null)
-    val signUpMessage: StateFlow<String?> = _signUpMessage
-
-    private val _signUpSuccess = MutableStateFlow(false)
-    val signUpSuccess: StateFlow<Boolean> = _signUpSuccess
-
-    // Input change handlers
-    fun onUserNameChange(value: String) {
-        _userName.value = value
-        _userNameError.value = null
-    }
-
-    fun onPasswordChange(value: String) {
-        _password.value = value
-        _passwordError.value = null
-    }
-
-    fun onConfirmPasswordChange(value: String) {
-        _confirmPassword.value = value
-        _confirmPasswordError.value = null
-    }
-
-    fun onEmailChange(value: String) {
-        _email.value = value
-        _emailError.value = null
-    }
-
-
-    fun toggleShowPassword() {
-        _showPassword.value = !_showPassword.value
-    }
-
-    fun toggleShowConfirmPassword() {
-        _showConfirmPassword.value = !_showConfirmPassword.value
-    }
-
-
-    // Validation and sign up logic
-    fun validateAndSignUp(onSuccess: () -> Unit) {
-        _userNameError.value = ValidationUtils.validateUsername(_userName.value)
-        _passwordError.value = ValidationUtils.validatePassword(_password.value)
-        _confirmPasswordError.value =
-            ValidationUtils.validateConfirmPassword(_password.value, _confirmPassword.value)
-        _emailError.value = ValidationUtils.validateEmail(_email.value)
-
-        val isValid = listOf(
-            _userNameError.value,
-            _passwordError.value,
-            _confirmPasswordError.value,
-            _emailError.value
-        ).all { it == null }
-
-        if (isValid) {
-            val newUser = User(_userName.value, _email.value, _password.value)
-            val success = UserManager.addUser(newUser)
-
-            if (success) {
-                _signUpMessage.value = "Đăng ký thành công!"
-                _signUpSuccess.value = true
-                resetFields()
-                onSuccess()
-            } else {
-                _signUpMessage.value = "Đăng ký thất bại! Username hoặc Email đã tồn tại."
-                _signUpSuccess.value = false
+            is SignUpIntent.UsernameChanged -> {
+                _state.update { it.copy(username = intent.username) }
             }
         }
     }
 
-    private fun resetFields() {
-        _userName.value = ""
-        _password.value = ""
-        _confirmPassword.value = ""
-        _email.value = ""
+    // Validation and sign up logic
+    private fun validateAndSignUp() {
+        viewModelScope.launch{
+            _state.update{it.copy(isLoading = true)}
+
+            val currentState = _state.value
+
+            val validationErrors = SignUpErrors(
+                usernameError = ValidationUtils.validateUsername(currentState.username),
+                emailError = ValidationUtils.validateEmail(currentState.email),
+                passwordError = ValidationUtils.validatePassword(currentState.password),
+                confirmPasswordError = ValidationUtils.validateConfirmPassword(currentState.password, currentState.confirmPassword)
+            )
+            val isValid = with(validationErrors){
+                usernameError == null && emailError == null && passwordError == null && confirmPasswordError == null
+            }
+            if(isValid){
+                val newUser = User(currentState.username, currentState.email, currentState.password)
+                val success = UserManager.addUser(newUser)
+
+                if(success){
+                    _effect.send(SignUpEffect.ShowMessage("Dang ky thanh cong"))
+                    _state.value = SignUpState()
+                    _effect.send(SignUpEffect.NavigateToLogin)
+                }else{
+                    _effect.send(SignUpEffect.ShowMessage("Dang ky that bai"))
+                    _state.update{it.copy(isLoading = false)}
+                }
+            }else{
+                _state.value = SignUpState()
+                _state.update{it.copy(isLoading = false, errors = validationErrors)}
+            }
+        }
     }
+
+
 }
+
