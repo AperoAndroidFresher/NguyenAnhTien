@@ -226,7 +226,7 @@ fun ProfileHeader(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.edit),
+                    painter = painterResource(id = R.drawable.iconedit),
                     contentDescription = "Edit Profile",
                     modifier = Modifier.size(32.dp)
                 )
@@ -390,7 +390,7 @@ fun SuccessPopup(
     onDismiss: () -> Unit,
     title: String = "Success!",
     message: String = "Your information has been updated!",
-    iconRes: Int = R.drawable.success
+    iconRes: Int = R.drawable.iconsuccess
 ) {
     Popup(
         onDismissRequest = onDismiss,

@@ -44,8 +44,8 @@ fun HomeScreen(modifier: Modifier = Modifier, onMyProfileClick: () -> Unit){
 
     val navItemsList = listOf(
         NavBottomItems("Home", R.drawable.iconhome),
-        NavBottomItems("Library", R.drawable.library),
-        NavBottomItems("My Playlist", R.drawable.musicnote)
+        NavBottomItems("Library", R.drawable.iconlibrary),
+        NavBottomItems("My Playlist", R.drawable.iconplaylist)
     )
     var selectedIndex by remember { mutableStateOf(0) }
     Scaffold(
