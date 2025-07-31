@@ -1,5 +1,7 @@
 package com.example.learnjetpackcompose.Screen
 
+import android.annotation.SuppressLint
+import android.app.Application
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,20 +29,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.model.NavBottomItems
-import com.example.learnjetpackcompose.model.songs
+import com.example.learnjetpackcompose.model.SongViewModel
+
+//import com.example.learnjetpackcompose.model.songs
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier, onMyProfileClick: () -> Unit){
 
     val navItemsList = listOf(
-        NavBottomItems("Home"),
-        NavBottomItems("Library"),
-        NavBottomItems("My Playlist")
+        NavBottomItems("Home", R.drawable.iconhome),
+        NavBottomItems("Library", R.drawable.library),
+        NavBottomItems("My Playlist", R.drawable.musicnote)
     )
     var selectedIndex by remember { mutableStateOf(0) }
     Scaffold(
@@ -49,21 +55,30 @@ fun HomeScreen(modifier: Modifier = Modifier, onMyProfileClick: () -> Unit){
                 NavigationBarItem(
                     selected = selectedIndex == index,
                     onClick = { selectedIndex = index},
-                    icon = { /* Provide an icon for the item */ },
+                    icon = {
+                        Icon(
+                            painter = painterResource(navItem.icon),
+                            contentDescription = "Icon page",
+                            modifier = Modifier.size(25.dp)
+                        )
+                    },
                     label = {Text(navItem.label, fontSize = 16.sp,
                         style = MaterialTheme.typography.labelMedium) }
                 )
+                }
             }
-        } }
+        }
     ) {innerPadding ->
-        ContentScreen(modifier = Modifier.fillMaxSize().padding(innerPadding), selectedIndex = selectedIndex, onMyProfileClick = onMyProfileClick)
+        ContentScreen(modifier = Modifier.padding(innerPadding).fillMaxSize(), selectedIndex = selectedIndex, onMyProfileClick = onMyProfileClick)
     }
 }
 
 @Composable
-fun HomePage(onMyProfileClick:() -> Unit){
+fun HomePage(
+    modifier: Modifier,
+    onMyProfileClick:() -> Unit){
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
 
         ) {
         Row(
@@ -90,9 +105,11 @@ fun HomePage(onMyProfileClick:() -> Unit){
     }
 }
 @Composable
-fun LibraryPage(){
+fun LibraryPage(
+    modifier: Modifier
+){
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -100,11 +117,17 @@ fun LibraryPage(){
     }
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun ContentScreen(modifier: Modifier = Modifier, selectedIndex: Int, onMyProfileClick: () -> Unit) {
+    val context = LocalContext.current
+    val songViewModel = SongViewModel(context.applicationContext as Application)
+    val songs = songViewModel.songs
     when(selectedIndex) {
-        0 -> HomePage(onMyProfileClick = onMyProfileClick)
-        1 -> LibraryPage()
-        2 -> PlaylistScreen(songs)
+        0 -> HomePage(
+            modifier,
+            onMyProfileClick = onMyProfileClick)
+        1 -> LibraryPage(modifier)
+        2 -> PlaylistScreen(modifier, songs)
     }
 }
