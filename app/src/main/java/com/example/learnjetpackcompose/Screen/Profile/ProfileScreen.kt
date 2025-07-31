@@ -127,7 +127,7 @@ fun ProfileNoEdit(
                 onClick = {onEditClick()}
             ){
                 Icon(
-                    painter = painterResource(id = R.drawable.edit),
+                    painter = painterResource(id = R.drawable.iconedit),
                     contentDescription = "Edit",
                     modifier = Modifier.size(32.dp),
                     tint = MaterialTheme.colorScheme.primary
@@ -488,7 +488,7 @@ fun ProfileEditing(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.success),
+                            painter = painterResource(id = R.drawable.iconsuccess),
                             contentDescription = "Success Icon",
                             modifier = Modifier
                                 .size(80.dp)

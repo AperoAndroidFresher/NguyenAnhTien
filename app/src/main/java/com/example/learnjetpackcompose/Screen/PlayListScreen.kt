@@ -50,7 +50,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.model.Song
 
@@ -141,7 +140,7 @@ fun SongCardList(song: Song,
                                 modifier = Modifier.padding(8.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Delete,
+                                    painter = painterResource(R.drawable.iconremove),
                                     contentDescription = "Remove",
                                     tint = Color.White,
                                     modifier = Modifier.size(20.dp)
@@ -253,7 +252,7 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
                                     modifier = Modifier.padding(8.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.Delete,
+                                        painter = painterResource(R.drawable.iconremove),
                                         contentDescription = "Remove",
                                         tint = Color.White,
                                         modifier = Modifier.size(20.dp)
