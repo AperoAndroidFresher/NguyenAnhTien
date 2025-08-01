@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,6 +33,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learnjetpackcompose.R
+import com.example.learnjetpackcompose.Screen.Library.LibraryScreen
+import com.example.learnjetpackcompose.Screen.Library.LibraryViewModel
+import com.example.learnjetpackcompose.Screen.Playlist.PlaylistScreen
+import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 import com.example.learnjetpackcompose.model.NavBottomItems
 import com.example.learnjetpackcompose.model.SongViewModel
 
@@ -123,11 +126,13 @@ fun ContentScreen(modifier: Modifier = Modifier, selectedIndex: Int, onMyProfile
     val context = LocalContext.current
     val songViewModel = SongViewModel(context.applicationContext as Application)
     val songs = songViewModel.songs
+    val playlistViewModel = PlaylistViewModel()
+    val libraryViewModel = LibraryViewModel()
     when(selectedIndex) {
         0 -> HomePage(
             modifier,
             onMyProfileClick = onMyProfileClick)
-        1 -> LibraryPage(modifier)
-        2 -> PlaylistScreen(modifier, songs)
+        1 -> LibraryScreen(libraryViewModel, songs, modifier)
+        2 -> PlaylistScreen(playlistViewModel, songs, modifier)
     }
 }

@@ -546,6 +546,7 @@ fun resizeAndSaveImage(context: Context, uri: Uri): String? {
     }
 }
 
+
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 fun PreviewMainProfileScreen() {

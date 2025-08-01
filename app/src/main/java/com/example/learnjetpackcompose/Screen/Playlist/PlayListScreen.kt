@@ -1,4 +1,4 @@
-package com.example.learnjetpackcompose.Screen
+package com.example.learnjetpackcompose.Screen.Playlist
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
@@ -34,8 +33,12 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,29 +55,77 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.model.Song
-
-//import org.burnoutcrew.reorderable.ReorderableItem
-//import org.burnoutcrew.reorderable.detectReorderAfterLongPress
-//import org.burnoutcrew.reorderable.rememberReorderableLazyListState
-
-
-data class Song1(val name: String, val singer: String, val playtime: String, val imageId: Int)
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
-fun SongCardList(song: Song,
-                 onRemoveSong: (Song) -> Unit,
-                 modifier: Modifier = Modifier){
+fun PlaylistScreen(
+    viewModel: PlaylistViewModel,
+    listSongs: List<Song>,
+    modifier: Modifier = Modifier
+) {
+    val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Initialize songs when screen loads
+    LaunchedEffect(listSongs) {
+        viewModel.processIntent(PlaylistIntent.LoadSongs(listSongs))
+    }
+
+    // Handle side effects
+    LaunchedEffect(Unit) {
+        viewModel.effect.collectLatest { effect ->
+            when (effect) {
+                is PlaylistEffect.ShowMessage -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+            }
+        }
+    }
+
+    Box(modifier = modifier) {
+        if (state.isGridView) {
+            PlaylistGrid(
+                modifier = modifier,
+                songs = state.songs,
+                onToggleView = { viewModel.processIntent(PlaylistIntent.ToggleView) },
+                onRemoveSong = { song -> viewModel.processIntent(PlaylistIntent.RemoveSong(song)) }
+            )
+        } else {
+            PlaylistLinear(
+                modifier = modifier,
+                songs = state.songs,
+                onToggleView = { viewModel.processIntent(PlaylistIntent.ToggleView) },
+                onRemoveSong = { song -> viewModel.processIntent(PlaylistIntent.RemoveSong(song)) },
+                onReorder = { from, to -> viewModel.processIntent(PlaylistIntent.ReorderSongs(from, to)) }
+            )
+        }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
+}
+
+@Composable
+fun SongCardList(
+    song: Song,
+    onRemoveSong: (Song) -> Unit,
+    modifier: Modifier = Modifier
+) {
     var showDropdownMenu by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ){
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .background(color = Color.Black),
-        ){
+        ) {
             if (song.albumArt != null) {
                 Image(
                     bitmap = song.albumArt.asImageBitmap(),
@@ -83,16 +134,20 @@ fun SongCardList(song: Song,
                     contentScale = ContentScale.Fit
                 )
             } else {
-                Icon(painter = painterResource(id = R.drawable.musicnote),
+                Icon(
+                    painter = painterResource(id = R.drawable.musicnote),
                     contentDescription = null,
-                    modifier = Modifier.size(80.dp))
+                    modifier = Modifier.size(80.dp)
+                )
             }
 
-
-            Column(){
+            Column {
                 Text(
                     text = song.title,
-                    modifier = Modifier.padding(10.dp).width(150.dp).basicMarquee(),
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .width(150.dp)
+                        .basicMarquee(),
                     style = MaterialTheme.typography.titleSmall,
                     fontSize = 20.sp,
                     color = Color.White
@@ -131,7 +186,9 @@ fun SongCardList(song: Song,
                     shape = RoundedCornerShape(14.dp),
                     expanded = showDropdownMenu,
                     onDismissRequest = { showDropdownMenu = false },
-                    modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Color.DarkGray)
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color.DarkGray)
                 ) {
                     DropdownMenuItem(
                         text = {
@@ -191,21 +248,22 @@ fun SongCardList(song: Song,
 }
 
 @Composable
-fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
+fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit) {
     var showDropdownMenu by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ){
+    ) {
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .background(color = Color.Black),
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
-            Box(){
-
+        ) {
+            Box {
                 if (song.albumArt != null) {
                     Image(
                         bitmap = song.albumArt.asImageBitmap(),
@@ -214,9 +272,11 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
                         contentScale = ContentScale.Fit,
                     )
                 } else {
-                    Icon(painter = painterResource(id = R.drawable.musicnote),
+                    Icon(
+                        painter = painterResource(id = R.drawable.musicnote),
                         contentDescription = null,
-                        modifier = Modifier.size(140.dp))
+                        modifier = Modifier.size(140.dp)
+                    )
                 }
 
                 Box(
@@ -242,8 +302,9 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
                         shape = RoundedCornerShape(14.dp),
                         expanded = showDropdownMenu,
                         onDismissRequest = { showDropdownMenu = false },
-                        modifier = Modifier.clip(RoundedCornerShape(14.dp))
-                            .background(Color.DarkGray.copy(alpha = 0.8f), RoundedCornerShape(14.dp))
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color.DarkGray)
                     ) {
                         DropdownMenuItem(
                             text = {
@@ -302,7 +363,10 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
 
             Text(
                 text = song.title,
-                modifier = Modifier.padding(start = 10.dp).align(Alignment.CenterHorizontally).basicMarquee(),
+                modifier = Modifier
+                    .padding(start = 10.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .basicMarquee(),
                 style = MaterialTheme.typography.titleSmall,
                 fontSize = 20.sp,
                 color = Color.White
@@ -310,15 +374,15 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = song.artist,
-                modifier = Modifier.padding(start = 10.dp).basicMarquee(),
+                modifier = Modifier
+                    .padding(start = 10.dp)
+                    .basicMarquee(),
                 color = Color.White.copy(alpha = 0.8f),
                 fontSize = 18.sp
-
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = song.duration.toString(),
-
+                text = song.duration,
                 color = Color.White,
                 fontSize = 20.sp
             )
@@ -333,31 +397,29 @@ fun PlaylistLinear(
     onToggleView: () -> Unit,
     onRemoveSong: (Song) -> Unit,
     onReorder: (Int, Int) -> Unit
-){
-
+) {
     val listState = rememberLazyListState()
-//    val reorderState = rememberReorderableLazyListState(
-//        listState = listState,
-//        onMove = { from, to -> onReorder(from.index, to.index) }
-//    )
-    Column(modifier = modifier
-        .background(color = Color.Black)
+    Column(
+        modifier = modifier
+            .background(color = Color.Black)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
-        ){
+        ) {
             Spacer(modifier = Modifier.width(26.dp))
             Text(
-                text="MY PLAYLIST",
+                text = "MY PLAYLIST",
                 style = MaterialTheme.typography.headlineLarge,
                 modifier = Modifier.padding(10.dp),
                 color = Color.White
             )
 
-            Row(){
+            Row {
                 IconButton(
-                    modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .align(Alignment.CenterVertically)
                         .size(40.dp),
                     onClick = {
                         println("Go to playlist grid")
@@ -372,7 +434,8 @@ fun PlaylistLinear(
                 }
 
                 IconButton(
-                    modifier = Modifier.padding(10.dp)
+                    modifier = Modifier
+                        .padding(10.dp)
                         .align(Alignment.CenterVertically)
                         .size(40.dp),
                     onClick = {
@@ -386,40 +449,15 @@ fun PlaylistLinear(
                     )
                 }
             }
-
         }
 
         LazyColumn(
             contentPadding = PaddingValues(8.dp),
-        ){
-            items(songs){playlist ->
-                SongCardList(song = playlist, onRemoveSong = onRemoveSong )
+        ) {
+            items(songs) { playlist ->
+                SongCardList(song = playlist, onRemoveSong = onRemoveSong)
             }
         }
-
-//        LazyColumn(
-//            state = listState,
-//            modifier = Modifier
-//                .fillMaxSize()
-//        ) {
-//            items(
-//                items = songs,
-//                key = { it.name }
-//            ) { song ->
-//                ReorderableItem(reorderState, key = song.name) { isDragging ->
-//                    val elevation = if (isDragging) 8.dp else 4.dp
-//                    SongCardList(
-//                        song = song,
-//                        onRemoveSong = onRemoveSong,
-//                        modifier = Modifier
-//                            .detectReorderAfterLongPress(reorderState)
-//                            .graphicsLayer {
-//                                shadowElevation = elevation.toPx()
-//                            }
-//                    )
-//                }
-//            }
-//        }
     }
 }
 
@@ -427,26 +465,30 @@ fun PlaylistLinear(
 fun PlaylistGrid(
     modifier: Modifier,
     songs: List<Song>,
-    onToggleView: () -> Unit, onRemoveSong: (Song) -> Unit){
+    onToggleView: () -> Unit,
+    onRemoveSong: (Song) -> Unit
+) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .background(color = Color.Black)
-    ){
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
-        ){
+        ) {
             Spacer(modifier = Modifier.width(26.dp))
             Text(
-                text="MY PLAYLIST",
+                text = "MY PLAYLIST",
                 style = MaterialTheme.typography.headlineLarge,
                 modifier = Modifier.padding(10.dp),
                 color = Color.White
             )
 
-            Row(){
+            Row {
                 IconButton(
-                    modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .align(Alignment.CenterVertically)
                         .size(40.dp),
                     onClick = {
                         println("Return Playlist linear")
@@ -477,45 +519,10 @@ fun PlaylistGrid(
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(2)
-        ){
-            items(songs){song ->
+        ) {
+            items(songs) { song ->
                 SongCardGrid(song = song, onRemoveSong = onRemoveSong)
             }
         }
-    }
-}
-
-@Composable
-fun PlaylistScreen(
-    modifier: Modifier,
-    listSongs: List<Song>) {
-    var isGridView by remember { mutableStateOf(false) }
-    var songs by remember { mutableStateOf(listSongs) }
-
-    val removeSong: (Song) -> Unit = { songToRemove ->
-        songs = songs.filter { it != songToRemove }
-    }
-
-    val reorder: (Int, Int) -> Unit = { from, to ->
-        songs = songs.toMutableList().apply {
-            add(to, removeAt(from))
-        }
-    }
-
-    if (isGridView) {
-        PlaylistGrid(
-            modifier = modifier,
-            songs = songs,
-            onToggleView = { isGridView = false },
-            onRemoveSong = removeSong
-        )
-    } else {
-        PlaylistLinear(
-            modifier = modifier,
-            songs = songs,
-            onToggleView = { isGridView = true },
-            onRemoveSong = removeSong,
-            onReorder = reorder
-        )
     }
 }
