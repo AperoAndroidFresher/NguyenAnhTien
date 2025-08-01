@@ -22,49 +22,49 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO)
-            != PackageManager.PERMISSION_GRANTED
-            && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            // Xin quyền theo phiên bản Android
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_MEDIA_AUDIO),
-                    100
-                )
-            } else {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                    100
-                )
-            }
-        } else {
-            // Đã có quyền => xử lý logic tiếp (ví dụ load danh sách nhạc)
-            val viewModel = SongViewModel(application)
-            setContent {
-                LearnJetPackComposeTheme {
-                    Surface(modifier = Modifier.fillMaxSize()) {
-//                        PlaylistScreen(viewModel.songs)
-                        NavigationApp()
-                    }
-                }
-            }
-        }
-
-//        setContent {
-//            LearnJetPackComposeTheme {
-//                val songs = getAllMp3Files(this)
-//
-//                Surface(){
-//
-////                    NavigationApp()
-//
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO)
+//            != PackageManager.PERMISSION_GRANTED
+//            && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+//            != PackageManager.PERMISSION_GRANTED
+//        ) {
+//            // Xin quyền theo phiên bản Android
+//            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+//                ActivityCompat.requestPermissions(
+//                    this,
+//                    arrayOf(Manifest.permission.READ_MEDIA_AUDIO),
+//                    100
+//                )
+//            } else {
+//                ActivityCompat.requestPermissions(
+//                    this,
+//                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+//                    100
+//                )
+//            }
+//        } else {
+//            // Đã có quyền => xử lý logic tiếp (ví dụ load danh sách nhạc)
+////            val viewModel = SongViewModel(application)
+//            setContent {
+//                LearnJetPackComposeTheme {
+//                    Surface(modifier = Modifier.fillMaxSize()) {
+////                        PlaylistScreen(viewModel.songs)
+//                        NavigationApp()
+//                    }
 //                }
 //            }
 //        }
+
+        setContent {
+            LearnJetPackComposeTheme {
+
+
+                Surface(){
+
+                    NavigationApp()
+
+                }
+            }
+        }
     }
 }
 

@@ -13,7 +13,7 @@ data class LibraryState(
 sealed interface LibraryIntent {
     data class LoadSongs(val songs: List<Song>) : LibraryIntent
     data class SelectSource(val source: LibrarySource) : LibraryIntent
-    data class RemoveSong(val song: Song) : LibraryIntent
+    data class AddSongToPlaylist(val song: Song) : LibraryIntent
     data object LoadLocalSongs : LibraryIntent
     data object LoadRemoteSongs : LibraryIntent
 }

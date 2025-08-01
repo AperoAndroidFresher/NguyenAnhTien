@@ -223,7 +223,7 @@ fun SongCardList(
                                 modifier = Modifier.padding(8.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Share,
+                                    painter = painterResource(R.drawable.iconshare),
                                     contentDescription = "Share",
                                     tint = Color.Gray,
                                     modifier = Modifier.size(20.dp)

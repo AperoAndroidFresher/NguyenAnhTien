@@ -29,7 +29,7 @@ class LibraryViewModel : ViewModel() {
                 selectSource(intent.source)
             }
 
-            is LibraryIntent.RemoveSong -> {
+            is LibraryIntent.AddSongToPlaylist -> {
                 removeSong(intent.song)
             }
 
