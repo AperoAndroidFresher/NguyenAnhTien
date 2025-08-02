@@ -20,8 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -32,9 +30,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,7 +50,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learnjetpackcompose.R
-import com.example.learnjetpackcompose.Screen.Playlist.SongCardList
 import com.example.learnjetpackcompose.model.Song
 import kotlinx.coroutines.flow.collectLatest
 
@@ -266,7 +260,7 @@ fun LibrarySongCardList(
                 )
             } else {
                 Icon(
-                    painter = painterResource(id = R.drawable.musicnote),
+                    painter = painterResource(id = R.drawable.music_note),
                     contentDescription = null,
                     modifier = Modifier.size(80.dp)
                 )
@@ -357,7 +351,7 @@ fun LibrarySongCardList(
                                 modifier = Modifier.padding(8.dp)
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.iconshare),
+                                    painter = painterResource(R.drawable.icon_share),
                                     contentDescription = "Share",
                                     tint = Color.White,
                                     modifier = Modifier.size(20.dp)

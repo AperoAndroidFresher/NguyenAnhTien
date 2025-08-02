@@ -46,9 +46,9 @@ import com.example.learnjetpackcompose.model.SongViewModel
 fun HomeScreen(modifier: Modifier = Modifier, onMyProfileClick: () -> Unit){
 
     val navItemsList = listOf(
-        NavBottomItems("Home", R.drawable.iconhome),
-        NavBottomItems("Library", R.drawable.iconlibrary),
-        NavBottomItems("My Playlist", R.drawable.iconplaylist)
+        NavBottomItems("Home", R.drawable.icon_home),
+        NavBottomItems("Library", R.drawable.icon_library),
+        NavBottomItems("My Playlist", R.drawable.icon_playlist)
     )
     var selectedIndex by remember { mutableStateOf(0) }
     Scaffold(

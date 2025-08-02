@@ -161,7 +161,7 @@ fun SignUpScreen(
             trailingIcon = {
                 IconButton(onClick = { viewModel.processIntent(SignUpIntent.ShowPassword)}) {
                     Icon(
-                        painter = painterResource(id = R.drawable.iconvisible),
+                        painter = painterResource(id = R.drawable.icon_visible),
                         contentDescription = if (state.isPasswordVisible) "Hide password" else "Show password",
                         tint = Color.White
                     )
@@ -207,7 +207,7 @@ fun SignUpScreen(
             trailingIcon = {
                 IconButton(onClick = { viewModel.processIntent(SignUpIntent.ShowConfirmPassword) }) {
                     Icon(
-                        painter = painterResource(id = R.drawable.iconvisible),
+                        painter = painterResource(id = R.drawable.icon_visible),
                         contentDescription = if (state.isConfirmPasswordVisible) "Hide password" else "Show password",
                         tint = Color.White
                     )

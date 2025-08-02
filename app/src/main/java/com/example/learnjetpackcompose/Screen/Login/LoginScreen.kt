@@ -128,7 +128,7 @@ fun LoginScreen(
                 }
                 ){
                     Icon(
-                        painter = painterResource(id = R.drawable.iconvisible),
+                        painter = painterResource(id = R.drawable.icon_visible),
                         modifier = Modifier.size(24.dp),
                         contentDescription = "Show password",
                         tint = Color.White)
