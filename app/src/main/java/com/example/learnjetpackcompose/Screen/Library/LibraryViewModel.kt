@@ -82,7 +82,8 @@ class LibraryViewModel : ViewModel() {
             try {
                 val playlists = _state.value.playlists
                 if (playlists.isNullOrEmpty()) {
-                    _effect.send(LibraryEffect.ShowMessage("No playlists available. Create a playlist first."))
+//                    _effect.send(LibraryEffect.ShowMessage("No playlists available. Create a playlist first."))
+                    _effect.send(LibraryEffect.ShowDialogChoosePlaylist(song, emptyList()))
                     return@launch
                 }
                 _effect.send(LibraryEffect.ShowDialogChoosePlaylist(song, playlists))

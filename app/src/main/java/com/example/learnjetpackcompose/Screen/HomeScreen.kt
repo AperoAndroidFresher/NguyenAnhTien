@@ -39,12 +39,13 @@ import com.example.learnjetpackcompose.Screen.Playlist.PlaylistScreen
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 import com.example.learnjetpackcompose.model.NavBottomItems
 import com.example.learnjetpackcompose.model.SongViewModel
-
+import com.example.learnjetpackcompose.ViewModelProvider
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     onMyProfileClick: () -> Unit,
-    onPlaylistClick: () -> Unit = {} // Thêm parameter này để navigation hoạt động
+    onPlaylistClick: () -> Unit = {},
+    onSongClick: (String, String) -> Unit = { _, _ -> },
 ) {
     val navItemsList = listOf(
         NavBottomItems("Home", R.drawable.icon_home),
@@ -62,10 +63,6 @@ fun HomeScreen(
                         selected = selectedIndex == index,
                         onClick = {
                             selectedIndex = index
-                            // Nếu click vào tab "My Playlist", navigate đến PlaylistScreen riêng biệt
-                            if (index == 2) {
-                                onPlaylistClick()
-                            }
                         },
                         icon = {
                             Icon(
@@ -90,7 +87,8 @@ fun HomeScreen(
             modifier = Modifier.padding(innerPadding).fillMaxSize(),
             selectedIndex = selectedIndex,
             onMyProfileClick = onMyProfileClick,
-            onPlaylistClick = onPlaylistClick
+            onPlaylistClick = onPlaylistClick,
+            onSongClick = onSongClick,
         )
     }
 }
@@ -136,45 +134,36 @@ fun ContentScreen(
     modifier: Modifier = Modifier,
     selectedIndex: Int,
     onMyProfileClick: () -> Unit,
-    onPlaylistClick: () -> Unit = {}
+    onPlaylistClick: () -> Unit = {},
+    onSongClick: (String, String) -> Unit = { _, _ -> }
+
 ) {
     val context = LocalContext.current
     val songViewModel = SongViewModel(context.applicationContext as Application)
     val songs = songViewModel.songs
-    val playlistViewModel = PlaylistViewModel()
-    val libraryViewModel = LibraryViewModel()
-
+    val playlistViewModel = ViewModelProvider.playlistViewModel
+    val libraryViewModel = ViewModelProvider.libraryViewModel
     when(selectedIndex) {
         0 -> HomePage(
             modifier,
             onMyProfileClick = onMyProfileClick,
             onPlaylistClick = onPlaylistClick
         )
-        1 -> LibraryScreen(libraryViewModel, playlistViewModel ,songs, modifier)
+        1 -> LibraryScreen(
+            libraryViewModel = libraryViewModel,
+            playlistViewModel = playlistViewModel,
+            songs = songs,
+            onNavigateToPlaylist = onPlaylistClick,
+            modifier = modifier
+        )
         2 -> {
-            // Có 2 cách xử lý:
-            // Cách 1: Hiển thị PlaylistScreen trong tab (như hiện tại)
             PlaylistScreen(
                 modifier = modifier,
                 viewModel = playlistViewModel,
                 onNavigateToSongs = { playlist ->
-                    // Ở đây bạn có thể navigate đến SongScreen
-                    // Nhưng vì đang trong tab nên có thể không ideal
-                    println("Navigate to songs for playlist: ${playlist.title}")
+                    onSongClick(playlist.id, playlist.title)
                 }
             )
-
-            // Cách 2: Chỉ hiển thị thông báo và navigate đến PlaylistScreen riêng biệt
-            // Column(
-            //     modifier = modifier,
-            //     horizontalAlignment = Alignment.CenterHorizontally,
-            //     verticalArrangement = Arrangement.Center
-            // ) {
-            //     Text("Navigating to Playlists...")
-            //     LaunchedEffect(Unit) {
-            //         onPlaylistClick()
-            //     }
-            // }
         }
     }
 }

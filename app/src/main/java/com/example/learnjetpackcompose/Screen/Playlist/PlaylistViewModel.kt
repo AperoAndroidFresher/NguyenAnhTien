@@ -19,9 +19,9 @@ class PlaylistViewModel : ViewModel() {
     private val _effect = Channel<PlaylistEffect>()
     val effect = _effect.receiveAsFlow()
 
-    // Callback để xử lý việc thêm playlist
+
     val onAddPlaylistClicked: () -> Unit = {
-        // Việc hiển thị dialog sẽ được xử lý trong UI
+
     }
 
     fun processIntent(intent: PlaylistIntent) {
@@ -43,6 +43,13 @@ class PlaylistViewModel : ViewModel() {
             }
             is PlaylistIntent.RemoveSongFromPlaylist -> {
                 removeSongFromPlaylist(intent.playlistId, intent.song)
+            }
+            is PlaylistIntent.AddMultipleSongsToPlaylist -> {
+                addMultipleSongsToPlaylist(intent.playlistId, intent.songs)
+            }
+            is PlaylistIntent.GetPlaylistSongs -> {
+                // Intent này chỉ để truy vấn, không cần xử lý async
+                // Có thể sử dụng các phương thức tiện ích đã tạo
             }
         }
     }
@@ -129,4 +136,47 @@ class PlaylistViewModel : ViewModel() {
             }
         }
     }
+
+
+    fun getPlaylistById(playlistId: String): Playlist? {
+        return _state.value.playlists.find { it.id == playlistId }
+    }
+
+    fun getSongsInPlaylist(playlistId: String): List<Song> {
+        return getPlaylistById(playlistId)?.songs ?: emptyList()
+    }
+
+
+//    fun isSongInPlaylist(playlistId: String, songId: String): Boolean {
+//        val playlist = getPlaylistById(playlistId)
+//        return playlist?.songs?.any { it.id == songId } ?: false
+//    }
+
+
+    fun getSongCountInPlaylist(playlistId: String): Int {
+        return getSongsInPlaylist(playlistId).size
+    }
+
+    fun addMultipleSongsToPlaylist(playlistId: String, songs: List<Song>) {
+        viewModelScope.launch {
+            try {
+                val currentPlaylists = _state.value.playlists
+                val updatedPlaylists = currentPlaylists.map { playlist ->
+                    if (playlist.id == playlistId) {
+                        val newSongs = songs.filter { newSong ->
+                            !playlist.songs.any { existingSong -> existingSong.id == newSong.id }
+                        }
+                        playlist.copy(songs = playlist.songs + newSongs)
+                    } else {
+                        playlist
+                    }
+                }
+                _state.update { it.copy(playlists = updatedPlaylists, error = null) }
+                _effect.send(PlaylistEffect.ShowMessage("${songs.size} songs added to playlist"))
+            } catch (e: Exception) {
+                _state.update { it.copy(error = "Failed to add songs to playlist") }
+            }
+        }
+    }
+
 }

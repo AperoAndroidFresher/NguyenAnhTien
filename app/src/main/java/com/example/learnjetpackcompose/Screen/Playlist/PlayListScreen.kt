@@ -129,7 +129,7 @@ fun PlaylistCardList(
                     color = Color.White
                 )
                 Text(
-                    text = "${playlist.songCount} songs",
+                    text = "${playlist.songs.size} songs",
                     modifier = Modifier.padding(start = 10.dp),
                     color = Color.White.copy(alpha = 0.7f),
                 )
@@ -221,11 +221,13 @@ fun PlaylistCardList(
 fun PlaylistScreen(
     modifier: Modifier = Modifier,
     viewModel: PlaylistViewModel,
-    onNavigateToSongs: (Playlist) -> Unit = {}
+    onNavigateToSongs: (Playlist) -> Unit = {},
+    libraryViewModel: com.example.learnjetpackcompose.Screen.Library.LibraryViewModel? = null // Thêm tham số LibraryViewModel
 ) {
     val state by viewModel.state.collectAsState()
     val listState = rememberLazyListState()
     var showCreateDialog by remember { mutableStateOf(false) }
+
 
     Column(
         modifier = modifier.background(color = Color.Black)
@@ -290,6 +292,8 @@ fun PlaylistScreen(
                     imageUrl = null
                 )
                 viewModel.processIntent(PlaylistIntent.AddPlaylist(newPlaylist))
+
+
                 showCreateDialog = false
             }
         )

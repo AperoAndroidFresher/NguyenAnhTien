@@ -57,34 +57,34 @@ import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 import com.example.learnjetpackcompose.model.Playlist
 import kotlinx.coroutines.flow.collectLatest
-
+// onNavigateToPlaylist:() -> Unit,
 @Composable
 fun LibraryScreen(
-    viewModel: LibraryViewModel,
+    libraryViewModel: LibraryViewModel,
     playlistViewModel: PlaylistViewModel,
     songs: List<Song>,
+    onNavigateToPlaylist:() -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by libraryViewModel.state.collectAsState()
     val playlistState by playlistViewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDialog by remember { mutableStateOf(false) }
     var selectedSong by remember { mutableStateOf<Song?>(null) }
-    var showCreatePlaylistDialog by remember { mutableStateOf(false) }
 
     // Cập nhật playlists cho LibraryViewModel khi playlists thay đổi
     LaunchedEffect(playlistState.playlists) {
-        viewModel.updatePlaylists(playlistState.playlists)
+        libraryViewModel.updatePlaylists(playlistState.playlists)
     }
 
     // Initialize songs when screen loads
     LaunchedEffect(songs) {
-        viewModel.processIntent(LibraryIntent.LoadSongs(songs))
+        libraryViewModel.processIntent(LibraryIntent.LoadSongs(songs))
     }
 
     // Handle side effects - SỬA ĐỔI QUAN TRỌNG Ở ĐÂY
-    LaunchedEffect(viewModel) {
-        viewModel.effect.collect { effect ->
+    LaunchedEffect(libraryViewModel) {
+        libraryViewModel.effect.collect { effect ->
             when (effect) {
                 is LibraryEffect.ShowMessage -> {
                     snackbarHostState.showSnackbar(effect.message)
@@ -134,7 +134,7 @@ fun LibraryScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
-                    onClick = { viewModel.processIntent(LibraryIntent.LoadLocalSongs) },
+                    onClick = { libraryViewModel.processIntent(LibraryIntent.LoadLocalSongs) },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (state.selectedSource == LibrarySource.LOCAL) Color(0xFF00C2CB) else Color.Gray,
                         contentColor = Color.White,
@@ -155,7 +155,7 @@ fun LibraryScreen(
                 }
 
                 Button(
-                    onClick = { viewModel.processIntent(LibraryIntent.LoadRemoteSongs) },
+                    onClick = { libraryViewModel.processIntent(LibraryIntent.LoadRemoteSongs) },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (state.selectedSource == LibrarySource.REMOTE) Color(0xFF00C2CB) else Color.Gray,
                         contentColor = Color.White,
@@ -222,7 +222,7 @@ fun LibraryScreen(
                     items(state.filteredSongs) { song ->
                         LibrarySongCardList(
                             song = song,
-                            onAddToPlaylist = { viewModel.processIntent(LibraryIntent.AddSongToPlaylist(it)) }
+                            onAddToPlaylist = { libraryViewModel.processIntent(LibraryIntent.AddSongToPlaylist(it)) }
                         )
                     }
                 }
@@ -244,32 +244,7 @@ fun LibraryScreen(
                 },
                 onAddPlaylistClicked = {
                     showDialog = false
-                    showCreatePlaylistDialog = true
-                }
-            )
-        }
-
-        // Dialog tạo playlist mới
-        if (showCreatePlaylistDialog) {
-            DialogCreatePlaylist(
-                onDismissRequest = {
-                    showCreatePlaylistDialog = false
-                },
-                onCreatePlaylist = { playlistName ->
-                    val newPlaylist = Playlist(
-                        id = System.currentTimeMillis().toString(),
-                        title = playlistName,
-                        imageUrl = null
-                    )
-                    playlistViewModel.processIntent(PlaylistIntent.AddPlaylist(newPlaylist))
-
-                    // Sau khi tạo playlist, tự động thêm bài hát vào playlist mới
-                    selectedSong?.let { song ->
-                        playlistViewModel.processIntent(PlaylistIntent.AddSongToPlaylist(newPlaylist.id, song))
-                    }
-
-                    showCreatePlaylistDialog = false
-                    selectedSong = null
+                    onNavigateToPlaylist()
                 }
             )
         }
