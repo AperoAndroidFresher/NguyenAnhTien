@@ -1,5 +1,6 @@
 package com.example.learnjetpackcompose.Screen.Playlist
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,13 +51,33 @@ import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.model.Playlist
 import com.example.learnjetpackcompose.model.Song
 
+
 @Composable
-fun PlaylistScreen(
-    viewModel: PlaylistViewModel,
-    listSongs: List<Song>,
+fun NoPlaylistScreen(
+    onAddPlaylistClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
+    Column(
+        modifier = modifier.fillMaxSize().background(Color.Black),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "You don't have any\nplaylists. Click the\n\"+\" button to add",
+            color = Color.White.copy(alpha = 0.9f),
+            fontSize = 20.sp,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+        Icon(
+            painter = painterResource(R.drawable.button_add_playlist),
+            contentDescription = "Add",
+            tint = Color.White,
+            modifier = Modifier
+                .size(80.dp)
+                .clickable { onAddPlaylistClicked() }
+        )
+    }
 }
 
 @Composable
@@ -62,6 +85,7 @@ fun PlaylistCardList(
     playlist: Playlist,
     onRemovePlaylist: (Playlist) -> Unit,
     onRenamePlaylist: (Playlist) -> Unit,
+    onPlaylistClick: (Playlist) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showDropdownMenu by remember { mutableStateOf(false) }
@@ -69,7 +93,8 @@ fun PlaylistCardList(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp),
+            .padding(10.dp)
+            .clickable { onPlaylistClick(playlist) },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
@@ -94,7 +119,7 @@ fun PlaylistCardList(
 
             Column {
                 Text(
-                    text = playlist.name,
+                    text = playlist.title,
                     modifier = Modifier
                         .padding(10.dp)
                         .width(150.dp)
@@ -104,7 +129,7 @@ fun PlaylistCardList(
                     color = Color.White
                 )
                 Text(
-                    text = playlist.songCount.toString(),
+                    text = "${playlist.songCount} songs",
                     modifier = Modifier.padding(start = 10.dp),
                     color = Color.White.copy(alpha = 0.7f),
                 )
@@ -194,22 +219,19 @@ fun PlaylistCardList(
 
 @Composable
 fun PlaylistScreen(
-    modifier: Modifier,
-    playlists: List<Playlist>,
-    onToggleView: () -> Unit,
-    onRemovePlaylist: (Playlist) -> Unit,
-    onRenamePlaylist: (Playlist) -> Unit
+    modifier: Modifier = Modifier,
+    viewModel: PlaylistViewModel,
+    onNavigateToSongs: (Playlist) -> Unit = {}
 ) {
+    val state by viewModel.state.collectAsState()
     val listState = rememberLazyListState()
+    var showCreateDialog by remember { mutableStateOf(false) }
+
     Column(
-        modifier = modifier
-            .background(color = Color.Black)
+        modifier = modifier.background(color = Color.Black)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth()
-                .clickable(
-                    onClick = onToggleView
-                ),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Spacer(modifier = Modifier.width(26.dp))
@@ -226,43 +248,74 @@ fun PlaylistScreen(
                     .align(Alignment.CenterVertically)
                     .size(40.dp),
                 onClick = {
-                    println("More button clicked")
+                    showCreateDialog = true
                 },
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.icon_add),
-                    contentDescription = "Menu",
+                    contentDescription = "Add playlist",
                     tint = Color.White
                 )
             }
         }
 
-        LazyColumn(
-            contentPadding = PaddingValues(8.dp),
-        ) {
-            items(playlists) { playlist ->
-                PlaylistCardList(
-                    playlist = playlist,
-                    onRemovePlaylist = onRemovePlaylist,
-                    onRenamePlaylist = onRenamePlaylist
-                )
+        if (state.playlists.isEmpty()) {
+            NoPlaylistScreen(onAddPlaylistClicked = {
+                showCreateDialog = true
+            })
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(8.dp),
+            ) {
+                items(state.playlists) { playlist ->
+                    PlaylistCardList(
+                        playlist = playlist,
+                        onRemovePlaylist = { viewModel.processIntent(PlaylistIntent.RemovePlaylist(it)) },
+                        onRenamePlaylist = { viewModel.processIntent(PlaylistIntent.RenamePlaylist(it)) },
+                        onPlaylistClick = { onNavigateToSongs(it) }
+                    )
+                }
             }
         }
     }
+
+    // Dialog tạo playlist mới
+    if (showCreateDialog) {
+        DialogCreatePlaylist(
+            onDismissRequest = { showCreateDialog = false },
+            onCreatePlaylist = { playlistName ->
+                val newPlaylist = Playlist(
+                    id = System.currentTimeMillis().toString(),
+                    title = playlistName,
+                    songCount = 0,
+                    imageUrl = null
+                )
+                viewModel.processIntent(PlaylistIntent.AddPlaylist(newPlaylist))
+                showCreateDialog = false
+            }
+        )
+    }
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun PreviewPlaylistScreen() {
-    val samplePlaylists = remember { mutableStateListOf<Playlist>() } // Sử dụng mutableStateListOf để dễ dàng thay đổi dữ liệu test
+    val viewModel = PlaylistViewModel()
 
-    // Để test trường hợp có playlist
-     samplePlaylists.add(Playlist("1", "My Playlist", 0, R.drawable.rose))
+    // Thêm một số sample data để test
+    val samplePlaylist = Playlist(
+        id = "1",
+        title = "My Favorite Songs",
+        songCount = 15,
+        imageUrl = R.drawable.rose
+    )
+    viewModel.processIntent(PlaylistIntent.AddPlaylist(samplePlaylist))
+
     PlaylistScreen(
-        modifier = Modifier,
-        playlists = samplePlaylists,
-        onToggleView = {},
-        onRemovePlaylist = {},
-        onRenamePlaylist = {}
+        modifier = Modifier.fillMaxSize(),
+        viewModel = viewModel
     )
 }
+
+

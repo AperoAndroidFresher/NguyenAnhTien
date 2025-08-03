@@ -2,6 +2,7 @@ package com.example.learnjetpackcompose.Screen.Playlist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.learnjetpackcompose.model.Playlist
 import com.example.learnjetpackcompose.model.Song
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,51 +19,72 @@ class PlaylistViewModel : ViewModel() {
     private val _effect = Channel<PlaylistEffect>()
     val effect = _effect.receiveAsFlow()
 
+    // Callback để xử lý việc thêm playlist
+    val onAddPlaylistClicked: () -> Unit = {
+        // Việc hiển thị dialog sẽ được xử lý trong UI
+    }
+
     fun processIntent(intent: PlaylistIntent) {
         when (intent) {
-            is PlaylistIntent.LoadSongs -> {
-                _state.update { it.copy(songs = intent.songs, error = null) }
+            is PlaylistIntent.LoadPlaylists -> {
+                _state.update { it.copy(playlists = intent.playlists, error = null) }
             }
 
-            is PlaylistIntent.ToggleView -> {
-                _state.update { it.copy(isGridView = !it.isGridView) }
+            is PlaylistIntent.AddPlaylist -> {
+                addPlaylist(intent.playlist)
             }
 
-            is PlaylistIntent.RemoveSong -> {
-                removeSong(intent.song)
+            is PlaylistIntent.RemovePlaylist -> {
+                removePlaylist(intent.playlist)
             }
 
-            is PlaylistIntent.ReorderSongs -> {
-                reorderSongs(intent.fromIndex, intent.toIndex)
+            is PlaylistIntent.RenamePlaylist -> {
+                renamePlaylist(intent.playlist)
             }
         }
     }
 
-    private fun removeSong(songToRemove: Song) {
+    private fun addPlaylist(playlist: Playlist) {
         viewModelScope.launch {
             try {
-                val currentSongs = _state.value.songs
-                val updatedSongs = currentSongs.filter { it != songToRemove }
-                _state.update { it.copy(songs = updatedSongs) }
-                _effect.send(PlaylistEffect.ShowMessage("Song removed from playlist"))
+                val currentPlaylists = _state.value.playlists
+                val updatedPlaylists = currentPlaylists + playlist
+                _state.update { it.copy(playlists = updatedPlaylists, error = null) }
+                _effect.send(PlaylistEffect.ShowMessage("Playlist '${playlist.title}' added successfully"))
             } catch (e: Exception) {
-                _state.update { it.copy(error = "Failed to remove song") }
+                _state.update { it.copy(error = "Failed to add playlist") }
             }
         }
     }
 
-    private fun reorderSongs(fromIndex: Int, toIndex: Int) {
+    private fun removePlaylist(playlistToRemove: Playlist) {
         viewModelScope.launch {
             try {
-                val currentSongs = _state.value.songs.toMutableList()
-                if (fromIndex >= 0 && fromIndex < currentSongs.size &&
-                    toIndex >= 0 && toIndex < currentSongs.size) {
-                    val movedSong = currentSongs.removeAt(fromIndex)
-                    currentSongs.add(toIndex, movedSong)
-                    _state.update { it.copy(songs = currentSongs) }
+                val currentPlaylists = _state.value.playlists
+                val updatedPlaylist = currentPlaylists.filter { it.id != playlistToRemove.id }
+                _state.update { it.copy(playlists = updatedPlaylist) }
+                _effect.send(PlaylistEffect.ShowMessage("Playlist '${playlistToRemove.title}' removed"))
+            } catch (e: Exception) {
+                _state.update { it.copy(error = "Failed to remove playlist") }
+            }
+        }
+    }
+
+    private fun renamePlaylist(playlist: Playlist) {
+        viewModelScope.launch {
+            try {
+                val currentPlaylists = _state.value.playlists
+                val updatedPlaylists = currentPlaylists.map {
+                    if (it.id == playlist.id) {
+                        it.copy(title = playlist.title)
+                    } else {
+                        it
+                    }
                 }
+                _state.update { it.copy(playlists = updatedPlaylists) }
+                _effect.send(PlaylistEffect.ShowMessage("Playlist renamed to '${playlist.title}'"))
             } catch (e: Exception) {
-                _state.update { it.copy(error = "Failed to reorder songs") }
+                _state.update { it.copy(error = "Failed to rename playlist") }
             }
         }
     }

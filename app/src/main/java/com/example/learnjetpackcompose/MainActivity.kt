@@ -15,6 +15,7 @@ import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.learnjetpackcompose.Screen.Playlist.PreviewChoosePlaylistDialog
+import com.example.learnjetpackcompose.Screen.Playlist.PreviewPlaylistScreen
 import com.example.learnjetpackcompose.model.SongViewModel
 
 
@@ -61,9 +62,9 @@ class MainActivity : ComponentActivity() {
 
                 Surface(){
 
-//                    NavigationApp()
-                    PreviewChoosePlaylistDialog()
-
+                    NavigationApp()
+//                    PreviewChoosePlaylistDialog()
+//                    PreviewPlaylistScreen()
                 }
             }
         }

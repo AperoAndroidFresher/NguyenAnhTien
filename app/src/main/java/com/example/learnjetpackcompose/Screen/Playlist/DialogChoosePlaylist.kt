@@ -30,6 +30,7 @@ import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.model.Playlist
 
 
+
 @Composable
 fun ChoosePlaylistDialog(
     playlists: List<Playlist>,
@@ -55,7 +56,9 @@ fun ChoosePlaylistDialog(
                     text = "Choose playlist",
                     color = Color.White,
                     fontSize = 20.sp,
-                    modifier = Modifier.padding(bottom = 16.dp).align(Alignment.CenterHorizontally)
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                        .align(Alignment.CenterHorizontally)
                 )
 
                 if (playlists.isEmpty()) {
@@ -74,7 +77,9 @@ fun ChoosePlaylistDialog(
 @Composable
 fun NoPlaylistsContent(onAddPlaylistClicked: () -> Unit) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 32.dp)
             .background(Color(0xFF292929)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -141,7 +146,7 @@ fun PlaylistItem(playlist: Playlist, onClick: (Playlist) -> Unit) {
 
         Column {
             Text(
-                text = playlist.name,
+                text = playlist.title,
                 color = Color.White,
                 fontSize = 18.sp
             )
@@ -159,7 +164,6 @@ fun PlaylistItem(playlist: Playlist, onClick: (Playlist) -> Unit) {
 @Composable
 fun PreviewChoosePlaylistDialog() {
     val samplePlaylists = remember { mutableStateListOf<Playlist>() }
-
     var showDialog by remember { mutableStateOf(true) }
 
     if (showDialog) {
@@ -167,21 +171,14 @@ fun PreviewChoosePlaylistDialog() {
             playlists = samplePlaylists,
             onDismissRequest = { showDialog = false },
             onPlaylistSelected = { playlist ->
-                println("Selected playlist: ${playlist.name}")
+                println("Selected playlist: ${playlist.title}")
                 showDialog = false
             },
             onAddPlaylistClicked = {
-                println("Add new playlist clicked")
-                // Thêm một playlist mới để test
-                samplePlaylists.add(Playlist(
-                    id = (samplePlaylists.size + 1).toString(),
-                    name = "New Playlist ${samplePlaylists.size + 1}",
-                    songCount = 0,
-                    imageUrl = R.drawable.rose
-                ))
+                println("Add new playlist clicked - Navigate to PlaylistScreen")
+                // Ở đây sẽ chuyển sang màn hình PlaylistScreen
+                showDialog = false
             }
         )
     }
-
-
 }

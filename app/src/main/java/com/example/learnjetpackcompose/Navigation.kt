@@ -10,6 +10,9 @@ import com.example.learnjetpackcompose.Screen.HomeScreen
 import com.example.learnjetpackcompose.Screen.Login.LoginScreen
 import com.example.learnjetpackcompose.Screen.Login.LoginViewModel
 import com.example.learnjetpackcompose.Screen.Login.SplashScreen
+import com.example.learnjetpackcompose.Screen.Playlist.PlaylistScreen
+import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
+import com.example.learnjetpackcompose.Screen.Playlist.Song.SongScreen
 
 import com.example.learnjetpackcompose.Screen.SignUp.SignUpScreen
 import com.example.learnjetpackcompose.Screen.SignUp.SignUpViewModel
@@ -20,6 +23,8 @@ fun NavigationApp(){
     val backStack = rememberNavBackStack(SplashNavKey)
     val loginViewModel = remember { LoginViewModel() }
     val signUpViewModel = remember { SignUpViewModel() }
+    val playlistViewModel = remember { PlaylistViewModel() }
+
     NavDisplay(
         backStack = backStack,
         onBack = {backStack.removeLastOrNull()},
@@ -28,14 +33,15 @@ fun NavigationApp(){
                 SplashScreen(onTimeout = {
                     backStack.add(LoginNavKey())
                 })
-
             }
+
             entry<LoginNavKey>{key ->
                 LoginScreen(
                     viewModel = loginViewModel,
                     onLoginSuccess = {
                         backStack.clear()
-                        backStack.add(HomeNavKey) },
+                        backStack.add(HomeNavKey)
+                    },
                     onSignUpClick = { backStack.add(SignUpNavKey())}
                 )
             }
@@ -47,15 +53,37 @@ fun NavigationApp(){
                     onSignUpClick = { backStack.add(LoginNavKey())}
                 )
             }
+
             entry<HomeNavKey>{key ->
                 HomeScreen(
-                    onMyProfileClick = { backStack.add(ProfileNavKey) }
+                    onMyProfileClick = { backStack.add(ProfileNavKey) },
+                    onPlaylistClick = { backStack.add(PlaylistNavKey) } // Thêm navigation đến playlist
                 )
             }
+
             entry<ProfileNavKey>{key ->
                 MainProfileScreen()
             }
 
+            entry<PlaylistNavKey>{key ->
+                PlaylistScreen(
+                    viewModel = playlistViewModel,
+                    onNavigateToSongs = { playlist ->
+                        backStack.add(SongNavKey(
+                            playlistId = playlist.id,
+                            playlistTitle = playlist.title
+                        ))
+                    }
+                )
+            }
+
+            entry<SongNavKey>{key ->
+                SongScreen(
+                    playlistId = key.playlistId,
+                    playlistTitle = key.playlistTitle,
+                    onBackClick = { backStack.removeLastOrNull() }
+                )
+            }
         }
     )
 }

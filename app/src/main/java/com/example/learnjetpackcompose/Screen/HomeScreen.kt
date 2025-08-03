@@ -40,60 +40,82 @@ import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 import com.example.learnjetpackcompose.model.NavBottomItems
 import com.example.learnjetpackcompose.model.SongViewModel
 
-//import com.example.learnjetpackcompose.model.songs
-
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, onMyProfileClick: () -> Unit){
-
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    onMyProfileClick: () -> Unit,
+    onPlaylistClick: () -> Unit = {} // Thêm parameter này để navigation hoạt động
+) {
     val navItemsList = listOf(
         NavBottomItems("Home", R.drawable.icon_home),
         NavBottomItems("Library", R.drawable.icon_library),
         NavBottomItems("My Playlist", R.drawable.icon_playlist)
     )
     var selectedIndex by remember { mutableStateOf(0) }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        bottomBar = { NavigationBar{
-            navItemsList.forEachIndexed { index, navItem ->
-                NavigationBarItem(
-                    selected = selectedIndex == index,
-                    onClick = { selectedIndex = index},
-                    icon = {
-                        Icon(
-                            painter = painterResource(navItem.icon),
-                            contentDescription = "Icon page",
-                            modifier = Modifier.size(25.dp)
-                        )
-                    },
-                    label = {Text(navItem.label, fontSize = 16.sp,
-                        style = MaterialTheme.typography.labelMedium) }
-                )
+        bottomBar = {
+            NavigationBar {
+                navItemsList.forEachIndexed { index, navItem ->
+                    NavigationBarItem(
+                        selected = selectedIndex == index,
+                        onClick = {
+                            selectedIndex = index
+                            // Nếu click vào tab "My Playlist", navigate đến PlaylistScreen riêng biệt
+                            if (index == 2) {
+                                onPlaylistClick()
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(navItem.icon),
+                                contentDescription = "Icon page",
+                                modifier = Modifier.size(25.dp)
+                            )
+                        },
+                        label = {
+                            Text(
+                                navItem.label,
+                                fontSize = 16.sp,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    )
                 }
             }
         }
-    ) {innerPadding ->
-        ContentScreen(modifier = Modifier.padding(innerPadding).fillMaxSize(), selectedIndex = selectedIndex, onMyProfileClick = onMyProfileClick)
+    ) { innerPadding ->
+        ContentScreen(
+            modifier = Modifier.padding(innerPadding).fillMaxSize(),
+            selectedIndex = selectedIndex,
+            onMyProfileClick = onMyProfileClick,
+            onPlaylistClick = onPlaylistClick
+        )
     }
 }
 
 @Composable
 fun HomePage(
     modifier: Modifier,
-    onMyProfileClick:() -> Unit){
+    onMyProfileClick: () -> Unit,
+    onPlaylistClick: () -> Unit = {}
+) {
     Column(
         modifier = modifier,
-
-        ) {
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(10.dp),
             horizontalArrangement = Arrangement.SpaceBetween
-        ){
+        ) {
             Spacer(modifier = Modifier.width(10.dp))
             IconButton(
-                modifier = Modifier.padding(10.dp)
-                    .size(40.dp).align(Alignment.CenterVertically),
+                modifier = Modifier
+                    .padding(10.dp)
+                    .size(40.dp)
+                    .align(Alignment.CenterVertically),
                 onClick = {
-                    println("Go to playlist grid")
+                    println("Go to Profile Setting")
                     onMyProfileClick()
                 }
             ) {
@@ -107,32 +129,52 @@ fun HomePage(
         Text(text = "Home Page", fontSize = 24.sp)
     }
 }
-@Composable
-fun LibraryPage(
-    modifier: Modifier
-){
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "Library Page", fontSize = 24.sp)
-    }
-}
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
-fun ContentScreen(modifier: Modifier = Modifier, selectedIndex: Int, onMyProfileClick: () -> Unit) {
+fun ContentScreen(
+    modifier: Modifier = Modifier,
+    selectedIndex: Int,
+    onMyProfileClick: () -> Unit,
+    onPlaylistClick: () -> Unit = {}
+) {
     val context = LocalContext.current
     val songViewModel = SongViewModel(context.applicationContext as Application)
     val songs = songViewModel.songs
     val playlistViewModel = PlaylistViewModel()
     val libraryViewModel = LibraryViewModel()
+
     when(selectedIndex) {
         0 -> HomePage(
             modifier,
-            onMyProfileClick = onMyProfileClick)
+            onMyProfileClick = onMyProfileClick,
+            onPlaylistClick = onPlaylistClick
+        )
         1 -> LibraryScreen(libraryViewModel, songs, modifier)
-        2 -> PlaylistScreen(playlistViewModel, songs, modifier)
+        2 -> {
+            // Có 2 cách xử lý:
+            // Cách 1: Hiển thị PlaylistScreen trong tab (như hiện tại)
+            PlaylistScreen(
+                modifier = modifier,
+                viewModel = playlistViewModel,
+                onNavigateToSongs = { playlist ->
+                    // Ở đây bạn có thể navigate đến SongScreen
+                    // Nhưng vì đang trong tab nên có thể không ideal
+                    println("Navigate to songs for playlist: ${playlist.title}")
+                }
+            )
+
+            // Cách 2: Chỉ hiển thị thông báo và navigate đến PlaylistScreen riêng biệt
+            // Column(
+            //     modifier = modifier,
+            //     horizontalAlignment = Alignment.CenterHorizontally,
+            //     verticalArrangement = Arrangement.Center
+            // ) {
+            //     Text("Navigating to Playlists...")
+            //     LaunchedEffect(Unit) {
+            //         onPlaylistClick()
+            //     }
+            // }
+        }
     }
 }
