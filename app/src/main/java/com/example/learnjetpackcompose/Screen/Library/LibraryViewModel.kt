@@ -2,6 +2,7 @@ package com.example.learnjetpackcompose.Screen.Library
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.learnjetpackcompose.model.Playlist
 import com.example.learnjetpackcompose.model.Song
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -19,28 +20,31 @@ class LibraryViewModel : ViewModel() {
     private val _effect = Channel<LibraryEffect>()
     val effect = _effect.receiveAsFlow()
 
+    // Hàm để cập nhật danh sách playlists (từ PlaylistViewModel)
+    fun updatePlaylists(playlists: List<Playlist>) {
+        _state.update { it.copy(playlists = playlists) }
+    }
+
     fun processIntent(intent: LibraryIntent) {
         when (intent) {
             is LibraryIntent.LoadSongs -> {
                 loadSongs(intent.songs)
             }
-
             is LibraryIntent.SelectSource -> {
                 selectSource(intent.source)
             }
-
             is LibraryIntent.AddSongToPlaylist -> {
-                removeSong(intent.song)
+                addToPlaylist(intent.song)
             }
-
             is LibraryIntent.LoadLocalSongs -> {
                 loadLocalSongs()
             }
-
             is LibraryIntent.LoadRemoteSongs -> {
                 loadRemoteSongs()
             }
-
+            is LibraryIntent.ShareSong -> {
+                // Handle share song intent
+            }
         }
     }
 
@@ -62,7 +66,6 @@ class LibraryViewModel : ViewModel() {
                     filteredSongs = filterSongsBySource(it.songs, source)
                 )
             }
-
             when (source) {
                 LibrarySource.LOCAL -> {
                     _effect.send(LibraryEffect.ShowMessage("Showing local songs"))
@@ -74,22 +77,17 @@ class LibraryViewModel : ViewModel() {
         }
     }
 
-    private fun removeSong(songToRemove: Song) {
+    private fun addToPlaylist(song: Song) {
         viewModelScope.launch {
             try {
-                val currentSongs = _state.value.songs
-                val updatedSongs = currentSongs.filter { it != songToRemove }
-
-                _state.update {
-                    it.copy(
-                        songs = updatedSongs,
-                        filteredSongs = filterSongsBySource(updatedSongs, it.selectedSource)
-                    )
+                val playlists = _state.value.playlists
+                if (playlists.isNullOrEmpty()) {
+                    _effect.send(LibraryEffect.ShowMessage("No playlists available. Create a playlist first."))
+                    return@launch
                 }
-
-                _effect.send(LibraryEffect.ShowMessage("Song removed from library"))
+                _effect.send(LibraryEffect.ShowDialogChoosePlaylist(song, playlists))
             } catch (e: Exception) {
-                _state.update { it.copy(error = "Failed to remove song") }
+                _state.update { it.copy(error = "Failed to initiate playlist selection") }
             }
         }
     }
@@ -98,13 +96,8 @@ class LibraryViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isLoading = true, selectedSource = LibrarySource.LOCAL) }
-
-                // Simulate loading delay
                 delay(1000)
-
-                // Filter current songs to show only local ones
                 val localSongs = filterSongsBySource(_state.value.songs, LibrarySource.LOCAL)
-
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -112,7 +105,6 @@ class LibraryViewModel : ViewModel() {
                         error = null
                     )
                 }
-
                 _effect.send(LibraryEffect.ShowMessage("Local songs loaded"))
             } catch (e: Exception) {
                 _state.update {
@@ -129,13 +121,8 @@ class LibraryViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isLoading = true, selectedSource = LibrarySource.REMOTE) }
-
-                // Simulate loading delay
                 delay(1500)
-
-                // Filter current songs to show only remote ones
                 val remoteSongs = filterSongsBySource(_state.value.songs, LibrarySource.REMOTE)
-
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -143,7 +130,6 @@ class LibraryViewModel : ViewModel() {
                         error = null
                     )
                 }
-
                 _effect.send(LibraryEffect.ShowMessage("Remote songs loaded"))
             } catch (e: Exception) {
                 _state.update {
@@ -157,17 +143,9 @@ class LibraryViewModel : ViewModel() {
     }
 
     private fun filterSongsBySource(songs: List<Song>, source: LibrarySource): List<Song> {
-        // This is a simple implementation. In a real app, you might have a property
-        // in Song class to indicate if it's local or remote
         return when (source) {
-            LibrarySource.LOCAL -> {
-                // For demo purposes, assume songs with even indices are local
-                songs.filterIndexed { index, _ -> index % 2 == 0 }
-            }
-            LibrarySource.REMOTE -> {
-                // For demo purposes, assume songs with odd indices are remote
-                songs.filterIndexed { index, _ -> index % 2 == 1 }
-            }
+            LibrarySource.LOCAL -> songs.filterIndexed { index, _ -> index % 2 == 0 }
+            LibrarySource.REMOTE -> songs.filterIndexed { index, _ -> index % 2 == 1 }
         }
     }
 }

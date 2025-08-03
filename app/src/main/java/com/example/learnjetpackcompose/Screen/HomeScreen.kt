@@ -150,7 +150,7 @@ fun ContentScreen(
             onMyProfileClick = onMyProfileClick,
             onPlaylistClick = onPlaylistClick
         )
-        1 -> LibraryScreen(libraryViewModel, songs, modifier)
+        1 -> LibraryScreen(libraryViewModel, playlistViewModel ,songs, modifier)
         2 -> {
             // Có 2 cách xử lý:
             // Cách 1: Hiển thị PlaylistScreen trong tab (như hiện tại)

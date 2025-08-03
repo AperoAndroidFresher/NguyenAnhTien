@@ -29,17 +29,20 @@ class PlaylistViewModel : ViewModel() {
             is PlaylistIntent.LoadPlaylists -> {
                 _state.update { it.copy(playlists = intent.playlists, error = null) }
             }
-
             is PlaylistIntent.AddPlaylist -> {
                 addPlaylist(intent.playlist)
             }
-
             is PlaylistIntent.RemovePlaylist -> {
                 removePlaylist(intent.playlist)
             }
-
             is PlaylistIntent.RenamePlaylist -> {
                 renamePlaylist(intent.playlist)
+            }
+            is PlaylistIntent.AddSongToPlaylist -> {
+                addSongToPlaylist(intent.playlistId, intent.song)
+            }
+            is PlaylistIntent.RemoveSongFromPlaylist -> {
+                removeSongFromPlaylist(intent.playlistId, intent.song)
             }
         }
     }
@@ -85,6 +88,44 @@ class PlaylistViewModel : ViewModel() {
                 _effect.send(PlaylistEffect.ShowMessage("Playlist renamed to '${playlist.title}'"))
             } catch (e: Exception) {
                 _state.update { it.copy(error = "Failed to rename playlist") }
+            }
+        }
+    }
+
+    private fun addSongToPlaylist(playlistId: String, song: Song) {
+        viewModelScope.launch {
+            try {
+                val currentPlaylists = _state.value.playlists
+                val updatedPlaylists = currentPlaylists.map { playlist ->
+                    if (playlist.id == playlistId) {
+                        playlist.copy(songs = playlist.songs + song)
+                    } else {
+                        playlist
+                    }
+                }
+                _state.update { it.copy(playlists = updatedPlaylists, error = null) }
+                _effect.send(PlaylistEffect.ShowMessage("Song '${song.title}' added to playlist"))
+            } catch (e: Exception) {
+                _state.update { it.copy(error = "Failed to add song to playlist") }
+            }
+        }
+    }
+
+    private fun removeSongFromPlaylist(playlistId: String, song: Song) {
+        viewModelScope.launch {
+            try {
+                val currentPlaylists = _state.value.playlists
+                val updatedPlaylists = currentPlaylists.map { playlist ->
+                    if (playlist.id == playlistId) {
+                        playlist.copy(songs = playlist.songs.filter { it.id != song.id })
+                    } else {
+                        playlist
+                    }
+                }
+                _state.update { it.copy(playlists = updatedPlaylists, error = null) }
+                _effect.send(PlaylistEffect.ShowMessage("Song '${song.title}' removed from playlist"))
+            } catch (e: Exception) {
+                _state.update { it.copy(error = "Failed to remove song from playlist") }
             }
         }
     }

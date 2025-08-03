@@ -1,5 +1,6 @@
 package com.example.learnjetpackcompose.Screen.Library
 
+import com.example.learnjetpackcompose.model.Playlist
 import com.example.learnjetpackcompose.model.Song
 
 data class LibraryState(
@@ -7,7 +8,8 @@ data class LibraryState(
     val filteredSongs: List<Song> = emptyList(),
     val selectedSource: LibrarySource = LibrarySource.LOCAL,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val playlists: List<Playlist>? = null // Sử dụng null làm giá trị mặc định
 )
 
 sealed interface LibraryIntent {
@@ -16,11 +18,12 @@ sealed interface LibraryIntent {
     data class AddSongToPlaylist(val song: Song) : LibraryIntent
     data object LoadLocalSongs : LibraryIntent
     data object LoadRemoteSongs : LibraryIntent
+    data class ShareSong(val song: Song): LibraryIntent
 }
 
 sealed interface LibraryEffect {
     data class ShowMessage(val message: String) : LibraryEffect
-    data object NavigateToPlaylist : LibraryEffect
+    data class ShowDialogChoosePlaylist(val song: Song, val playlists: List<Playlist>) : LibraryEffect
 }
 
 enum class LibrarySource {

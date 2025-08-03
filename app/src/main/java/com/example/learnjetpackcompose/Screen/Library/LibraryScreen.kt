@@ -51,42 +51,64 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.model.Song
+import com.example.learnjetpackcompose.Screen.Playlist.ChoosePlaylistDialog
+import com.example.learnjetpackcompose.Screen.Playlist.DialogCreatePlaylist
+import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
+import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
+import com.example.learnjetpackcompose.model.Playlist
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun LibraryScreen(
     viewModel: LibraryViewModel,
+    playlistViewModel: PlaylistViewModel,
     songs: List<Song>,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsState()
+    val playlistState by playlistViewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedSong by remember { mutableStateOf<Song?>(null) }
+    var showCreatePlaylistDialog by remember { mutableStateOf(false) }
+
+    // Cập nhật playlists cho LibraryViewModel khi playlists thay đổi
+    LaunchedEffect(playlistState.playlists) {
+        viewModel.updatePlaylists(playlistState.playlists)
+    }
 
     // Initialize songs when screen loads
     LaunchedEffect(songs) {
         viewModel.processIntent(LibraryIntent.LoadSongs(songs))
     }
 
-    // Handle side effects
-    LaunchedEffect(Unit) {
-        viewModel.effect.collectLatest { effect ->
+    // Handle side effects - SỬA ĐỔI QUAN TRỌNG Ở ĐÂY
+    LaunchedEffect(viewModel) {
+        viewModel.effect.collect { effect ->
             when (effect) {
                 is LibraryEffect.ShowMessage -> {
                     snackbarHostState.showSnackbar(effect.message)
                 }
-                is LibraryEffect.NavigateToPlaylist -> {
-                    // Handle navigation to playlist if needed
+                is LibraryEffect.ShowDialogChoosePlaylist -> {
+                    selectedSong = effect.song
+                    showDialog = true
                 }
             }
         }
     }
+
+    // Thêm debug log để kiểm tra
+    LaunchedEffect(showDialog, selectedSong) {
+        println("DEBUG: showDialog = $showDialog, selectedSong = ${selectedSong?.title}")
+    }
+
 
     Box(modifier = modifier) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(color = Color.Black)
-                .padding(16.dp),
+                .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header
@@ -104,23 +126,17 @@ fun LibraryScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             // Source Selection Buttons
             Row(
                 modifier = Modifier
-                    .padding(16.dp)
+                    .padding(12.dp)
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
-                    onClick = {
-                        viewModel.processIntent(LibraryIntent.LoadLocalSongs)
-                    },
+                    onClick = { viewModel.processIntent(LibraryIntent.LoadLocalSongs) },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (state.selectedSource == LibrarySource.LOCAL)
-                            Color(0xFF00C2CB) else Color.Gray,
+                        containerColor = if (state.selectedSource == LibrarySource.LOCAL) Color(0xFF00C2CB) else Color.Gray,
                         contentColor = Color.White,
                     ),
                     shape = RoundedCornerShape(10.dp),
@@ -139,12 +155,9 @@ fun LibraryScreen(
                 }
 
                 Button(
-                    onClick = {
-                        viewModel.processIntent(LibraryIntent.LoadRemoteSongs)
-                    },
+                    onClick = { viewModel.processIntent(LibraryIntent.LoadRemoteSongs) },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (state.selectedSource == LibrarySource.REMOTE)
-                            Color(0xFF00C2CB) else Color.Gray,
+                        containerColor = if (state.selectedSource == LibrarySource.REMOTE) Color(0xFF00C2CB) else Color.Gray,
                         contentColor = Color.White,
                     ),
                     shape = RoundedCornerShape(10.dp),
@@ -162,14 +175,6 @@ fun LibraryScreen(
                     }
                 }
             }
-
-//            // Source Info
-//            Text(
-//                text = "Source: ${state.selectedSource.name} (${state.filteredSongs.size} songs)",
-//                color = Color.White.copy(0.8f),
-//                fontSize = 14.sp,
-//                modifier = Modifier.padding(bottom = 8.dp)
-//            )
 
             // Error Message
             state.error?.let { error ->
@@ -208,7 +213,7 @@ fun LibraryScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No songs found.", fontSize = 40.sp)
+                    Text("No songs found.", fontSize = 40.sp, color = Color.White)
                 }
             } else {
                 LazyColumn(
@@ -217,20 +222,59 @@ fun LibraryScreen(
                     items(state.filteredSongs) { song ->
                         LibrarySongCardList(
                             song = song,
-                            onAddToPlaylist = {
-
-//                                Thay bằng Add to playlist
-                                viewModel.processIntent(LibraryIntent.AddSongToPlaylist(it))
-                            }
+                            onAddToPlaylist = { viewModel.processIntent(LibraryIntent.AddSongToPlaylist(it)) }
                         )
                     }
                 }
             }
         }
 
+        // Hiển thị dialog khi showDialog là true
+        if (showDialog && selectedSong != null) {
+            ChoosePlaylistDialog(
+                playlists = state.playlists ?: emptyList(),
+                onDismissRequest = {
+                    showDialog = false
+                    selectedSong = null
+                },
+                onPlaylistSelected = { playlist ->
+                    playlistViewModel.processIntent(PlaylistIntent.AddSongToPlaylist(playlist.id, selectedSong!!))
+                    showDialog = false
+                    selectedSong = null
+                },
+                onAddPlaylistClicked = {
+                    showDialog = false
+                    showCreatePlaylistDialog = true
+                }
+            )
+        }
+
+        // Dialog tạo playlist mới
+        if (showCreatePlaylistDialog) {
+            DialogCreatePlaylist(
+                onDismissRequest = {
+                    showCreatePlaylistDialog = false
+                },
+                onCreatePlaylist = { playlistName ->
+                    val newPlaylist = Playlist(
+                        id = System.currentTimeMillis().toString(),
+                        title = playlistName,
+                        imageUrl = null
+                    )
+                    playlistViewModel.processIntent(PlaylistIntent.AddPlaylist(newPlaylist))
+
+                    // Sau khi tạo playlist, tự động thêm bài hát vào playlist mới
+                    selectedSong?.let { song ->
+                        playlistViewModel.processIntent(PlaylistIntent.AddSongToPlaylist(newPlaylist.id, song))
+                    }
+
+                    showCreatePlaylistDialog = false
+                    selectedSong = null
+                }
+            )
+        }
     }
 }
-
 
 @Composable
 fun LibrarySongCardList(
@@ -250,56 +294,60 @@ fun LibrarySongCardList(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(color = Color.Black),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            if (song.albumArt != null) {
-                Image(
-                    bitmap = song.albumArt.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier.size(80.dp),
-                    contentScale = ContentScale.Fit
-                )
-            } else {
-                Icon(
-                    painter = painterResource(id = R.drawable.music_note),
-                    contentDescription = null,
-                    modifier = Modifier.size(80.dp)
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (song.albumArt != null) {
+                    Image(
+                        bitmap = song.albumArt.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(id = R.drawable.music_note),
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = Color.White
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.padding(10.dp)
+                ) {
+                    Text(
+                        text = song.title,
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .width(150.dp)
+                            .basicMarquee(),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontSize = 16.sp,
+                        color = Color.White
+                    )
+                    Text(
+                        text = song.artist,
+                        modifier = Modifier.padding(start = 10.dp),
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 14.sp
+                    )
+                }
             }
 
-            Column(
-                modifier =Modifier.padding(10.dp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Text(
-                    text = song.title,
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .width(150.dp)
-                        .basicMarquee(),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontSize = 18.sp,
-                    color = Color.White
+                    text = song.duration,
+                    modifier = Modifier.padding(start = 4.dp),
+                    color = Color.White,
+                    fontSize = 14.sp
                 )
-                Text(
-                    text = song.artist,
-                    modifier = Modifier.padding(start = 10.dp),
-                    color = Color.White.copy(alpha = 0.7f),
-                )
-            }
 
-            Spacer(modifier = Modifier.weight(2f))
-            Text(
-                text = song.duration,
-                modifier = Modifier.align(Alignment.CenterVertically).padding(start = 16.dp),
-                color = Color.White,
-                fontSize = 20.sp
-            )
-
-            Box(
-                modifier = Modifier.align(Alignment.CenterVertically)
-            ) {
                 IconButton(
                     onClick = {
+
                         showDropdownMenu = true
                     },
                 ) {

@@ -287,7 +287,6 @@ fun PlaylistScreen(
                 val newPlaylist = Playlist(
                     id = System.currentTimeMillis().toString(),
                     title = playlistName,
-                    songCount = 0,
                     imageUrl = null
                 )
                 viewModel.processIntent(PlaylistIntent.AddPlaylist(newPlaylist))
@@ -307,7 +306,6 @@ fun PreviewPlaylistScreen() {
     val samplePlaylist = Playlist(
         id = "1",
         title = "My Favorite Songs",
-        songCount = 15,
         imageUrl = R.drawable.rose
     )
     viewModel.processIntent(PlaylistIntent.AddPlaylist(samplePlaylist))

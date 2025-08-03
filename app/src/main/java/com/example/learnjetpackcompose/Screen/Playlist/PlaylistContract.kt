@@ -1,6 +1,7 @@
 package com.example.learnjetpackcompose.Screen.Playlist
 
 import com.example.learnjetpackcompose.model.Playlist
+import com.example.learnjetpackcompose.model.Song
 
 
 data class PlaylistState(
@@ -14,6 +15,8 @@ sealed interface PlaylistIntent {
     data class AddPlaylist(val playlist: Playlist) : PlaylistIntent
     data class RemovePlaylist(val playlist: Playlist) : PlaylistIntent
     data class RenamePlaylist(val playlist: Playlist) : PlaylistIntent
+    data class AddSongToPlaylist(val playlistId: String, val song: Song) : PlaylistIntent
+    data class RemoveSongFromPlaylist(val playlistId: String, val song: Song): PlaylistIntent
 }
 
 sealed interface PlaylistEffect {
