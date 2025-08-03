@@ -258,7 +258,7 @@ fun CustomEditProfile() {
 //            )
             Box(){
                 Image(
-                    painter = painterResource(id = R.drawable.iconedit),
+                    painter = painterResource(id = R.drawable.icon_edit),
                     contentDescription = "Edit",
                     modifier = Modifier.size(32.dp)
                 )
@@ -517,7 +517,7 @@ fun NoEdit(modifier: Modifier = Modifier) {
             )
 
             Image(
-                painter = painterResource(id = R.drawable.iconedit),
+                painter = painterResource(id = R.drawable.icon_edit),
                 contentDescription = "Edit",
                 modifier = Modifier.size(32.dp)
             )
@@ -617,7 +617,7 @@ fun NoEdit(modifier: Modifier = Modifier) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.iconsuccess),
+                            painter = painterResource(id = R.drawable.icon_success),
                             contentDescription = "Success Icon",
                             modifier = Modifier.size(80.dp).padding(8.dp)
                                 .clip(CircleShape)

@@ -1,4 +1,4 @@
-package com.example.learnjetpackcompose.Screen
+package com.example.learnjetpackcompose.Screen.Playlist.Song
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,10 +24,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -48,17 +47,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.model.Song
 
-//import org.burnoutcrew.reorderable.ReorderableItem
-//import org.burnoutcrew.reorderable.detectReorderAfterLongPress
-//import org.burnoutcrew.reorderable.rememberReorderableLazyListState
-
-
-data class Song1(val name: String, val singer: String, val playtime: String, val imageId: Int)
 
 @Composable
 fun SongCardList(song: Song,
@@ -83,7 +77,7 @@ fun SongCardList(song: Song,
                     contentScale = ContentScale.Fit
                 )
             } else {
-                Icon(painter = painterResource(id = R.drawable.musicnote),
+                Icon(painter = painterResource(id = R.drawable.music_note),
                     contentDescription = null,
                     modifier = Modifier.size(80.dp))
             }
@@ -140,7 +134,7 @@ fun SongCardList(song: Song,
                                 modifier = Modifier.padding(8.dp)
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.iconremove),
+                                    painter = painterResource(R.drawable.icon_remove),
                                     contentDescription = "Remove",
                                     tint = Color.White,
                                     modifier = Modifier.size(20.dp)
@@ -166,7 +160,7 @@ fun SongCardList(song: Song,
                                 modifier = Modifier.padding(8.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Share,
+                                    painter = painterResource(R.drawable.icon_share),
                                     contentDescription = "Share",
                                     tint = Color.Gray,
                                     modifier = Modifier.size(20.dp)
@@ -214,7 +208,7 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
                         contentScale = ContentScale.Fit,
                     )
                 } else {
-                    Icon(painter = painterResource(id = R.drawable.musicnote),
+                    Icon(painter = painterResource(id = R.drawable.music_note),
                         contentDescription = null,
                         modifier = Modifier.size(140.dp))
                 }
@@ -252,7 +246,7 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
                                     modifier = Modifier.padding(8.dp)
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.iconremove),
+                                        painter = painterResource(R.drawable.icon_remove),
                                         contentDescription = "Remove",
                                         tint = Color.White,
                                         modifier = Modifier.size(20.dp)
@@ -278,9 +272,9 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
                                     modifier = Modifier.padding(8.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.Share,
+                                        painter = painterResource(R.drawable.icon_share),
                                         contentDescription = "Share",
-                                        tint = Color.Gray,
+                                        tint = Color.White,
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Spacer(modifier = Modifier.width(12.dp))
@@ -317,7 +311,7 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = song.duration.toString(),
+                text = song.duration,
 
                 color = Color.White,
                 fontSize = 20.sp
@@ -327,7 +321,7 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
 }
 
 @Composable
-fun PlaylistLinear(
+fun SongLinear(
     modifier: Modifier,
     songs: List<Song>,
     onToggleView: () -> Unit,
@@ -424,7 +418,7 @@ fun PlaylistLinear(
 }
 
 @Composable
-fun PlaylistGrid(
+fun SongGrid(
     modifier: Modifier,
     songs: List<Song>,
     onToggleView: () -> Unit, onRemoveSong: (Song) -> Unit){
@@ -454,7 +448,7 @@ fun PlaylistGrid(
                     },
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Menu,
+                        painter = painterResource(R.drawable.menu),
                         contentDescription = "Menu",
                         tint = Color.White
                     )
@@ -486,36 +480,115 @@ fun PlaylistGrid(
 }
 
 @Composable
-fun PlaylistScreen(
-    modifier: Modifier,
-    listSongs: List<Song>) {
+fun SongScreen(
+    playlistId: String,
+    playlistTitle: String,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val playlistViewModel = com.example.learnjetpackcompose.ViewModelProvider.playlistViewModel
+    val playlist = playlistViewModel.getPlaylistById(playlistId)
+    val songs = playlist?.songs ?: emptyList()
+
     var isGridView by remember { mutableStateOf(false) }
-    var songs by remember { mutableStateOf(listSongs) }
 
     val removeSong: (Song) -> Unit = { songToRemove ->
-        songs = songs.filter { it != songToRemove }
+        playlistViewModel.processIntent(
+            com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent.RemoveSongFromPlaylist(
+                playlistId, songToRemove
+            )
+        )
     }
 
     val reorder: (Int, Int) -> Unit = { from, to ->
-        songs = songs.toMutableList().apply {
-            add(to, removeAt(from))
-        }
+        // Sẽ implement sau nếu cần
+        println("Reorder from $from to $to")
     }
 
-    if (isGridView) {
-        PlaylistGrid(
-            modifier = modifier,
-            songs = songs,
-            onToggleView = { isGridView = false },
-            onRemoveSong = removeSong
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
+        // Header với nút back và tên playlist
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.White
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = playlistTitle,
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        // Hiển thị số lượng bài hát
+        Text(
+            text = "${songs.size} songs",
+            color = Color.White.copy(alpha = 0.7f),
+            modifier = Modifier.padding(horizontal = 16.dp),
+            fontSize = 14.sp
         )
-    } else {
-        PlaylistLinear(
-            modifier = modifier,
-            songs = songs,
-            onToggleView = { isGridView = true },
-            onRemoveSong = removeSong,
-            onReorder = reorder
-        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (songs.isEmpty()) {
+            // Hiển thị khi playlist trống
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.music_note),
+                        contentDescription = "No songs",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "No songs in this playlist",
+                        color = Color.Gray,
+                        fontSize = 18.sp
+                    )
+                    Text(
+                        text = "Add songs from the Library",
+                        color = Color.Gray.copy(alpha = 0.7f),
+                        fontSize = 14.sp
+                    )
+                }
+            }
+        } else {
+            // Hiển thị danh sách bài hát
+            if (isGridView) {
+                SongGrid(
+                    modifier = Modifier.fillMaxSize(),
+                    songs = songs,
+                    onToggleView = { isGridView = false },
+                    onRemoveSong = removeSong
+                )
+            } else {
+                SongLinear(
+                    modifier = Modifier.fillMaxSize(),
+                    songs = songs,
+                    onToggleView = { isGridView = true },
+                    onRemoveSong = removeSong,
+                    onReorder = reorder
+                )
+            }
+        }
     }
 }

@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -27,7 +29,9 @@ import androidx.compose.ui.unit.dp
 import com.example.learnjetpackcompose.R
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
@@ -42,7 +46,7 @@ fun LoginScreen(
 ) {
 
     val state by viewModel.state.collectAsState()
-
+    val keyboardController = LocalSoftwareKeyboardController.current
     // Sử dụng LaunchedEffect để xử lý các sự kiện một lần
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest{ effect ->
@@ -92,6 +96,15 @@ fun LoginScreen(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
             ),
+            // 2. Thêm keyboardOptions và keyboardActions
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done // Yêu cầu nút "Done" trên bàn phím
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    keyboardController?.hide() // Ẩn bàn phím khi nhấn "Done"
+                }
+            ),
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Person,
@@ -114,6 +127,15 @@ fun LoginScreen(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
             ),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done // Yêu cầu nút "Done" trên bàn phím
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    keyboardController?.hide() // Ẩn bàn phím
+                    viewModel.processIntent(LoginIntent.LoginClick) // Tùy chọn: thực hiện đăng nhập luôn
+                }
+            ),
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Lock,
@@ -128,7 +150,7 @@ fun LoginScreen(
                 }
                 ){
                     Icon(
-                        painter = painterResource(id = R.drawable.iconvisible),
+                        painter = painterResource(id = R.drawable.icon_visible),
                         modifier = Modifier.size(24.dp),
                         contentDescription = "Show password",
                         tint = Color.White)

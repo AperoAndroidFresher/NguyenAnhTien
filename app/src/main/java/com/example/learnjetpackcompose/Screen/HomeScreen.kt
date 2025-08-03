@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,63 +33,87 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learnjetpackcompose.R
+import com.example.learnjetpackcompose.Screen.Library.LibraryScreen
+import com.example.learnjetpackcompose.Screen.Library.LibraryViewModel
+import com.example.learnjetpackcompose.Screen.Playlist.PlaylistScreen
+import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 import com.example.learnjetpackcompose.model.NavBottomItems
 import com.example.learnjetpackcompose.model.SongViewModel
-
-//import com.example.learnjetpackcompose.model.songs
-
+import com.example.learnjetpackcompose.ViewModelProvider
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, onMyProfileClick: () -> Unit){
-
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    onMyProfileClick: () -> Unit,
+    onPlaylistClick: () -> Unit = {},
+    onSongClick: (String, String) -> Unit = { _, _ -> },
+) {
     val navItemsList = listOf(
-        NavBottomItems("Home", R.drawable.iconhome),
-        NavBottomItems("Library", R.drawable.iconlibrary),
-        NavBottomItems("My Playlist", R.drawable.iconplaylist)
+        NavBottomItems("Home", R.drawable.icon_home),
+        NavBottomItems("Library", R.drawable.icon_library),
+        NavBottomItems("My Playlist", R.drawable.icon_playlist)
     )
     var selectedIndex by remember { mutableStateOf(0) }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        bottomBar = { NavigationBar{
-            navItemsList.forEachIndexed { index, navItem ->
-                NavigationBarItem(
-                    selected = selectedIndex == index,
-                    onClick = { selectedIndex = index},
-                    icon = {
-                        Icon(
-                            painter = painterResource(navItem.icon),
-                            contentDescription = "Icon page",
-                            modifier = Modifier.size(25.dp)
-                        )
-                    },
-                    label = {Text(navItem.label, fontSize = 16.sp,
-                        style = MaterialTheme.typography.labelMedium) }
-                )
+        bottomBar = {
+            NavigationBar {
+                navItemsList.forEachIndexed { index, navItem ->
+                    NavigationBarItem(
+                        selected = selectedIndex == index,
+                        onClick = {
+                            selectedIndex = index
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(navItem.icon),
+                                contentDescription = "Icon page",
+                                modifier = Modifier.size(25.dp)
+                            )
+                        },
+                        label = {
+                            Text(
+                                navItem.label,
+                                fontSize = 16.sp,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    )
                 }
             }
         }
-    ) {innerPadding ->
-        ContentScreen(modifier = Modifier.padding(innerPadding).fillMaxSize(), selectedIndex = selectedIndex, onMyProfileClick = onMyProfileClick)
+    ) { innerPadding ->
+        ContentScreen(
+            modifier = Modifier.padding(innerPadding).fillMaxSize(),
+            selectedIndex = selectedIndex,
+            onMyProfileClick = onMyProfileClick,
+            onPlaylistClick = onPlaylistClick,
+            onSongClick = onSongClick,
+        )
     }
 }
 
 @Composable
 fun HomePage(
     modifier: Modifier,
-    onMyProfileClick:() -> Unit){
+    onMyProfileClick: () -> Unit,
+    onPlaylistClick: () -> Unit = {}
+) {
     Column(
         modifier = modifier,
-
-        ) {
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(10.dp),
             horizontalArrangement = Arrangement.SpaceBetween
-        ){
+        ) {
             Spacer(modifier = Modifier.width(10.dp))
             IconButton(
-                modifier = Modifier.padding(10.dp)
-                    .size(40.dp).align(Alignment.CenterVertically),
+                modifier = Modifier
+                    .padding(10.dp)
+                    .size(40.dp)
+                    .align(Alignment.CenterVertically),
                 onClick = {
-                    println("Go to playlist grid")
+                    println("Go to Profile Setting")
                     onMyProfileClick()
                 }
             ) {
@@ -104,30 +127,43 @@ fun HomePage(
         Text(text = "Home Page", fontSize = 24.sp)
     }
 }
-@Composable
-fun LibraryPage(
-    modifier: Modifier
-){
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "Library Page", fontSize = 24.sp)
-    }
-}
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
-fun ContentScreen(modifier: Modifier = Modifier, selectedIndex: Int, onMyProfileClick: () -> Unit) {
+fun ContentScreen(
+    modifier: Modifier = Modifier,
+    selectedIndex: Int,
+    onMyProfileClick: () -> Unit,
+    onPlaylistClick: () -> Unit = {},
+    onSongClick: (String, String) -> Unit = { _, _ -> }
+
+) {
     val context = LocalContext.current
     val songViewModel = SongViewModel(context.applicationContext as Application)
     val songs = songViewModel.songs
+    val playlistViewModel = ViewModelProvider.playlistViewModel
+    val libraryViewModel = ViewModelProvider.libraryViewModel
     when(selectedIndex) {
         0 -> HomePage(
             modifier,
-            onMyProfileClick = onMyProfileClick)
-        1 -> LibraryPage(modifier)
-        2 -> PlaylistScreen(modifier, songs)
+            onMyProfileClick = onMyProfileClick,
+            onPlaylistClick = onPlaylistClick
+        )
+        1 -> LibraryScreen(
+            libraryViewModel = libraryViewModel,
+            playlistViewModel = playlistViewModel,
+            songs = songs,
+            onNavigateToPlaylist = onPlaylistClick,
+            modifier = modifier
+        )
+        2 -> {
+            PlaylistScreen(
+                modifier = modifier,
+                viewModel = playlistViewModel,
+                onNavigateToSongs = { playlist ->
+                    onSongClick(playlist.id, playlist.title)
+                }
+            )
+        }
     }
 }
