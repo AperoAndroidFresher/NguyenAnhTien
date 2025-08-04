@@ -2,6 +2,7 @@ package com.example.learnjetpackcompose.RoomDB.Entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -13,7 +14,8 @@ import androidx.room.PrimaryKey
             childColumns = ["userId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index(value = ["userId"])]
 )
 
 data class Playlist(
@@ -24,6 +26,6 @@ data class Playlist(
     val imageUrl: String? = null,
     val userId: Int
 ){
-        val songCount: Int
+    val songCount: Int
         get() = songs.size
 }

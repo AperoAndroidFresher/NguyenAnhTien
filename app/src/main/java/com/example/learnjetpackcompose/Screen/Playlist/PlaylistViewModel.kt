@@ -4,17 +4,23 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
-import com.example.learnjetpackcompose.data.repository.PlaylistRepository
+import com.example.learnjetpackcompose.data.repository.IPlaylistRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class PlaylistViewModel(
-    private val playlistRepository: PlaylistRepository,
-    private val currentUserId: Int) : ViewModel() {
+@HiltViewModel
+class PlaylistViewModel @Inject constructor(
+    private val playlistRepository: IPlaylistRepository
+) : ViewModel() {
+
+    // Current user ID - có thể inject từ UserSession sau này
+    private val currentUserId: Int = 1 // Placeholder
 
     private val _state = MutableStateFlow(PlaylistState())
     val state = _state.asStateFlow()

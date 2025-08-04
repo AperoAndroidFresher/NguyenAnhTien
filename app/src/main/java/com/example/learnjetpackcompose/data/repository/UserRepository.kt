@@ -2,18 +2,23 @@ package com.example.learnjetpackcompose.data.repository
 
 import com.example.learnjetpackcompose.RoomDB.DAO.UserDao
 import com.example.learnjetpackcompose.RoomDB.Entity.User
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class UserRepository(private val userDao: UserDao) {
+@Singleton
+class UserRepository @Inject constructor(
+    private val userDao: UserDao
+) : IUserRepository {
 
-    suspend fun insertUser(user: User) {
+    override suspend fun insertUser(user: User) {
         userDao.insertUser(user)
     }
 
-    suspend fun getUserByUsername(username: String): User? {
+    override suspend fun getUserByUsername(username: String): User? {
         return userDao.getUser(username)
     }
 
-    suspend fun getUserByEmail(email: String): User? {
+    override suspend fun getUserByEmail(email: String): User? {
         return userDao.getUserByEmail(email)
     }
 }

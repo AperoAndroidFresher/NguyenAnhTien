@@ -51,9 +51,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
+import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 
 
 @Composable
@@ -492,7 +494,7 @@ fun SongScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val playlistViewModel = com.example.learnjetpackcompose.ViewModelProvider.playlistViewModel
+    val playlistViewModel: PlaylistViewModel = hiltViewModel()
     val playlist = playlistViewModel.getPlaylistById(playlistId)
     val songs = playlist?.songs ?: emptyList()
 

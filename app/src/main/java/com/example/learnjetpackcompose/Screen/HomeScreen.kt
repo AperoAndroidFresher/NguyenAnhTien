@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.Screen.Library.LibraryScreen
 import com.example.learnjetpackcompose.Screen.Library.LibraryViewModel
@@ -39,7 +40,6 @@ import com.example.learnjetpackcompose.Screen.Playlist.PlaylistScreen
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 import com.example.learnjetpackcompose.model.NavBottomItems
 import com.example.learnjetpackcompose.model.SongViewModel
-import com.example.learnjetpackcompose.ViewModelProvider
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -141,8 +141,8 @@ fun ContentScreen(
     val context = LocalContext.current
     val songViewModel = SongViewModel(context.applicationContext as Application)
     val songs = songViewModel.songs
-    val playlistViewModel = ViewModelProvider.playlistViewModel
-    val libraryViewModel = ViewModelProvider.libraryViewModel
+    val playlistViewModel: PlaylistViewModel = hiltViewModel()
+    val libraryViewModel: LibraryViewModel = hiltViewModel()
     when(selectedIndex) {
         0 -> HomePage(
             modifier,
