@@ -9,6 +9,7 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.runtime.entry
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import com.example.learnjetpackcompose.RoomDB.AppDatabase
 import com.example.learnjetpackcompose.Screen.HomeScreen
 import com.example.learnjetpackcompose.Screen.Library.LibraryScreen
 import com.example.learnjetpackcompose.Screen.Library.LibraryViewModel
@@ -21,19 +22,24 @@ import com.example.learnjetpackcompose.Screen.Playlist.Song.SongScreen
 import com.example.learnjetpackcompose.Screen.SignUp.SignUpScreen
 import com.example.learnjetpackcompose.Screen.SignUp.SignUpViewModel
 import com.example.learnjetpackcompose.Screen.Profile.MainProfileScreen
-import com.example.learnjetpackcompose.model.Song
+import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.model.SongViewModel
 import com.example.learnjetpackcompose.ViewModelProvider
+import com.example.learnjetpackcompose.data.repository.UserRepository
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun NavigationApp(){
-
-    val backStack = rememberNavBackStack(SplashNavKey)
-    val loginViewModel = remember { LoginViewModel() }
-    val signUpViewModel = remember { SignUpViewModel() }
-
     val context = LocalContext.current
+    val userRepository = remember{
+        val userDao = AppDatabase.getDatabase(context).userDao()
+        UserRepository(userDao)
+    }
+    val backStack = rememberNavBackStack(SplashNavKey)
+    val loginViewModel = remember { LoginViewModel(userRepository) }
+    val signUpViewModel = remember { SignUpViewModel(userRepository) }
+
+
     val songViewModel = SongViewModel(context.applicationContext as Application)
     val songs = songViewModel.songs
 
@@ -85,7 +91,7 @@ fun NavigationApp(){
                     viewModel = ViewModelProvider.playlistViewModel,
                     onNavigateToSongs = { playlist ->
                         backStack.add(SongNavKey(
-                            playlistId = playlist.id,
+                            playlistId = playlist.playlistId,
                             playlistTitle = playlist.title
                         ))
                     }

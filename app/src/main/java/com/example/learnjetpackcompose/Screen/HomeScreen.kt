@@ -45,7 +45,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     onMyProfileClick: () -> Unit,
     onPlaylistClick: () -> Unit = {},
-    onSongClick: (String, String) -> Unit = { _, _ -> },
+    onSongClick: (Int, String) -> Unit = { _, _ -> },
 ) {
     val navItemsList = listOf(
         NavBottomItems("Home", R.drawable.icon_home),
@@ -135,7 +135,7 @@ fun ContentScreen(
     selectedIndex: Int,
     onMyProfileClick: () -> Unit,
     onPlaylistClick: () -> Unit = {},
-    onSongClick: (String, String) -> Unit = { _, _ -> }
+    onSongClick: (Int, String) -> Unit = { _, _ -> }
 
 ) {
     val context = LocalContext.current
@@ -161,7 +161,7 @@ fun ContentScreen(
                 modifier = modifier,
                 viewModel = playlistViewModel,
                 onNavigateToSongs = { playlist ->
-                    onSongClick(playlist.id, playlist.title)
+                    onSongClick(playlist.playlistId, playlist.title)
                 }
             )
         }

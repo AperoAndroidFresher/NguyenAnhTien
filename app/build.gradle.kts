@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.jetbrains.kotlin.serialization)
+    id ("kotlin-kapt")
 }
 
 android {
@@ -64,4 +65,13 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+
+//    Room DB
+    val room_version = "2.7.2"
+    implementation("androidx.room:room-runtime:$room_version")
+    kapt("androidx.room:room-compiler:$room_version") // Use kapt for Kotlin
+    implementation("androidx.room:room-ktx:$room_version")
+
+    implementation ("com.google.code.gson:gson:2.10.1")
 }

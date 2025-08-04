@@ -34,6 +34,6 @@ object LibraryNavKey : NavKey
 
 @Serializable
 data class SongNavKey(
-    val playlistId: String,
+    val playlistId: Int,
     val playlistTitle: String
 ) : NavKey

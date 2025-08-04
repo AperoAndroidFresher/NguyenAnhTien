@@ -3,6 +3,7 @@ package com.example.learnjetpackcompose.Screen.Library
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -49,13 +51,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.learnjetpackcompose.R
-import com.example.learnjetpackcompose.model.Song
+import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Playlist.ChoosePlaylistDialog
 import com.example.learnjetpackcompose.Screen.Playlist.DialogCreatePlaylist
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
-import com.example.learnjetpackcompose.model.Playlist
+import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import kotlinx.coroutines.flow.collectLatest
 // onNavigateToPlaylist:() -> Unit,
 @Composable
@@ -238,7 +241,7 @@ fun LibraryScreen(
                     selectedSong = null
                 },
                 onPlaylistSelected = { playlist ->
-                    playlistViewModel.processIntent(PlaylistIntent.AddSongToPlaylist(playlist.id, selectedSong!!))
+                    playlistViewModel.processIntent(PlaylistIntent.AddSongToPlaylist(playlist.playlistId, selectedSong!!))
                     showDialog = false
                     selectedSong = null
                 },
@@ -263,7 +266,7 @@ fun LibrarySongCardList(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -272,13 +275,17 @@ fun LibrarySongCardList(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+
+
                 if (song.albumArt != null) {
-                    Image(
-                        bitmap = song.albumArt.asImageBitmap(),
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
+                    AsyncImage(
+                        model = song.albumArt,
+                        contentDescription = "AlbumArt Image",
+                        modifier = Modifier
+                            .size(64.dp),
                         contentScale = ContentScale.Fit
                     )
+
                 } else {
                     Icon(
                         painter = painterResource(id = R.drawable.music_note),

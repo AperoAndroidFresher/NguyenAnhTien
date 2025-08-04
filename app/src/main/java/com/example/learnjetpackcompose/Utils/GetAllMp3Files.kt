@@ -4,8 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.provider.MediaStore
-import com.example.learnjetpackcompose.model.Song
+import com.example.learnjetpackcompose.RoomDB.Entity.Song
 
 private fun extractAlbumArt(context: Context, audioPath: String): Bitmap? {
     val retriever = MediaMetadataRetriever()
@@ -70,10 +71,10 @@ fun getAllMp3Files(context: Context): List<Song> {
             val duration = String.format("%d:%02d", minutes, seconds)
 
 
-            val albumArt = extractAlbumArt(context, data)
+            val albumArt = Uri.EMPTY
 
             if (data.endsWith(".mp3", ignoreCase = true)) {
-                songList.add(Song(id, title, artist, albumArt, duration, data))
+                songList.add(Song(id, title, artist, albumArt.toString(), duration, data))
             }
         }
     }
