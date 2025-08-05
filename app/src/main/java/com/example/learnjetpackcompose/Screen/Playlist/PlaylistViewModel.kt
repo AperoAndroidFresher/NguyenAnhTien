@@ -98,7 +98,6 @@ class PlaylistViewModel @Inject constructor(
                 playlistRepository.deletePlaylist(playlistToRemove.playlistId)
                 loadPlaylists()
                 _effect.send(PlaylistEffect.ShowMessage("Playlist '${playlistToRemove.title}' removed"))
-
             } catch (e: Exception) {
                 _state.update { it.copy(error = "Failed to remove playlist") }
             }
@@ -127,6 +126,7 @@ class PlaylistViewModel @Inject constructor(
                         it
                     }
                 }
+
                 _state.update { it.copy(playlists = updatedPlaylists) }
                 loadPlaylists()
                 _effect.send(PlaylistEffect.ShowMessage("Playlist renamed to '${playlist.title}'"))
@@ -142,9 +142,10 @@ class PlaylistViewModel @Inject constructor(
             val updatedPlaylist = playlist.copy(
                 songs = playlist.songs + song
             )
+
             updatePlaylist(updatedPlaylist)
             viewModelScope.launch {
-                _effect.send(PlaylistEffect.ShowMessage("Đã thêm bài hát vào '${playlist.title}'"))
+                _effect.send(PlaylistEffect.ShowMessage("Added song to '${playlist.title}'"))
             }
         }
     }
@@ -155,9 +156,10 @@ class PlaylistViewModel @Inject constructor(
             val updatedPlaylist = playlist.copy(
                 songs = playlist.songs - song
             )
+
             updatePlaylist(updatedPlaylist)
             viewModelScope.launch {
-                _effect.send(PlaylistEffect.ShowMessage("Đã xóa bài hát vào '${playlist.title}'"))
+                _effect.send(PlaylistEffect.ShowMessage("Removed song from '${playlist.title}'"))
             }
         }
     }
