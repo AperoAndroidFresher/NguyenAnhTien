@@ -1,7 +1,7 @@
 package com.example.learnjetpackcompose.Screen.Playlist
 
-import com.example.learnjetpackcompose.model.Playlist
-import com.example.learnjetpackcompose.model.Song
+import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
+import com.example.learnjetpackcompose.RoomDB.Entity.Song
 
 
 data class PlaylistState(
@@ -12,13 +12,12 @@ data class PlaylistState(
 
 sealed interface PlaylistIntent {
     data class LoadPlaylists(val playlists: List<Playlist>) : PlaylistIntent
-    data class AddPlaylist(val playlist: Playlist) : PlaylistIntent
+    data class AddPlaylist(val title: String) : PlaylistIntent
     data class RemovePlaylist(val playlist: Playlist) : PlaylistIntent
     data class RenamePlaylist(val playlist: Playlist) : PlaylistIntent
-    data class AddSongToPlaylist(val playlistId: String, val song: Song) : PlaylistIntent
-    data class RemoveSongFromPlaylist(val playlistId: String, val song: Song): PlaylistIntent
-    data class AddMultipleSongsToPlaylist(val playlistId: String, val songs: List<Song>) : PlaylistIntent
-    data class GetPlaylistSongs(val playlistId: String) : PlaylistIntent
+    data class AddSongToPlaylist(val playlistId: Int, val song: Song) : PlaylistIntent
+    data class RemoveSongFromPlaylist(val playlistId: Int, val song: Song): PlaylistIntent
+    data class GetPlaylistSongs(val playlistId: Int) : PlaylistIntent
 }
 
 sealed interface PlaylistEffect {

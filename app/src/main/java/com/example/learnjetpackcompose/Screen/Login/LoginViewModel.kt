@@ -2,15 +2,21 @@ package com.example.learnjetpackcompose.Screen.Login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.learnjetpackcompose.data.repository.IUserRepository
 import com.example.learnjetpackcompose.model.UserManager
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LoginViewModel : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val userRepository: IUserRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
     val state = _state.asStateFlow()
@@ -46,7 +52,9 @@ class LoginViewModel : ViewModel() {
             _state.update {it.copy(isLoading = true)}
 
             val currentState = _state.value
-            if(UserManager.isUserExist(currentState.username, currentState.password)){
+
+            val user = userRepository.getUserByUsername(currentState.username)
+            if(user != null && user.password == currentState.password){
                 _effect.send(LoginEffect.NavigateToHome)
             } else{
                 _state.update {it.copy(isLoading = false, error = "Invalid username or password")}

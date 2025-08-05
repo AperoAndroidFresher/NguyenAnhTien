@@ -2,8 +2,10 @@ package com.example.learnjetpackcompose.Screen.Library
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.learnjetpackcompose.model.Playlist
-import com.example.learnjetpackcompose.model.Song
+import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
+import com.example.learnjetpackcompose.RoomDB.Entity.Song
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,8 +13,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import okhttp3.Dispatcher
+import javax.inject.Inject
 
-class LibraryViewModel : ViewModel() {
+@HiltViewModel
+class LibraryViewModel @Inject constructor() : ViewModel() {
 
     private val _state = MutableStateFlow(LibraryState())
     val state = _state.asStateFlow()
@@ -59,7 +64,7 @@ class LibraryViewModel : ViewModel() {
     }
 
     private fun selectSource(source: LibrarySource) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _state.update {
                 it.copy(
                     selectedSource = source,
@@ -78,11 +83,10 @@ class LibraryViewModel : ViewModel() {
     }
 
     private fun addToPlaylist(song: Song) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val playlists = _state.value.playlists
                 if (playlists.isNullOrEmpty()) {
-//                    _effect.send(LibraryEffect.ShowMessage("No playlists available. Create a playlist first."))
                     _effect.send(LibraryEffect.ShowDialogChoosePlaylist(song, emptyList()))
                     return@launch
                 }
@@ -94,8 +98,10 @@ class LibraryViewModel : ViewModel() {
     }
 
     private fun loadLocalSongs() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
+
             try {
+
                 _state.update { it.copy(isLoading = true, selectedSource = LibrarySource.LOCAL) }
                 delay(1000)
                 val localSongs = filterSongsBySource(_state.value.songs, LibrarySource.LOCAL)
@@ -119,7 +125,7 @@ class LibraryViewModel : ViewModel() {
     }
 
     private fun loadRemoteSongs() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 _state.update { it.copy(isLoading = true, selectedSource = LibrarySource.REMOTE) }
                 delay(1500)
@@ -144,9 +150,6 @@ class LibraryViewModel : ViewModel() {
     }
 
     private fun filterSongsBySource(songs: List<Song>, source: LibrarySource): List<Song> {
-        return when (source) {
-            LibrarySource.LOCAL -> songs.filterIndexed { index, _ -> index % 2 == 0 }
-            LibrarySource.REMOTE -> songs.filterIndexed { index, _ -> index % 2 == 1 }
-        }
+        return songs
     }
 }

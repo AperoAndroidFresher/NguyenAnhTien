@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.jetbrains.kotlin.serialization)
+    id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -40,6 +42,22 @@ android {
     buildFeatures {
         compose = true
     }
+
+    sourceSets {
+        getByName("main") {
+            java.srcDir("build/generated/ksp/main/kotlin")
+        }
+        getByName("debug") {
+            java.srcDir("build/generated/ksp/debug/kotlin")
+        }
+        getByName("release") {
+            java.srcDir("build/generated/ksp/release/kotlin")
+        }
+    }
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 dependencies {
@@ -64,4 +82,19 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+//    Hilt Dependency Injection
+    implementation("com.google.dagger:hilt-android:2.57")
+    ksp("com.google.dagger:hilt-compiler:2.57")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+//    Room DB
+    val room_version = "2.7.2"
+    implementation("androidx.room:room-runtime:$room_version")
+    ksp("androidx.room:room-compiler:$room_version") // Use KSP for Kotlin
+    implementation("androidx.room:room-ktx:$room_version")
+
+    implementation ("com.google.code.gson:gson:2.10.1")
+
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
 }

@@ -2,10 +2,12 @@ package com.example.learnjetpackcompose.Screen.Playlist
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -19,15 +21,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import coil.compose.AsyncImage
 import com.example.learnjetpackcompose.R
-import com.example.learnjetpackcompose.model.Playlist
+import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 
 
 
@@ -127,20 +132,24 @@ fun PlaylistItem(playlist: Playlist, onClick: (Playlist) -> Unit) {
     ) {
         // Hình ảnh playlist (nếu có)
         if (playlist.imageUrl != null) {
-            Image(
-                painter = painterResource(id = playlist.imageUrl),
-                contentDescription = "Playlist Cover",
+            AsyncImage(
+                model = playlist.imageUrl,
+                contentDescription = "Profile Image",
                 modifier = Modifier
                     .size(64.dp)
-                    .padding(end = 16.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, Color.LightGray, CircleShape),
+                contentScale = ContentScale.Crop
             )
         } else {
-            // Placeholder nếu không có ảnh
-            Box(
+            Image(
+                painter = painterResource(id = R.drawable.rose),
+                contentDescription = "Profile Image",
                 modifier = Modifier
                     .size(64.dp)
-                    .padding(end = 16.dp)
-                    .background(Color.Gray)
+                    .clip(CircleShape)
+                    .border(2.dp, Color.LightGray, CircleShape),
+                contentScale = ContentScale.Crop
             )
         }
 
@@ -176,7 +185,6 @@ fun PreviewChoosePlaylistDialog() {
             },
             onAddPlaylistClicked = {
                 println("Add new playlist clicked - Navigate to PlaylistScreen")
-                // Ở đây sẽ chuyển sang màn hình PlaylistScreen
                 showDialog = false
             }
         )

@@ -1,7 +1,8 @@
 package com.example.learnjetpackcompose.Screen.Library
 
-import com.example.learnjetpackcompose.model.Playlist
-import com.example.learnjetpackcompose.model.Song
+import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
+import com.example.learnjetpackcompose.RoomDB.Entity.Song
+
 
 data class LibraryState(
     val songs: List<Song> = emptyList(),

@@ -1,6 +1,6 @@
 package com.example.learnjetpackcompose.Screen.Playlist.Song
 
-import com.example.learnjetpackcompose.model.Song
+import com.example.learnjetpackcompose.RoomDB.Entity.Song
 
 data class SongState(
     val songs: List<Song> = emptyList(),

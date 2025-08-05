@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,8 +57,12 @@ fun DialogCreatePlaylist(
                 OutlinedTextField(
                     value = playlistTitle,
                     onValueChange = { playlistTitle = it },
-                    label = { Text("Name", color = Color.White.copy(alpha = 0.7f)) },
+                    label = { Text("Name playlist", color = Color.White.copy(alpha = 0.7f)) },
                     modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                    ),
                     singleLine = true
                 )
 

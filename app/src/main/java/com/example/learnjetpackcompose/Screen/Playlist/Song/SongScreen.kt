@@ -3,6 +3,7 @@ package com.example.learnjetpackcompose.Screen.Playlist.Song
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,8 +51,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.learnjetpackcompose.R
-import com.example.learnjetpackcompose.model.Song
+import com.example.learnjetpackcompose.RoomDB.Entity.Song
+import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 
 
 @Composable
@@ -70,11 +74,13 @@ fun SongCardList(song: Song,
                 .background(color = Color.Black),
         ){
             if (song.albumArt != null) {
-                Image(
-                    bitmap = song.albumArt.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier.size(80.dp),
-                    contentScale = ContentScale.Fit
+                AsyncImage(
+                    model = song.albumArt,
+                    contentDescription = "Image Playlist",
+                    modifier = Modifier
+                        .size(64.dp)
+                        .border(2.dp, Color.LightGray, CircleShape),
+                    contentScale = ContentScale.Crop
                 )
             } else {
                 Icon(painter = painterResource(id = R.drawable.music_note),
@@ -201,11 +207,13 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
             Box(){
 
                 if (song.albumArt != null) {
-                    Image(
-                        bitmap = song.albumArt.asImageBitmap(),
-                        contentDescription = null,
-                        modifier = Modifier.size(140.dp),
-                        contentScale = ContentScale.Fit,
+                    AsyncImage(
+                        model = song.albumArt,
+                        contentDescription = "Image Playlist",
+                        modifier = Modifier
+                            .size(140.dp)
+                            .border(2.dp, Color.LightGray, CircleShape),
+                        contentScale = ContentScale.Crop
                     )
                 } else {
                     Icon(painter = painterResource(id = R.drawable.music_note),
@@ -481,12 +489,12 @@ fun SongGrid(
 
 @Composable
 fun SongScreen(
-    playlistId: String,
+    playlistId: Int,
     playlistTitle: String,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val playlistViewModel = com.example.learnjetpackcompose.ViewModelProvider.playlistViewModel
+    val playlistViewModel: PlaylistViewModel = hiltViewModel()
     val playlist = playlistViewModel.getPlaylistById(playlistId)
     val songs = playlist?.songs ?: emptyList()
 

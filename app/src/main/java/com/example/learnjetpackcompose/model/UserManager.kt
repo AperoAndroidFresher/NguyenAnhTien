@@ -1,7 +1,9 @@
 package com.example.learnjetpackcompose.model
 
+import com.example.learnjetpackcompose.RoomDB.Entity.User
+
 object UserManager {
-    private val userList = mutableListOf<User>( User("ad", "admin@admin.com", "Abc123!"))
+    private val userList = mutableListOf<User>( User(username ="ad", email = "admin@admin.com", password = "Abc123!"))
 
     fun addUser(user: User): Boolean {
         if (userList.any { it.username == user.username }) {

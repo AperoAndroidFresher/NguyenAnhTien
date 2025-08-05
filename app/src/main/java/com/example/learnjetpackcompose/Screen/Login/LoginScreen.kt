@@ -96,13 +96,13 @@ fun LoginScreen(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
             ),
-            // 2. Thêm keyboardOptions và keyboardActions
+
             keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Done // Yêu cầu nút "Done" trên bàn phím
+                imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(
                 onDone = {
-                    keyboardController?.hide() // Ẩn bàn phím khi nhấn "Done"
+                    keyboardController?.hide()
                 }
             ),
             leadingIcon = {
