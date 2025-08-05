@@ -10,6 +10,7 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.runtime.entry
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import com.example.learnjetpackcompose.RoomDB.Entity.SongViewModel
 import com.example.learnjetpackcompose.Screen.HomeScreen
 import com.example.learnjetpackcompose.Screen.Library.LibraryScreen
 import com.example.learnjetpackcompose.Screen.Login.LoginScreen
@@ -18,7 +19,7 @@ import com.example.learnjetpackcompose.Screen.Playlist.PlaylistScreen
 import com.example.learnjetpackcompose.Screen.Playlist.Song.SongScreen
 import com.example.learnjetpackcompose.Screen.SignUp.SignUpScreen
 import com.example.learnjetpackcompose.Screen.Profile.MainProfileScreen
-import com.example.learnjetpackcompose.model.SongViewModel
+
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable

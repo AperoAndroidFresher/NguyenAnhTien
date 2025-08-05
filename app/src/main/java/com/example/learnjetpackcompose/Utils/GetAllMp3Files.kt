@@ -1,47 +1,13 @@
-package com.example.learnjetpackcompose.Utils
-
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.MediaStore
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
-
-private fun extractAlbumArt(context: Context, audioPath: String): Bitmap? {
-    val retriever = MediaMetadataRetriever()
-    return try {
-        retriever.setDataSource(audioPath)
-        val artBytes = retriever.embeddedPicture
-        if (artBytes != null) {
-            BitmapFactory.decodeByteArray(artBytes, 0, artBytes.size)
-        } else {
-            null
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    } finally {
-        try {
-            retriever.release()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-}
-
+import java.io.File
 
 fun getAllMp3Files(context: Context): List<Song> {
     val songList = mutableListOf<Song>()
-
-    val projection = arrayOf(
-        MediaStore.Audio.Media._ID,
-        MediaStore.Audio.Media.TITLE,
-        MediaStore.Audio.Media.ARTIST,
-        MediaStore.Audio.Media.DATA,
-        MediaStore.Audio.Media.DURATION
-    )
-
+    val projection = getQueryProjection()
     val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
     val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
@@ -70,14 +36,58 @@ fun getAllMp3Files(context: Context): List<Song> {
             val seconds = durationInSec % 60
             val duration = String.format("%d:%02d", minutes, seconds)
 
-
-            val albumArt = Uri.EMPTY
+            val albumArtUri = extractAlbumArtAsUri(context, data, id)
+            val finalAlbumArtUri = albumArtUri ?: Uri.EMPTY
 
             if (data.endsWith(".mp3", ignoreCase = true)) {
-                songList.add(Song(id, title, artist, albumArt.toString(), duration, data))
+                songList.add(Song(id, title, artist, finalAlbumArtUri.toString(), duration, data))
             }
         }
     }
 
     return songList
 }
+
+private fun extractAlbumArtAsUri(context: Context, audioPath: String, songId: Long): Uri? {
+    val retriever = MediaMetadataRetriever()
+    return try {
+        retriever.setDataSource(audioPath)
+        val artBytes = retriever.embeddedPicture
+
+        if (artBytes != null) {
+            val cacheDir = File(context.cacheDir, "temp_album_arts")
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs()
+            }
+
+            val tempFile = File(cacheDir, "temp_art_$songId.jpg")
+
+            tempFile.writeBytes(artBytes)
+
+            Uri.fromFile(tempFile)
+        } else {
+            null
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    } finally {
+        try {
+            retriever.release()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+}
+
+private fun getQueryProjection(): Array<String> {
+    return arrayOf(
+        MediaStore.Audio.Media._ID,
+        MediaStore.Audio.Media.TITLE,
+        MediaStore.Audio.Media.ARTIST,
+        MediaStore.Audio.Media.DATA,
+        MediaStore.Audio.Media.DURATION
+    )
+}
+
+

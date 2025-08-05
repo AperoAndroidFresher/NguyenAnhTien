@@ -1,5 +1,6 @@
 package com.example.learnjetpackcompose.Screen.Library
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -277,23 +278,21 @@ fun LibrarySongCardList(
             Row(verticalAlignment = Alignment.CenterVertically) {
 
 
-                if (song.albumArt != null) {
-                    AsyncImage(
-                        model = song.albumArt,
-                        contentDescription = "AlbumArt Image",
-                        modifier = Modifier
-                            .size(64.dp),
-                        contentScale = ContentScale.Fit
-                    )
-
-                } else {
-                    Icon(
-                        painter = painterResource(id = R.drawable.music_note),
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = Color.White
-                    )
-                }
+                AsyncImage(
+                    model = if (song.albumArt.isNullOrEmpty() || song.albumArt == Uri.EMPTY.toString()) {
+                        null
+                    } else {
+                        Uri.parse(song.albumArt)
+                    },
+                    contentDescription = "Album Art",
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.music_note),
+                    error = painterResource(id = R.drawable.music_note),
+                    fallback = painterResource(id = R.drawable.music_note)
+                )
 
                 Column(
                     modifier = Modifier.padding(10.dp)
