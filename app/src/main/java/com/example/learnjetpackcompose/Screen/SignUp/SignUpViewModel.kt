@@ -29,28 +29,27 @@ class SignUpViewModel @Inject constructor(
     fun processIntent(intent: SignUpIntent) {
         when (intent) {
             is SignUpIntent.ConfirmPasswordChanged -> {
-                _state.update {
-                    it.copy(confirmPassword = intent.confirmPassword) }
+                _state.update { it.copy(confirmPassword = intent.confirmPassword) }
             }
 
             SignUpIntent.ShowConfirmPassword -> {
-                _state.update {
-                    it.copy(isConfirmPasswordVisible = !it.isConfirmPasswordVisible) }
+                _state.update { it.copy(isConfirmPasswordVisible = !it.isConfirmPasswordVisible) }
             }
 
             is SignUpIntent.EmailChanged -> {
                 _state.update {
-                    it.copy(email = intent.email) }
+                    it.copy(email = intent.email)
+                }
             }
 
             is SignUpIntent.PasswordChanged -> {
                 _state.update {
-                    it.copy(password = intent.password) }
+                    it.copy(password = intent.password)
+                }
             }
 
             SignUpIntent.ShowPassword -> {
-                _state.update {
-                    it.copy(isPasswordVisible = !it.isPasswordVisible) }
+                _state.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
             }
 
             SignUpIntent.SignUpClicked -> {
@@ -58,8 +57,7 @@ class SignUpViewModel @Inject constructor(
             }
 
             is SignUpIntent.UsernameChanged -> {
-                _state.update {
-                    it.copy(username = intent.username) }
+                _state.update { it.copy(username = intent.username) }
             }
         }
     }
@@ -93,7 +91,10 @@ class SignUpViewModel @Inject constructor(
                 usernameError == null && emailError == null && passwordError == null && confirmPasswordError == null
             }
             if (isValid) {
-                val newUser = User(username = currentState.username, email = currentState.email, password = currentState.password
+                val newUser = User(
+                    username = currentState.username,
+                    email = currentState.email,
+                    password = currentState.password
                 )
                 val success = UserManager.addUser(newUser)
 
