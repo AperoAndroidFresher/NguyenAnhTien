@@ -21,7 +21,7 @@ class PlaylistViewModel @Inject constructor(
 ) : ViewModel() {
 
 
-    private val currentUserId: Int = 1 // Placeholder
+    private val currentUserId: Int = 1
 
     private val _state = MutableStateFlow(PlaylistState())
     val state = _state.asStateFlow()
@@ -80,8 +80,7 @@ class PlaylistViewModel @Inject constructor(
     private fun addPlaylist(title: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val newPlaylist =
-                    Playlist(title = title, songs = emptyList(), userId = currentUserId)
+                val newPlaylist = Playlist(title = title, songs = emptyList(), userId = currentUserId)
 
                 playlistRepository.addPlaylist(newPlaylist)
                 loadPlaylists()

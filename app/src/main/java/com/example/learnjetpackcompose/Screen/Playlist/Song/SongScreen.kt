@@ -1,5 +1,6 @@
 package com.example.learnjetpackcompose.Screen.Playlist.Song
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -73,20 +74,21 @@ fun SongCardList(song: Song,
             modifier = Modifier.fillMaxWidth()
                 .background(color = Color.Black),
         ){
-            if (song.albumArt != null) {
-                AsyncImage(
-                    model = song.albumArt,
-                    contentDescription = "Image Playlist",
-                    modifier = Modifier
-                        .size(64.dp)
-                        .border(2.dp, Color.LightGray, CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Icon(painter = painterResource(id = R.drawable.music_note),
-                    contentDescription = null,
-                    modifier = Modifier.size(80.dp))
-            }
+            AsyncImage(
+                model = if (song.albumArt.isNullOrEmpty() || song.albumArt == Uri.EMPTY.toString()) {
+                    null
+                } else {
+                    Uri.parse(song.albumArt)
+                },
+                contentDescription = "Album Art",
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(id = R.drawable.music_note),
+                error = painterResource(id = R.drawable.music_note),
+                fallback = painterResource(id = R.drawable.music_note)
+            )
 
 
             Column(){
@@ -206,20 +208,21 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
         ){
             Box(){
 
-                if (song.albumArt != null) {
-                    AsyncImage(
-                        model = song.albumArt,
-                        contentDescription = "Image Playlist",
-                        modifier = Modifier
-                            .size(140.dp)
-                            .border(2.dp, Color.LightGray, CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Icon(painter = painterResource(id = R.drawable.music_note),
-                        contentDescription = null,
-                        modifier = Modifier.size(140.dp))
-                }
+                AsyncImage(
+                    model = if (song.albumArt.isNullOrEmpty() || song.albumArt == Uri.EMPTY.toString()) {
+                        null
+                    } else {
+                        Uri.parse(song.albumArt)
+                    },
+                    contentDescription = "Album Art",
+                    modifier = Modifier
+                        .size(140.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.music_note),
+                    error = painterResource(id = R.drawable.music_note),
+                    fallback = painterResource(id = R.drawable.music_note)
+                )
 
                 Box(
                     modifier = Modifier.align(Alignment.TopEnd)

@@ -34,12 +34,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.learnjetpackcompose.R
+import com.example.learnjetpackcompose.RoomDB.Entity.SongViewModel
 import com.example.learnjetpackcompose.Screen.Library.LibraryScreen
 import com.example.learnjetpackcompose.Screen.Library.LibraryViewModel
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistScreen
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 import com.example.learnjetpackcompose.model.NavBottomItems
-import com.example.learnjetpackcompose.model.SongViewModel
+
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
