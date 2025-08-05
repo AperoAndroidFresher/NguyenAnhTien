@@ -35,29 +35,17 @@ class PlaylistViewModel @Inject constructor(
 
     fun processIntent(intent: PlaylistIntent) {
         when (intent) {
-            is PlaylistIntent.LoadPlaylists -> {
-                loadPlaylists()
-            }
+            is PlaylistIntent.LoadPlaylists -> loadPlaylists()
 
-            is PlaylistIntent.AddPlaylist -> {
-                addPlaylist(intent.title)
-            }
+            is PlaylistIntent.AddPlaylist -> addPlaylist(intent.title)
 
-            is PlaylistIntent.RemovePlaylist -> {
-                removePlaylist(intent.playlist)
-            }
+            is PlaylistIntent.RemovePlaylist -> removePlaylist(intent.playlist)
 
-            is PlaylistIntent.RenamePlaylist -> {
-                renamePlaylist(intent.playlist)
-            }
+            is PlaylistIntent.RenamePlaylist -> renamePlaylist(intent.playlist)
 
-            is PlaylistIntent.AddSongToPlaylist -> {
-                addSongToPlaylist(intent.playlistId, intent.song)
-            }
+            is PlaylistIntent.AddSongToPlaylist -> addSongToPlaylist(intent.playlistId, intent.song)
 
-            is PlaylistIntent.RemoveSongFromPlaylist -> {
-                removeSongFromPlaylist(intent.playlistId, intent.song)
-            }
+            is PlaylistIntent.RemoveSongFromPlaylist -> removeSongFromPlaylist(intent.playlistId, intent.song)
         }
     }
 
