@@ -6,6 +6,7 @@ import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.data.repository.IPlaylistRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +20,7 @@ class PlaylistViewModel @Inject constructor(
     private val playlistRepository: IPlaylistRepository
 ) : ViewModel() {
 
-    // Current user ID - có thể inject từ UserSession sau này
+
     private val currentUserId: Int = 1 // Placeholder
 
     private val _state = MutableStateFlow(PlaylistState())
@@ -31,57 +32,59 @@ class PlaylistViewModel @Inject constructor(
     init {
         loadPlaylists()
     }
-    val onAddPlaylistClicked: () -> Unit = {
-
-    }
 
     fun processIntent(intent: PlaylistIntent) {
         when (intent) {
             is PlaylistIntent.LoadPlaylists -> {
-                _state.update { it.copy(playlists = intent.playlists, error = null) }
+                loadPlaylists()
             }
+
             is PlaylistIntent.AddPlaylist -> {
                 addPlaylist(intent.title)
             }
+
             is PlaylistIntent.RemovePlaylist -> {
                 removePlaylist(intent.playlist)
             }
+
             is PlaylistIntent.RenamePlaylist -> {
                 renamePlaylist(intent.playlist)
             }
+
             is PlaylistIntent.AddSongToPlaylist -> {
                 addSongToPlaylist(intent.playlistId, intent.song)
             }
+
             is PlaylistIntent.RemoveSongFromPlaylist -> {
                 removeSongFromPlaylist(intent.playlistId, intent.song)
-            }
-
-            is PlaylistIntent.GetPlaylistSongs -> {
-                // Intent này chỉ để truy vấn, không cần xử lý async
-                // Có thể sử dụng các phương thức tiện ích đã tạo
             }
         }
     }
 
-    private fun loadPlaylists(){
-        viewModelScope.launch{
-            _state.update{it.copy(isLoading = true)}
-            try{
+    fun getPlaylistById(playlistId: Int): Playlist? {
+        return _state.value.playlists.find { it.playlistId == playlistId }
+    }
+
+    private fun loadPlaylists() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _state.update { it.copy(isLoading = true) }
+            try {
                 val playlists = playlistRepository.getPlaylistsForUser(currentUserId)
-                _state.update{it.copy(playlists = playlists, isLoading = false)}
-            } catch(e: Exception){
-                _state.update{it.copy(isLoading = false, error = "Failed to load playlists")}
+                _state.update { it.copy(playlists = playlists, isLoading = false) }
+            } catch (e: Exception) {
+                _state.update { it.copy(isLoading = false, error = "Failed to load playlists") }
             }
         }
     }
 
     private fun addPlaylist(title: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
-                val newPlaylist = Playlist(title = title, songs = emptyList(), userId = currentUserId)
+                val newPlaylist =
+                    Playlist(title = title, songs = emptyList(), userId = currentUserId)
 
                 playlistRepository.addPlaylist(newPlaylist)
-
+                loadPlaylists()
                 _effect.send(PlaylistEffect.ShowMessage("Playlist '$title' added"))
             } catch (e: Exception) {
                 _state.update { it.copy(error = "Failed to add playlist") }
@@ -90,11 +93,12 @@ class PlaylistViewModel @Inject constructor(
     }
 
     private fun removePlaylist(playlistToRemove: Playlist) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 playlistRepository.deletePlaylist(playlistToRemove.playlistId)
-                _effect.send(PlaylistEffect.ShowMessage("Playlist '${playlistToRemove.title}' removed"))
                 loadPlaylists()
+                _effect.send(PlaylistEffect.ShowMessage("Playlist '${playlistToRemove.title}' removed"))
+
             } catch (e: Exception) {
                 _state.update { it.copy(error = "Failed to remove playlist") }
             }
@@ -102,10 +106,10 @@ class PlaylistViewModel @Inject constructor(
     }
 
     private fun updatePlaylist(playlist: Playlist) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 playlistRepository.addPlaylist(playlist)
-                loadPlaylists() // Tải lại để đảm bảo dữ liệu nhất quán
+                loadPlaylists()
             } catch (e: Exception) {
                 _state.update { it.copy(error = "Failed to update playlist") }
             }
@@ -113,7 +117,7 @@ class PlaylistViewModel @Inject constructor(
     }
 
     private fun renamePlaylist(playlist: Playlist) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val currentPlaylists = _state.value.playlists
                 val updatedPlaylists = currentPlaylists.map {
@@ -124,6 +128,7 @@ class PlaylistViewModel @Inject constructor(
                     }
                 }
                 _state.update { it.copy(playlists = updatedPlaylists) }
+                loadPlaylists()
                 _effect.send(PlaylistEffect.ShowMessage("Playlist renamed to '${playlist.title}'"))
             } catch (e: Exception) {
                 _state.update { it.copy(error = "Failed to rename playlist") }
@@ -156,19 +161,4 @@ class PlaylistViewModel @Inject constructor(
             }
         }
     }
-
-
-    fun getPlaylistById(playlistId: Int): Playlist? {
-        return _state.value.playlists.find { it.playlistId == playlistId }
-    }
-
-    fun getSongsInPlaylist(playlistId: Int): List<Song> {
-        return getPlaylistById(playlistId)?.songs ?: emptyList()
-    }
-
-    fun getSongCountInPlaylist(playlistId: Int): Int {
-        return getSongsInPlaylist(playlistId).size
-    }
-
-
 }
