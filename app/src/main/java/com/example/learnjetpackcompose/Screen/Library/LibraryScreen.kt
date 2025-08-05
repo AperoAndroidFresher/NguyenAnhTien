@@ -1,15 +1,14 @@
 package com.example.learnjetpackcompose.Screen.Library
 
 import android.net.Uri
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -46,7 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -56,7 +54,6 @@ import coil.compose.AsyncImage
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Playlist.ChoosePlaylistDialog
-import com.example.learnjetpackcompose.Screen.Playlist.DialogCreatePlaylist
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
@@ -76,7 +73,6 @@ fun LibraryScreen(
     var showDialog by remember { mutableStateOf(false) }
     var selectedSong by remember { mutableStateOf<Song?>(null) }
 
-    // Cập nhật playlists cho LibraryViewModel khi playlists thay đổi
     LaunchedEffect(playlistState.playlists) {
         libraryViewModel.updatePlaylists(playlistState.playlists)
     }
@@ -86,7 +82,6 @@ fun LibraryScreen(
         libraryViewModel.processIntent(LibraryIntent.LoadSongs(songs))
     }
 
-    // Handle side effects - SỬA ĐỔI QUAN TRỌNG Ở ĐÂY
     LaunchedEffect(libraryViewModel) {
         libraryViewModel.effect.collect { effect ->
             when (effect) {
@@ -99,11 +94,6 @@ fun LibraryScreen(
                 }
             }
         }
-    }
-
-    // Thêm debug log để kiểm tra
-    LaunchedEffect(showDialog, selectedSong) {
-        println("DEBUG: showDialog = $showDialog, selectedSong = ${selectedSong?.title}")
     }
 
 
@@ -277,43 +267,10 @@ fun LibrarySongCardList(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
 
+                SongAlbumArt(albumArtUri = song.albumArt)
 
-                AsyncImage(
-                    model = if (song.albumArt.isNullOrEmpty() || song.albumArt == Uri.EMPTY.toString()) {
-                        null
-                    } else {
-                        Uri.parse(song.albumArt)
-                    },
-                    contentDescription = "Album Art",
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop,
-                    placeholder = painterResource(id = R.drawable.music_note),
-                    error = painterResource(id = R.drawable.music_note),
-                    fallback = painterResource(id = R.drawable.music_note)
-                )
+                SongInfo(song.title, song.artist)
 
-                Column(
-                    modifier = Modifier.padding(10.dp)
-                ) {
-                    Text(
-                        text = song.title,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .width(150.dp)
-                            .basicMarquee(),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontSize = 16.sp,
-                        color = Color.White
-                    )
-                    Text(
-                        text = song.artist,
-                        modifier = Modifier.padding(start = 10.dp),
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 14.sp
-                    )
-                }
             }
 
             Row(
@@ -401,5 +358,46 @@ fun LibrarySongCardList(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun SongAlbumArt(albumArtUri: String?){
+    val uri = if (albumArtUri.isNullOrEmpty() || albumArtUri == Uri.EMPTY.toString()){
+        null
+    } else{
+        Uri.parse(albumArtUri)
+    }
+
+    AsyncImage(
+        model = uri,
+        contentDescription = "Album Art",
+        modifier = Modifier.size(64.dp)
+            .clip(RoundedCornerShape(8.dp)),
+        contentScale = ContentScale.Crop,
+        placeholder = painterResource(R.drawable.music_note),
+        error = painterResource(R.drawable.music_note),
+        fallback = painterResource(R.drawable.music_note)
+    )
+}
+
+@Composable
+fun SongInfo(title: String, artist: String){
+    Column(modifier = Modifier.padding(10.dp)){
+        Text(
+            text = title,
+            modifier = Modifier.padding(10.dp)
+                .width(150.dp)
+                .basicMarquee(),
+            style = MaterialTheme.typography.titleSmall,
+            fontSize = 16.sp,
+            color = Color.White
+        )
+        Text(
+            text = artist,
+            modifier = Modifier.padding(10.dp),
+            color = Color.White.copy(alpha = 0.7f),
+            fontSize = 14.sp
+        )
     }
 }
