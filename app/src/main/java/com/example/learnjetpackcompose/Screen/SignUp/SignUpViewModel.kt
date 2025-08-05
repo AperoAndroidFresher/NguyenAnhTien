@@ -29,23 +29,28 @@ class SignUpViewModel @Inject constructor(
     fun processIntent(intent: SignUpIntent) {
         when (intent) {
             is SignUpIntent.ConfirmPasswordChanged -> {
-                _state.update { it.copy(confirmPassword = intent.confirmPassword) }
+                _state.update {
+                    it.copy(confirmPassword = intent.confirmPassword) }
             }
 
             SignUpIntent.ShowConfirmPassword -> {
-                _state.update { it.copy(isConfirmPasswordVisible = !it.isConfirmPasswordVisible) }
+                _state.update {
+                    it.copy(isConfirmPasswordVisible = !it.isConfirmPasswordVisible) }
             }
 
             is SignUpIntent.EmailChanged -> {
-                _state.update { it.copy(email = intent.email) }
+                _state.update {
+                    it.copy(email = intent.email) }
             }
 
             is SignUpIntent.PasswordChanged -> {
-                _state.update { it.copy(password = intent.password) }
+                _state.update {
+                    it.copy(password = intent.password) }
             }
 
             SignUpIntent.ShowPassword -> {
-                _state.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
+                _state.update {
+                    it.copy(isPasswordVisible = !it.isPasswordVisible) }
             }
 
             SignUpIntent.SignUpClicked -> {
@@ -53,60 +58,59 @@ class SignUpViewModel @Inject constructor(
             }
 
             is SignUpIntent.UsernameChanged -> {
-                _state.update { it.copy(username = intent.username) }
+                _state.update {
+                    it.copy(username = intent.username) }
             }
         }
     }
 
     // Validation and sign up logic
     private fun validateAndSignUp() {
-        viewModelScope.launch{
-            _state.update{it.copy(isLoading = true)}
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
 
             val currentState = _state.value
             var usernameError = ValidationUtils.validateUsername(currentState.username)
             var emailError = ValidationUtils.validateEmail(currentState.email)
 
-
-            if(usernameError == null && userRepository.getUserByUsername(currentState.username) != null){
+            if (usernameError == null && userRepository.getUserByUsername(currentState.username) != null) {
                 usernameError = "Username already exists"
             }
-            if(emailError == null && userRepository.getUserByEmail(currentState.email) != null){
+            if (emailError == null && userRepository.getUserByEmail(currentState.email) != null) {
                 emailError = "Email already exists"
             }
             val validationErrors = SignUpErrors(
                 usernameError = ValidationUtils.validateUsername(currentState.username),
                 emailError = ValidationUtils.validateEmail(currentState.email),
                 passwordError = ValidationUtils.validatePassword(currentState.password),
-                confirmPasswordError = ValidationUtils.validateConfirmPassword(currentState.password, currentState.confirmPassword)
+                confirmPasswordError = ValidationUtils.validateConfirmPassword(
+                    currentState.password,
+                    currentState.confirmPassword
+                )
             )
 
-            val isValid = with(validationErrors){
+            val isValid = with(validationErrors) {
                 usernameError == null && emailError == null && passwordError == null && confirmPasswordError == null
             }
-            if(isValid){
-                val newUser = User(
-                    username = currentState.username,
-                    email =currentState.email,
-                    password =currentState.password)
+            if (isValid) {
+                val newUser = User(username = currentState.username, email = currentState.email, password = currentState.password
+                )
                 val success = UserManager.addUser(newUser)
 
-                if(success){
+                if (success) {
                     userRepository.insertUser(newUser)
                     _effect.send(SignUpEffect.ShowMessage("Dang ky thanh cong"))
                     _effect.send(SignUpEffect.NavigateToLogin)
                     _state.value = SignUpState()
-                }else{
+                } else {
                     _effect.send(SignUpEffect.ShowMessage("Dang ky that bai"))
-                    _state.update{it.copy(isLoading = false)}
+                    _state.update { it.copy(isLoading = false) }
                 }
-            }else{
+            } else {
                 _state.value = SignUpState()
-                _state.update{it.copy(isLoading = false, errors = validationErrors)}
+                _state.update { it.copy(isLoading = false, errors = validationErrors) }
             }
         }
     }
-
-
 }
 
