@@ -1,5 +1,7 @@
 package com.example.learnjetpackcompose.Screen.Profile
 
+import com.example.learnjetpackcompose.RoomDB.Entity.User
+
 data class ProfileState(
     val name: String = "",
     val description: String = "",
@@ -8,6 +10,7 @@ data class ProfileState(
     val imagePath: String? = "",
     val errors: ProfileErrors = ProfileErrors(),
     val isLoading: Boolean = false,
+    val currentUser: User? = null
 )
 
 data class ProfileErrors(
@@ -24,8 +27,11 @@ sealed interface ProfileIntent{
     data class ImagePathChanged(val imagePath: String): ProfileIntent
     data object Submit: ProfileIntent
     data object ResetForm: ProfileIntent
+    data object LoadUserData: ProfileIntent
 }
 
 sealed interface ProfileEffect{
     data object NavigateBack: ProfileEffect
+    data object ProfileSaved: ProfileEffect
+    data class ShowError(val message: String): ProfileEffect
 }

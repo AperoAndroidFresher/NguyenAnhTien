@@ -14,11 +14,19 @@ class UserRepository @Inject constructor(
         userDao.insertUser(user)
     }
 
+    override suspend fun updateUser(user: User) {
+        userDao.updateUser(user)
+    }
+
     override suspend fun getUserByUsername(username: String): User? {
         return userDao.getUser(username)
     }
 
     override suspend fun getUserByEmail(email: String): User? {
         return userDao.getUserByEmail(email)
+    }
+
+    override suspend fun getUserById(userId: Int): User? {
+        return userDao.getUserById(userId)
     }
 }

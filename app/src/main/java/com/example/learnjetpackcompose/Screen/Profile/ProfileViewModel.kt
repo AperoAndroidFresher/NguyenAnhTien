@@ -2,22 +2,33 @@ package com.example.learnjetpackcompose.Screen.Profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.learnjetpackcompose.RoomDB.Entity.User
 import com.example.learnjetpackcompose.Utils.ValidationUtils
+import com.example.learnjetpackcompose.data.repository.IUserRepository
+import com.example.learnjetpackcompose.model.CurrentUserManager
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ProfileViewModel : ViewModel() {
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
+    private val userRepository: IUserRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileState())
     val state = _state.asStateFlow()
 
     private val _effect = Channel<ProfileEffect>()
     val effect = _effect.receiveAsFlow()
+
+    init {
+        loadUserData()
+    }
 
     fun processIntent(intent: ProfileIntent){
         viewModelScope.launch{
@@ -35,7 +46,7 @@ class ProfileViewModel : ViewModel() {
                     _state.update{it.copy(imagePath = intent.imagePath)}
                 }
                 ProfileIntent.ResetForm -> {
-                    _state.value = ProfileState()
+                    loadUserData()
                 }
                 ProfileIntent.Submit -> {
                     validateAndSubmit()
@@ -43,6 +54,39 @@ class ProfileViewModel : ViewModel() {
                 is ProfileIntent.UniversityNameChanged -> {
                     _state.update{it.copy(universityName = intent.universityName, errors = it.errors.copy(universityNameError = null))}
                 }
+                ProfileIntent.LoadUserData -> {
+                    loadUserData()
+                }
+            }
+        }
+    }
+
+    private fun loadUserData() {
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(isLoading = true) }
+                val userId = CurrentUserManager.getCurrentUserId()
+                val user = userRepository.getUserById(userId)
+
+                if (user != null) {
+                    _state.update {
+                        it.copy(
+                            name = user.username,
+                            description = user.description,
+                            phoneNumber = user.phoneNumber,
+                            universityName = user.universityName,
+                            imagePath = user.avatarPath,
+                            currentUser = user,
+                            isLoading = false
+                        )
+                    }
+                } else {
+                    _effect.send(ProfileEffect.ShowError("User not found"))
+                    _state.update { it.copy(isLoading = false) }
+                }
+            } catch (e: Exception) {
+                _effect.send(ProfileEffect.ShowError("Error loading user data: ${e.message}"))
+                _state.update { it.copy(isLoading = false) }
             }
         }
     }
@@ -61,13 +105,34 @@ class ProfileViewModel : ViewModel() {
 
         if(isValid){
             viewModelScope.launch{
-                _state.update{it.copy(isLoading = true)}
-                _state.update{it.copy(isLoading = false)}
-                _effect.send(ProfileEffect.NavigateBack)
+                try {
+                    _state.update{it.copy(isLoading = true)}
+
+                    val currentUser = _state.value.currentUser
+                    if (currentUser != null) {
+                        val updatedUser = currentUser.copy(
+                            username = _state.value.name,
+                            phoneNumber = _state.value.phoneNumber,
+                            universityName = _state.value.universityName,
+                            description = _state.value.description,
+                            avatarPath = _state.value.imagePath ?: ""
+                        )
+
+                        userRepository.updateUser(updatedUser)
+                        _state.update{it.copy(isLoading = false, currentUser = updatedUser)}
+                        _effect.send(ProfileEffect.ProfileSaved)
+                        _effect.send(ProfileEffect.NavigateBack)
+                    } else {
+                        _effect.send(ProfileEffect.ShowError("User not found"))
+                        _state.update{it.copy(isLoading = false)}
+                    }
+                } catch (e: Exception) {
+                    _effect.send(ProfileEffect.ShowError("Error saving profile: ${e.message}"))
+                    _state.update{it.copy(isLoading = false)}
+                }
             }
         } else{
             _state.update{it.copy(errors = validationErrors)}
         }
     }
-
 }
