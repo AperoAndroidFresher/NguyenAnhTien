@@ -3,6 +3,7 @@ package com.example.learnjetpackcompose.Screen.Login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.data.repository.IUserRepository
+import com.example.learnjetpackcompose.model.CurrentUserManager
 import com.example.learnjetpackcompose.model.UserManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -55,6 +56,8 @@ class LoginViewModel @Inject constructor(
 
             val user = userRepository.getUserByUsername(currentState.username)
             if(user != null && user.password == currentState.password){
+                // Set the current user ID when login is successful
+                CurrentUserManager.setCurrentUserId(user.userId)
                 _effect.send(LoginEffect.NavigateToHome)
             } else{
                 _state.update {it.copy(isLoading = false, error = "Invalid username or password")}

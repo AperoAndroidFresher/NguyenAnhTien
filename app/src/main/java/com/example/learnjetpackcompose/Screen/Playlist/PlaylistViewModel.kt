@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.data.repository.IPlaylistRepository
+import com.example.learnjetpackcompose.model.CurrentUserManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -20,8 +21,8 @@ class PlaylistViewModel @Inject constructor(
     private val playlistRepository: IPlaylistRepository
 ) : ViewModel() {
 
-
-    private val currentUserId: Int = 1
+    // Get the current user ID from CurrentUserManager
+    private val currentUserId: Int get() = CurrentUserManager.getCurrentUserId()
 
     private val _state = MutableStateFlow(PlaylistState())
     val state = _state.asStateFlow()
@@ -35,29 +36,17 @@ class PlaylistViewModel @Inject constructor(
 
     fun processIntent(intent: PlaylistIntent) {
         when (intent) {
-            is PlaylistIntent.LoadPlaylists -> {
-                loadPlaylists()
-            }
+            is PlaylistIntent.LoadPlaylists -> loadPlaylists()
 
-            is PlaylistIntent.AddPlaylist -> {
-                addPlaylist(intent.title)
-            }
+            is PlaylistIntent.AddPlaylist -> addPlaylist(intent.title)
 
-            is PlaylistIntent.RemovePlaylist -> {
-                removePlaylist(intent.playlist)
-            }
+            is PlaylistIntent.RemovePlaylist -> removePlaylist(intent.playlist)
 
-            is PlaylistIntent.RenamePlaylist -> {
-                renamePlaylist(intent.playlist)
-            }
+            is PlaylistIntent.RenamePlaylist -> renamePlaylist(intent.playlist)
 
-            is PlaylistIntent.AddSongToPlaylist -> {
-                addSongToPlaylist(intent.playlistId, intent.song)
-            }
+            is PlaylistIntent.AddSongToPlaylist -> addSongToPlaylist(intent.playlistId, intent.song)
 
-            is PlaylistIntent.RemoveSongFromPlaylist -> {
-                removeSongFromPlaylist(intent.playlistId, intent.song)
-            }
+            is PlaylistIntent.RemoveSongFromPlaylist -> removeSongFromPlaylist(intent.playlistId, intent.song)
         }
     }
 
