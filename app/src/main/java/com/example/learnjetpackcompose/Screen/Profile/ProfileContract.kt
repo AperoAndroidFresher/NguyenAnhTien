@@ -3,7 +3,7 @@ package com.example.learnjetpackcompose.Screen.Profile
 import com.example.learnjetpackcompose.RoomDB.Entity.User
 
 data class ProfileState(
-    val name: String = "",
+    val displayName: String = "",
     val description: String = "",
     val phoneNumber: String = "",
     val universityName: String = "",
@@ -14,13 +14,13 @@ data class ProfileState(
 )
 
 data class ProfileErrors(
-    val nameError: String? = null,
+    val displayNameError: String? = null,
     val phoneNumberError: String? = null,
     val universityNameError: String? = null
 )
 
 sealed interface ProfileIntent{
-    data class NameChanged(val name: String): ProfileIntent
+    data class DisplayNameChanged(val displayName: String): ProfileIntent
     data class DescriptionChanged(val description: String): ProfileIntent
     data class PhoneNumberChanged(val phone: String): ProfileIntent
     data class UniversityNameChanged(val universityName: String): ProfileIntent

@@ -5,7 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.data.repository.IPlaylistRepository
-import com.example.learnjetpackcompose.model.CurrentUserManager
+import com.example.learnjetpackcompose.model.UserManager
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -22,7 +23,7 @@ class PlaylistViewModel @Inject constructor(
 ) : ViewModel() {
 
     // Get the current user ID from CurrentUserManager
-    private val currentUserId: Int get() = CurrentUserManager.getCurrentUserId()
+    private val currentUserId: Int get() = UserManager.getCurrentUserId()
 
     private val _state = MutableStateFlow(PlaylistState())
     val state = _state.asStateFlow()

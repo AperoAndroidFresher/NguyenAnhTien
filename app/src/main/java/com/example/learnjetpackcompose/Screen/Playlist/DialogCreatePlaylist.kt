@@ -115,7 +115,7 @@ fun DialogCreatePlaylist(
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewDialogCreatePlaylist() {
+private fun PreviewDialogCreatePlaylist() {
     DialogCreatePlaylist(
         onDismissRequest = {},
         onCreatePlaylist = {}

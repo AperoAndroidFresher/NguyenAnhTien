@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.User
 import com.example.learnjetpackcompose.Utils.ValidationUtils
 import com.example.learnjetpackcompose.data.repository.IUserRepository
-import com.example.learnjetpackcompose.model.CurrentUserManager
+import com.example.learnjetpackcompose.model.UserManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,8 +36,8 @@ class ProfileViewModel @Inject constructor(
                 is ProfileIntent.DescriptionChanged -> {
                     _state.update{it.copy(description = intent.description)}
                 }
-                is ProfileIntent.NameChanged -> {
-                    _state.update{it.copy(name = intent.name, errors = it.errors.copy(nameError = null))}
+                is ProfileIntent.DisplayNameChanged -> {
+                    _state.update{it.copy(displayName = intent.displayName, errors = it.errors.copy(displayNameError = null))}
                 }
                 is ProfileIntent.PhoneNumberChanged -> {
                     _state.update{it.copy(phoneNumber = intent.phone, errors = it.errors.copy(phoneNumberError = null))}
@@ -65,13 +65,13 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isLoading = true) }
-                val userId = CurrentUserManager.getCurrentUserId()
+                val userId = UserManager.getCurrentUserId()
                 val user = userRepository.getUserById(userId)
 
                 if (user != null) {
                     _state.update {
                         it.copy(
-                            name = user.username,
+                            displayName = user.displayName,
                             description = user.description,
                             phoneNumber = user.phoneNumber,
                             universityName = user.universityName,
@@ -94,13 +94,13 @@ class ProfileViewModel @Inject constructor(
     private fun validateAndSubmit(){
         val currentState = _state.value
         val validationErrors = ProfileErrors(
-            nameError = ValidationUtils.validateName(currentState.name),
+            displayNameError = ValidationUtils.validateName(currentState.displayName),
             phoneNumberError = ValidationUtils.validatePhoneNumber(currentState.phoneNumber),
             universityNameError = ValidationUtils.validateUniversity(currentState.universityName)
         )
 
         val isValid = with(validationErrors){
-            nameError == null && phoneNumberError == null && universityNameError == null
+            displayNameError == null && phoneNumberError == null && universityNameError == null
         }
 
         if(isValid){
@@ -111,7 +111,7 @@ class ProfileViewModel @Inject constructor(
                     val currentUser = _state.value.currentUser
                     if (currentUser != null) {
                         val updatedUser = currentUser.copy(
-                            username = _state.value.name,
+                            displayName = _state.value.displayName,
                             phoneNumber = _state.value.phoneNumber,
                             universityName = _state.value.universityName,
                             description = _state.value.description,
