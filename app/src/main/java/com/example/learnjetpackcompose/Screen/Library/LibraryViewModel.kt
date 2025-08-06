@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
+import com.example.learnjetpackcompose.data.repository.SongRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -17,7 +18,9 @@ import okhttp3.Dispatcher
 import javax.inject.Inject
 
 @HiltViewModel
-class LibraryViewModel @Inject constructor() : ViewModel() {
+class LibraryViewModel @Inject constructor(
+    private val songRepository: SongRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(LibraryState())
     val state = _state.asStateFlow()
@@ -25,7 +28,7 @@ class LibraryViewModel @Inject constructor() : ViewModel() {
     private val _effect = Channel<LibraryEffect>()
     val effect = _effect.receiveAsFlow()
 
-    // Hàm để cập nhật danh sách playlists (từ PlaylistViewModel)
+
     fun updatePlaylists(playlists: List<Playlist>) {
         _state.update { it.copy(playlists = playlists) }
     }
@@ -73,9 +76,11 @@ class LibraryViewModel @Inject constructor() : ViewModel() {
             }
             when (source) {
                 LibrarySource.LOCAL -> {
+                    loadLocalSongs()
                     _effect.send(LibraryEffect.ShowMessage("Showing local songs"))
                 }
                 LibrarySource.REMOTE -> {
+                    loadRemoteSongs()
                     _effect.send(LibraryEffect.ShowMessage("Showing remote songs"))
                 }
             }
@@ -129,7 +134,7 @@ class LibraryViewModel @Inject constructor() : ViewModel() {
             try {
                 _state.update { it.copy(isLoading = true, selectedSource = LibrarySource.REMOTE) }
                 delay(1500)
-                val remoteSongs = filterSongsBySource(_state.value.songs, LibrarySource.REMOTE)
+                val remoteSongs = songRepository.getRemoteSongs()
                 _state.update {
                     it.copy(
                         isLoading = false,

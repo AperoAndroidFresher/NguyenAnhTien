@@ -375,9 +375,9 @@ fun SongAlbumArt(albumArtUri: String?){
         modifier = Modifier.size(64.dp)
             .clip(RoundedCornerShape(8.dp)),
         contentScale = ContentScale.Crop,
-        placeholder = painterResource(R.drawable.music_note),
-        error = painterResource(R.drawable.music_note),
-        fallback = painterResource(R.drawable.music_note)
+        placeholder = painterResource(R.drawable.icon_music),
+        error = painterResource(R.drawable.icon_music),
+        fallback = painterResource(R.drawable.icon_music)
     )
 }
 

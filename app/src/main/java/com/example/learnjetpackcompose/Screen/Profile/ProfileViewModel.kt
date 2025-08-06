@@ -7,6 +7,7 @@ import com.example.learnjetpackcompose.Utils.ValidationUtils
 import com.example.learnjetpackcompose.data.repository.IUserRepository
 import com.example.learnjetpackcompose.model.UserManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,7 +63,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     private fun loadUserData() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO){
             try {
                 _state.update { it.copy(isLoading = true) }
                 val userId = UserManager.getCurrentUserId()
@@ -104,7 +105,7 @@ class ProfileViewModel @Inject constructor(
         }
 
         if(isValid){
-            viewModelScope.launch{
+            viewModelScope.launch(Dispatchers.IO){
                 try {
                     _state.update{it.copy(isLoading = true)}
 
