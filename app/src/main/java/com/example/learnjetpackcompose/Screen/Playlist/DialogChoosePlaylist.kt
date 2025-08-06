@@ -171,7 +171,7 @@ fun PlaylistItem(playlist: Playlist, onClick: (Playlist) -> Unit) {
 // Cách sử dụng trong Composable của bạn
 @Preview(showBackground = true)
 @Composable
-fun PreviewChoosePlaylistDialog() {
+private fun PreviewChoosePlaylistDialog() {
     val samplePlaylists = remember { mutableStateListOf<Playlist>() }
     var showDialog by remember { mutableStateOf(true) }
 

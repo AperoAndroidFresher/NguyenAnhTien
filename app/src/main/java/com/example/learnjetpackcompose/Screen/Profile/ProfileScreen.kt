@@ -198,7 +198,7 @@ fun ProfileNoEdit(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     OutlinedTextField(
-                        value = state.name,
+                        value = state.displayName,
                         readOnly = true,
                         shape = RoundedCornerShape(13.dp),
                         modifier = Modifier.border(
@@ -440,17 +440,17 @@ fun ProfileEditing(
                         color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(4.dp))
                     OutlinedTextField(
-                        value = state.name,
-                        onValueChange = {viewModel.processIntent(ProfileIntent.NameChanged(it))},
+                        value = state.displayName,
+                        onValueChange = {viewModel.processIntent(ProfileIntent.DisplayNameChanged(it))},
                         placeholder = { Text("Enter name...",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary) },
                         colors = TextFieldDefaults.colors(MaterialTheme.colorScheme.primary),
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        isError = state.errors.nameError != null,
+                        isError = state.errors.displayNameError != null,
                         supportingText = {
-                            state.errors.nameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                            state.errors.displayNameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                         }
                     )
                 }

@@ -49,11 +49,12 @@ fun LoginScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     // Sử dụng LaunchedEffect để xử lý các sự kiện một lần
     LaunchedEffect(Unit) {
-        viewModel.effect.collectLatest{ effect ->
-            when (effect){
+        viewModel.effect.collectLatest { effect ->
+            when (effect) {
                 is LoginEffect.NavigateToHome -> {
                     onLoginSuccess()
                 }
+
                 is LoginEffect.NavigateToSignUp -> {
                     onSignUpClick()
                 }
@@ -62,10 +63,11 @@ fun LoginScreen(
         }
     }
 
-
     Column(
-        modifier = Modifier.fillMaxSize().background(Color.Black)
-    ){
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
         Image(
             painter = painterResource(id = R.drawable.aperologo),
             contentDescription = "Logo Apero",
@@ -87,7 +89,7 @@ fun LoginScreen(
 //      UserName Textfield
         OutlinedTextField(
             value = state.username,
-            onValueChange = {viewModel.processIntent(LoginIntent.UsernameChanged(it))},
+            onValueChange = { viewModel.processIntent(LoginIntent.UsernameChanged(it)) },
             label = { Text(text = "Username", color = Color.White.copy(0.7f)) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -118,7 +120,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = state.password,
-            onValueChange = {viewModel.processIntent(LoginIntent.PasswordChanged(it))},
+            onValueChange = { viewModel.processIntent(LoginIntent.PasswordChanged(it)) },
             label = { Text(text = "Password", color = Color.White.copy(0.7f)) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -148,26 +150,27 @@ fun LoginScreen(
                 IconButton(onClick = {
                     viewModel.processIntent(LoginIntent.ShowPasswordVisibility)
                 }
-                ){
+                ) {
                     Icon(
                         painter = painterResource(id = R.drawable.icon_visible),
                         modifier = Modifier.size(24.dp),
                         contentDescription = "Show password",
-                        tint = Color.White)
+                        tint = Color.White
+                    )
                 }
             },
             visualTransformation = if (state.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
 
-        )
+            )
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-        ){
+        ) {
             Checkbox(
                 checked = false,
-                onCheckedChange = { viewModel.processIntent(LoginIntent.RememberMeChanged(it))},
+                onCheckedChange = { viewModel.processIntent(LoginIntent.RememberMeChanged(it)) },
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp)
             )
 
@@ -180,16 +183,17 @@ fun LoginScreen(
         }
 
         Button(
-            onClick = {viewModel.processIntent(LoginIntent.LoginClick)},
+            onClick = { viewModel.processIntent(LoginIntent.LoginClick) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp).height(50.dp),
+                .padding(start = 16.dp, end = 16.dp)
+                .height(50.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF06A0B5),
                 contentColor = Color.White
             )
-        ){
+        ) {
             Text(
                 text = "Login",
                 fontSize = 20.sp
@@ -203,7 +207,7 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .padding(16.dp),
             horizontalArrangement = Arrangement.Center
-        ){
+        ) {
             Text(
                 text = "Don't have an account?",
                 color = Color.White.copy(alpha = 0.8f),
@@ -256,7 +260,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
 }
 
 
-@Preview (showBackground = true)
+@Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
 
