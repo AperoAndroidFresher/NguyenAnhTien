@@ -68,21 +68,7 @@ fun LoginScreen(
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.aperologo),
-            contentDescription = "Logo Apero",
-            modifier = Modifier
-                .size(350.dp)
-                .align(Alignment.CenterHorizontally)
-        )
-        Text(
-            text = "Login to your account",
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.White,
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold
-        )
+        ImageContent()
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -202,31 +188,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Don't have an account?",
-                color = Color.White.copy(alpha = 0.8f),
-                fontSize = 20.sp,
-                modifier = Modifier.align(Alignment.CenterVertically)
-            )
-            TextButton(
-                onClick = onSignUpClick,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = Color(0xFF06A0B5)
-                )
-            ) {
-                Text(
-                    text = "Sign Up",
-                    fontSize = 20.sp,
-                    color = Color(0xFF06A0B5)
-                )
-            }
-        }
+        BottomText(onSignUpClick)
 
     }
 }
@@ -259,10 +221,65 @@ fun SplashScreen(onTimeout: () -> Unit) {
     }
 }
 
+@Composable
+fun ImageContent(
+){
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ){
+        Image(
+            painter = painterResource(id = R.drawable.aperologo),
+            contentDescription = "Logo Apero",
+            modifier = Modifier
+                .size(350.dp)
+                .align(Alignment.CenterHorizontally)
+        )
+        Text(
+            text = "Login to your account",
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.White,
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+fun BottomText(
+    onSignUpClick: () -> Unit
+){
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.Center,
+//        verticalAlignment = Alignment.Bottom
+    ) {
+        Text(
+            text = "Don't have an account?",
+            color = Color.White.copy(alpha = 0.8f),
+            fontSize = 20.sp,
+            modifier = Modifier.align(Alignment.Bottom)
+        )
+        TextButton(
+            onClick = onSignUpClick,
+            colors = ButtonDefaults.textButtonColors(
+                contentColor = Color(0xFF06A0B5)
+            ),
+            modifier = Modifier.align(Alignment.Bottom)
+        ) {
+            Text(
+                text = "Sign Up",
+                fontSize = 20.sp,
+                color = Color(0xFF06A0B5)
+            )
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
 
-//    MainScreen()
 }

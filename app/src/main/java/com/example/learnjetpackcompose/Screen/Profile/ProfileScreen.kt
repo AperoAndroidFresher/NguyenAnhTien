@@ -391,18 +391,18 @@ fun ProfileEditing(
                             .clip(CircleShape)
                             .border(2.dp, Color.LightGray, CircleShape)
                             .align(Alignment.Center),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Fit
                     )
                 } else {
                     Image(
-                        painter = painterResource(id = R.drawable.rose),
+                        painter = painterResource(id = R.drawable.default_avatar),
                         contentDescription = "Profile Image",
                         modifier = Modifier
                             .size(140.dp)
                             .clip(CircleShape)
                             .border(2.dp, Color.LightGray, CircleShape)
                             .align(Alignment.Center),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Fit
                     )
                 }
 

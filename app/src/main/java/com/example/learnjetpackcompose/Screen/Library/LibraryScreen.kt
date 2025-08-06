@@ -51,6 +51,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Playlist.ChoosePlaylistDialog
@@ -58,13 +63,14 @@ import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import kotlinx.coroutines.flow.collectLatest
+
 // onNavigateToPlaylist:() -> Unit,
 @Composable
 fun LibraryScreen(
     libraryViewModel: LibraryViewModel,
     playlistViewModel: PlaylistViewModel,
     songs: List<Song>,
-    onNavigateToPlaylist:() -> Unit,
+    onNavigateToPlaylist: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state by libraryViewModel.state.collectAsState()
@@ -88,6 +94,7 @@ fun LibraryScreen(
                 is LibraryEffect.ShowMessage -> {
                     snackbarHostState.showSnackbar(effect.message)
                 }
+
                 is LibraryEffect.ShowDialogChoosePlaylist -> {
                     selectedSong = effect.song
                     showDialog = true
@@ -106,17 +113,7 @@ fun LibraryScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "Library",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            Header()
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -127,50 +124,24 @@ fun LibraryScreen(
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Button(
-                    onClick = { libraryViewModel.processIntent(LibraryIntent.LoadLocalSongs) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (state.selectedSource == LibrarySource.LOCAL) Color(0xFF00C2CB) else Color.Gray,
-                        contentColor = Color.White,
-                    ),
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.width(150.dp),
-                    enabled = !state.isLoading
-                ) {
-                    if (state.isLoading && state.selectedSource == LibrarySource.LOCAL) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            color = Color.White,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(text = "Local", fontSize = 20.sp)
+                SourceButton(
+                    label = "local",
+                    source = LibrarySource.LOCAL,
+                    selectedSource = state.selectedSource,
+                    onClick = {
+                        libraryViewModel.processIntent(LibraryIntent.LoadLocalSongs)
                     }
-                }
-
-                Button(
-                    onClick = { libraryViewModel.processIntent(LibraryIntent.LoadRemoteSongs) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (state.selectedSource == LibrarySource.REMOTE) Color(0xFF00C2CB) else Color.Gray,
-                        contentColor = Color.White,
-                    ),
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.width(150.dp),
-                    enabled = !state.isLoading
-                ) {
-                    if (state.isLoading && state.selectedSource == LibrarySource.REMOTE) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            color = Color.White,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(text = "Remote", fontSize = 20.sp)
+                )
+                SourceButton(
+                    label = "Remote",
+                    source = LibrarySource.REMOTE,
+                    selectedSource = state.selectedSource,
+                    onClick = {
+                        libraryViewModel.processIntent(LibraryIntent.LoadRemoteSongs)
                     }
-                }
+                )
             }
 
-            // Error Message
             state.error?.let { error ->
                 Text(
                     text = error,
@@ -180,35 +151,10 @@ fun LibraryScreen(
                 )
             }
 
-            // Songs List
             if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        CircularProgressIndicator(
-                            color = Color(0xFF00C2CB),
-                            modifier = Modifier.size(40.dp),
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Loading ${state.selectedSource.name.lowercase()} songs...",
-                            color = Color.White.copy(0.7f),
-                            fontSize = 14.sp
-                        )
-                    }
-                }
+                LoadingWithLottie()
             } else if (state.filteredSongs.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No songs found.", fontSize = 40.sp, color = Color.White)
-                }
+                ContentLoadFailure()
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(8.dp),
@@ -216,14 +162,19 @@ fun LibraryScreen(
                     items(state.filteredSongs) { song ->
                         LibrarySongCardList(
                             song = song,
-                            onAddToPlaylist = { libraryViewModel.processIntent(LibraryIntent.AddSongToPlaylist(it)) }
+                            onAddToPlaylist = {
+                                libraryViewModel.processIntent(
+                                    LibraryIntent.AddSongToPlaylist(
+                                        it
+                                    )
+                                )
+                            }
                         )
                     }
                 }
             }
         }
 
-        // Hiển thị dialog khi showDialog là true
         if (showDialog && selectedSong != null) {
             ChoosePlaylistDialog(
                 playlists = state.playlists ?: emptyList(),
@@ -232,7 +183,12 @@ fun LibraryScreen(
                     selectedSong = null
                 },
                 onPlaylistSelected = { playlist ->
-                    playlistViewModel.processIntent(PlaylistIntent.AddSongToPlaylist(playlist.playlistId, selectedSong!!))
+                    playlistViewModel.processIntent(
+                        PlaylistIntent.AddSongToPlaylist(
+                            playlist.playlistId,
+                            selectedSong!!
+                        )
+                    )
                     showDialog = false
                     selectedSong = null
                 },
@@ -242,6 +198,120 @@ fun LibraryScreen(
                 }
             )
         }
+    }
+}
+
+@Composable
+fun Header() {
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            "Library",
+            style = MaterialTheme.typography.headlineMedium,
+            color = Color.White,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+fun GroupButton(
+    loadLocalSongs: () -> Unit,
+    loadRemoteSongs: () -> Unit,
+    state: LibraryState
+) {
+    Row(
+        modifier = Modifier
+            .padding(12.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        SourceButton(
+            label = "local",
+            source = LibrarySource.LOCAL,
+            selectedSource = state.selectedSource,
+            onClick = loadLocalSongs
+        )
+        SourceButton(
+            label = "Remote",
+            source = LibrarySource.REMOTE,
+            selectedSource = state.selectedSource,
+            onClick = loadRemoteSongs
+        )
+    }
+}
+
+@Composable
+fun ContentLoadFailure(
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "No internet connection,\nplease check your \nconnection again",
+            color = Color.White,
+            style = MaterialTheme.typography.titleSmall,
+            fontSize = 18.sp
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = {},
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF00C2CB),
+                contentColor = Color.White,
+            ),
+            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier.width(150.dp)
+        ) {
+            Text(text = "Try Again")
+        }
+    }
+}
+
+@Composable
+fun SourceButton(
+    label: String,
+    source: LibrarySource,
+    selectedSource: LibrarySource,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (selectedSource == source) Color(0xFF00C2CB) else Color.Gray,
+            contentColor = Color.White,
+        ),
+        shape = RoundedCornerShape(10.dp),
+        modifier = Modifier.width(150.dp),
+    ) {
+        Text(text = label, fontSize = 20.sp)
+    }
+}
+
+@Composable
+fun LoadingWithLottie() {
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(R.raw.lottie_remote_item_loading)
+    )
+    val progress by animateLottieCompositionAsState(
+        composition,
+        iterations = LottieConstants.IterateForever
+    )
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        LottieAnimation(
+            composition = composition,
+            progress = { progress },
+            modifier = Modifier.size(150.dp)
+        )
     }
 }
 
@@ -290,7 +360,7 @@ fun LibrarySongCardList(
                     },
                 ) {
                     Icon(
-                        imageVector = Icons.Default.MoreVert,
+                        painter = painterResource(R.drawable.icon_morevert),
                         contentDescription = "Mở menu tùy chọn",
                         tint = Color.White
                     )
@@ -362,17 +432,18 @@ fun LibrarySongCardList(
 }
 
 @Composable
-fun SongAlbumArt(albumArtUri: String?){
-    val uri = if (albumArtUri.isNullOrEmpty() || albumArtUri == Uri.EMPTY.toString()){
+fun SongAlbumArt(albumArtUri: String?) {
+    val uri = if (albumArtUri.isNullOrEmpty() || albumArtUri == Uri.EMPTY.toString()) {
         null
-    } else{
+    } else {
         Uri.parse(albumArtUri)
     }
 
     AsyncImage(
         model = uri,
         contentDescription = "Album Art",
-        modifier = Modifier.size(64.dp)
+        modifier = Modifier
+            .size(64.dp)
             .clip(RoundedCornerShape(8.dp)),
         contentScale = ContentScale.Crop,
         placeholder = painterResource(R.drawable.icon_music),
@@ -382,11 +453,12 @@ fun SongAlbumArt(albumArtUri: String?){
 }
 
 @Composable
-fun SongInfo(title: String, artist: String){
-    Column(modifier = Modifier.padding(10.dp)){
+fun SongInfo(title: String, artist: String) {
+    Column(modifier = Modifier.padding(10.dp)) {
         Text(
             text = title,
-            modifier = Modifier.padding(10.dp)
+            modifier = Modifier
+                .padding(10.dp)
                 .width(150.dp)
                 .basicMarquee(),
             style = MaterialTheme.typography.titleSmall,
