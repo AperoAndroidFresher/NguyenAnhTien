@@ -3,6 +3,7 @@ package com.example.learnjetpackcompose.Screen.Playlist.Song
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,7 +40,7 @@ class SongViewModel: ViewModel() {
     }
 
     private fun removeSong(songToRemove: Song) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO){
             try {
                 val currentSongs = _state.value.songs
                 val updatedSongs = currentSongs.filter { it != songToRemove }
@@ -52,7 +53,7 @@ class SongViewModel: ViewModel() {
     }
 
     private fun reorderSongs(fromIndex: Int, toIndex: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch{
             try {
                 val currentSongs = _state.value.songs.toMutableList()
                 if (fromIndex >= 0 && fromIndex < currentSongs.size &&

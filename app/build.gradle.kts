@@ -97,4 +97,15 @@ dependencies {
     implementation ("com.google.code.gson:gson:2.10.1")
 
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+
+    // Converter (chuyển JSON thành object)
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // OkHttp (Logging Interceptor - để debug network)
+    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
+
+    implementation("com.airbnb.android:lottie-compose:6.1.0")
+
 }

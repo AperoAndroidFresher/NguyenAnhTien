@@ -114,11 +114,11 @@ fun PlaylistCardList(
                     contentScale = ContentScale.Crop
                 )
             } else {
-                Icon(
-                    painter = painterResource(id = R.drawable.music_note),
-                    contentDescription = null,
-                    modifier = Modifier.size(80.dp),
-                    tint = Color.White
+                Image(
+                    painter = painterResource(R.drawable.icon_music),
+                    contentDescription = "Default Playlist Image",
+                    modifier = Modifier.size(64.dp)
+                        .clip(RoundedCornerShape(10.dp))
                 )
             }
 

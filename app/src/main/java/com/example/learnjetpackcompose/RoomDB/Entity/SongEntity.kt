@@ -17,6 +17,7 @@ data class Song(
     val duration: String,
     val data: String
 )
+
 class SongViewModel(application: Application) : AndroidViewModel(application) {
     val songs: List<Song> = getAllMp3Files(application)
 }
