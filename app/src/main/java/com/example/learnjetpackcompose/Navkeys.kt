@@ -28,3 +28,12 @@ object ProfileNavKey : NavKey
 
 @Serializable
 object PlaylistNavKey : NavKey
+
+@Serializable
+object LibraryNavKey : NavKey
+
+@Serializable
+data class SongNavKey(
+    val playlistId: Int,
+    val playlistTitle: String
+) : NavKey

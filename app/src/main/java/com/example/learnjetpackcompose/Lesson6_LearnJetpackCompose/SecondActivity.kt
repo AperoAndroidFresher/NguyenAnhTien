@@ -1,5 +1,6 @@
 package com.example.learnjetpackcompose.Lesson6_LearnJetpackCompose
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -46,144 +47,28 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learnjetpackcompose.R
+import com.example.learnjetpackcompose.RoomDB.AppDatabase
+import com.example.learnjetpackcompose.RoomDB.Entity.User
 import com.example.learnjetpackcompose.ui.theme.LearnJetPackComposeTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.Image as Image1
 
 class SecondActivity : ComponentActivity() {
+    @SuppressLint("CoroutineCreationDuringComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LearnJetPackComposeTheme {
-
-//                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//
-////                    MyButton(modifier = Modifier.padding(innerPadding))
-//
-//                }
-                Surface(){
-                    CustomEditing()
-                }
-            }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-@Composable
-fun MyButton(modifier: Modifier = Modifier){
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-
-        Surface(
-            color = Color.Blue,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Text(
-                text = "Surface Text",
-                fontSize = 16.sp,
-                modifier = Modifier.padding(horizontal = 100.dp, vertical = 8.dp),
-                color = (Color.White)
-            )
-        }
-        Surface(
-            color = Color.Red,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Text(
-                text = "Compose 2",
-                fontSize = 16.sp,
-                modifier = Modifier.padding(horizontal = 100.dp, vertical = 8.dp),
-                color = (Color.White)
-            )
-        }
-        Surface(
-            color = Color.Cyan,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Text(
-                text = "Composeable 3",
-                fontSize = 16.sp,
-                modifier = Modifier.padding(horizontal = 100.dp, vertical = 8.dp),
-                color = (Color.Black)
-            )
-        }
-    }
-
-}
-
-
-@Composable
-fun UiScreen(){
-    Row(
-        modifier = Modifier.fillMaxSize(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ){
-        Box(
-//            modifier = Modifier
-//                .clip(CircleShape)
-//                .border(2.dp, Color.Black, CircleShape)
-
-        ){
-            Image1(
-                painter = painterResource(id = R.drawable.rose),
-                contentDescription = "Image",
-                modifier = Modifier.size(90.dp)
-                    .clip(CircleShape)
-                    .align(Alignment.Center),
-                contentScale = ContentScale.Crop
-            )
-            Box(
-                modifier = Modifier.size(25.dp)
-                    .background(Color.Green, CircleShape)
-                    .align(Alignment.BottomEnd)
-            )
-        }
-
-        Column(
-            modifier = Modifier.fillMaxWidth()
-                .padding(16.dp),
-
-
-        ){
-            Text(text = "Nguyen Thuc Thuy Tien",
-                fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                color = Color.Black,
-                fontWeight = FontWeight.Bold)
-
-            Text(text = "Active",
-                fontSize = 18.sp,
-                color = Color.Black,
-                fontWeight = FontWeight.Normal)
-        }
 
 
 
-    }
-}
 
 @Composable
 fun CustomButton(
@@ -258,7 +143,7 @@ fun CustomEditProfile() {
 //            )
             Box(){
                 Image(
-                    painter = painterResource(id = R.drawable.edit),
+                    painter = painterResource(id = R.drawable.icon_edit),
                     contentDescription = "Edit",
                     modifier = Modifier.size(32.dp)
                 )
@@ -517,7 +402,7 @@ fun NoEdit(modifier: Modifier = Modifier) {
             )
 
             Image(
-                painter = painterResource(id = R.drawable.edit),
+                painter = painterResource(id = R.drawable.icon_edit),
                 contentDescription = "Edit",
                 modifier = Modifier.size(32.dp)
             )
@@ -617,7 +502,7 @@ fun NoEdit(modifier: Modifier = Modifier) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.success),
+                            painter = painterResource(id = R.drawable.icon_success),
                             contentDescription = "Success Icon",
                             modifier = Modifier.size(80.dp).padding(8.dp)
                                 .clip(CircleShape)

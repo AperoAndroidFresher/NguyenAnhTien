@@ -1,7 +1,23 @@
 package com.example.learnjetpackcompose.model
 
+import com.example.learnjetpackcompose.RoomDB.Entity.User
+
 object UserManager {
-    private val userList = mutableListOf<User>( User("ad", "admin@admin.com", "Abc123!"))
+    private val userList = mutableListOf<User>( User(username ="ad", email = "admin@admin.com", password = "Abc123!"))
+
+    private var currentUserId: Int? = null
+
+    fun setCurrentUserId(userId: Int) {
+        UserManager.currentUserId = userId
+    }
+
+    fun getCurrentUserId(): Int {
+        return UserManager.currentUserId ?: 1
+    }
+
+    fun clearCurrentUserId() {
+        UserManager.currentUserId = null
+    }
 
     fun addUser(user: User): Boolean {
         if (userList.any { it.username == user.username }) {
@@ -14,11 +30,6 @@ object UserManager {
         return true
     }
 
-    fun getUserList(): List<User> = userList.toList()
-
-    fun isUserExist(username: String, password: String): Boolean {
-        return userList.any { it.username == username && it.password == password }
-    }
 
     fun isEmailExist(email: String): Boolean {
         return userList.any { it.email == email }
