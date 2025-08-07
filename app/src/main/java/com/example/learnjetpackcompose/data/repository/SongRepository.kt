@@ -6,6 +6,7 @@ import android.net.Uri
 import com.example.learnjetpackcompose.RoomDB.DAO.SongDao
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Utils.Mp3Downloader
+import getOfflineRemoteSongs
 import com.example.learnjetpackcompose.data.api.ApiService
 import com.example.learnjetpackcompose.data.api.RemoteSongDto
 import java.io.File
@@ -21,7 +22,6 @@ class SongRepository @Inject constructor(
 ) : ISongRepository {
 
     override suspend fun getAllSongs(): List<Song> {
-
         return emptyList()
     }
 
@@ -29,20 +29,19 @@ class SongRepository @Inject constructor(
         return try {
             val response = apiService.getRemoteSongs()
             if (response.isSuccessful) {
-                val remoteSongs = response.body() ?: return emptyList()
+                val remoteSongs =
+                    response.body() ?: return getOfflineRemoteSongs(downloader.context)
                 val localSongs = mutableListOf<Song>()
 
                 for (remoteSong in remoteSongs) {
                     localSongs.add(remoteSong.toSong())
                 }
                 localSongs
-
             } else {
-                emptyList()
+                getOfflineRemoteSongs(downloader.context)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            emptyList()
+            getOfflineRemoteSongs(downloader.context)
         }
     }
 

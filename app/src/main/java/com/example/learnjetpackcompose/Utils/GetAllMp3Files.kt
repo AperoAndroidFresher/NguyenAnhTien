@@ -48,6 +48,76 @@ fun getAllMp3Files(context: Context): List<Song> {
     return songList
 }
 
+fun getOfflineRemoteSongs(context: Context): List<Song> {
+    val songList = mutableListOf<Song>()
+
+    try {
+        val songsDir = File(context.filesDir, "songs")
+
+        if (!songsDir.exists() || !songsDir.isDirectory) {
+            return emptyList()
+        }
+
+        val mp3Files = songsDir.listFiles { file ->
+            file.isFile && file.name.endsWith(".mp3", ignoreCase = true)
+        }
+
+        mp3Files?.forEach { file ->
+            try {
+                val song = createSongFromFile(context, file)
+                if (song != null) {
+                    songList.add(song)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return songList.sortedBy { it.title }
+}
+
+private fun createSongFromFile(context: Context, file: File): Song? {
+    val retriever = MediaMetadataRetriever()
+
+    return try {
+        retriever.setDataSource(file.absolutePath)
+
+        val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+            ?: file.nameWithoutExtension
+        val artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
+            ?: "Unknown Artist"
+        val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+
+        val duration = formatDuration(durationStr.toString())
+
+        val songId = file.absolutePath.hashCode().toLong()
+
+        val albumArtUri = extractAlbumArtAsUri(context, file.absolutePath, songId)
+        val finalAlbumArtUri = albumArtUri ?: Uri.EMPTY
+
+        Song(
+            songId = songId,
+            title = title,
+            artist = artist,
+            albumArt = finalAlbumArtUri.toString(),
+            duration = duration,
+            data = file.absolutePath
+        )
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    } finally {
+        try {
+            retriever.release()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+}
+
 private fun extractAlbumArtAsUri(context: Context, audioPath: String, songId: Long): Uri? {
     val retriever = MediaMetadataRetriever()
     return try {
@@ -89,5 +159,13 @@ private fun getQueryProjection(): Array<String> {
         MediaStore.Audio.Media.DURATION
     )
 }
-
-
+private fun formatDuration(durationMs: String): String {
+    return try {
+        val millis = durationMs.toLong()
+        val minutes = (millis / 1000) / 60
+        val seconds = (millis / 1000) % 60
+        String.format("%d:%02d", minutes, seconds)
+    } catch (e: Exception) {
+        "0:00"
+    }
+}

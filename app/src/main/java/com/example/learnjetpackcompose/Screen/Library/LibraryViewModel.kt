@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
+
 import com.example.learnjetpackcompose.data.repository.SongRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -28,34 +29,27 @@ class LibraryViewModel @Inject constructor(
     private val _effect = Channel<LibraryEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
 
-
     fun updatePlaylists(playlists: List<Playlist>) {
         _state.update { it.copy(playlists = playlists) }
     }
 
     fun processIntent(intent: LibraryIntent) {
         when (intent) {
-            is LibraryIntent.LoadSongs -> {
-                loadSongs(intent.songs)
-            }
-            is LibraryIntent.SelectSource -> {
-                selectSource(intent.source)
-            }
-            is LibraryIntent.AddSongToPlaylist -> {
-                addToPlaylist(intent.song)
-            }
-            is LibraryIntent.LoadLocalSongs -> {
-                loadLocalSongs()
-            }
-            is LibraryIntent.LoadRemoteSongs -> {
-                loadRemoteSongs()
-            }
+            is LibraryIntent.LoadSongs -> loadSongs(intent.songs)
+
+            is LibraryIntent.SelectSource -> selectSource(intent.source)
+
+            is LibraryIntent.AddSongToPlaylist -> addToPlaylist(intent.song)
+
+            is LibraryIntent.LoadLocalSongs -> loadLocalSongs()
+
+            is LibraryIntent.LoadRemoteSongs -> loadRemoteSongs()
+
             is LibraryIntent.ShareSong -> {
                 // Handle share song intent
             }
-            is LibraryIntent.DismissDialog -> {
-                dismissDialog()
-            }
+
+            is LibraryIntent.DismissDialog -> dismissDialog()
         }
     }
 
@@ -71,17 +65,12 @@ class LibraryViewModel @Inject constructor(
 
     private fun selectSource(source: LibrarySource) {
         when (source) {
-            LibrarySource.LOCAL -> {
-                loadLocalSongs()
-            }
-            LibrarySource.REMOTE -> {
-                loadRemoteSongs()
-            }
+            LibrarySource.LOCAL -> loadLocalSongs()
+            LibrarySource.REMOTE -> loadRemoteSongs()
         }
     }
 
     private fun addToPlaylist(song: Song) {
-        println("DEBUG: addToPlaylist called for song: ${song.title}")
         _state.update {
             it.copy(
                 showDialog = true,
@@ -146,9 +135,11 @@ class LibraryViewModel @Inject constructor(
                     )
                 }
                 delay(500)
+
                 val remoteSongs = songRepository.getRemoteSongs()
                 val currentLocalSongs = filterSongsBySource(_state.value.songs, LibrarySource.LOCAL)
                 val allSongs = currentLocalSongs + remoteSongs
+                println("DEBUG: Merged songs - Local: ${currentLocalSongs.size}, Remote: ${remoteSongs.size}, Total: ${allSongs.size}")
 
                 _state.update {
                     it.copy(
@@ -175,6 +166,7 @@ class LibraryViewModel @Inject constructor(
             LibrarySource.LOCAL -> {
                 songs.filter { !it.data.contains("/data/user/") && !it.data.contains("/files/songs") }
             }
+
             LibrarySource.REMOTE -> {
                 songs.filter { it.data.contains("/files/songs") }
             }
