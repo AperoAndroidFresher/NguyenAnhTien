@@ -96,6 +96,7 @@ fun LibraryScreen(
                 }
 
                 is LibraryEffect.ShowDialogChoosePlaylist -> {
+                    println("Received ShowDialogChoosePlaylist effect for song: ${effect.song.title}")
                     selectedSong = effect.song
                     showDialog = true
                 }
@@ -130,6 +131,7 @@ fun LibraryScreen(
                     selectedSource = state.selectedSource,
                     onClick = {
                         libraryViewModel.processIntent(LibraryIntent.LoadLocalSongs)
+
                     }
                 )
                 SourceButton(
@@ -355,7 +357,6 @@ fun LibrarySongCardList(
 
                 IconButton(
                     onClick = {
-
                         showDropdownMenu = true
                     },
                 ) {

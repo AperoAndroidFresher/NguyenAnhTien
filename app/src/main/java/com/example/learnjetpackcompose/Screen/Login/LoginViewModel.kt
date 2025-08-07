@@ -1,10 +1,12 @@
 package com.example.learnjetpackcompose.Screen.Login
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.data.repository.IUserRepository
 import com.example.learnjetpackcompose.model.UserManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val userRepository: IUserRepository
+    private val userRepository: IUserRepository,
+    @ApplicationContext private val context: Context // Thêm Context vào constructor
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
@@ -23,6 +26,9 @@ class LoginViewModel @Inject constructor(
 
     private val _effect = Channel<LoginEffect>()
     val effect = _effect.receiveAsFlow()
+
+    // Khởi tạo sharedPreferences với context từ constructor
+    private val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
 
     fun processIntent(intent: LoginIntent) {
         when (intent) {
@@ -48,16 +54,26 @@ class LoginViewModel @Inject constructor(
         }
     }
 
+    fun isLoggedIn(): Boolean {
+        return sharedPreferences.getBoolean("is_logged_in", false)
+    }
+
+    fun getLoggedInUserId(): String? {
+        return sharedPreferences.getString("user_id", null)
+    }
+
     private fun login() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-
             val currentState = _state.value
-
             val user = userRepository.getUserByUsername(currentState.username)
             if (user != null && user.password == currentState.password) {
-                // Set the current user ID when login is successful
                 UserManager.setCurrentUserId(user.userId)
+                with(sharedPreferences.edit()) {
+                    putBoolean("is_logged_in", true)
+                    putString("user_id", user.userId.toString())
+                    apply()
+                }
                 _effect.send(LoginEffect.NavigateToHome)
             } else {
                 _state.update { it.copy(isLoading = false, error = "Invalid username or password") }

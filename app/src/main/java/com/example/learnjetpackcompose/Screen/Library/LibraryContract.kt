@@ -10,7 +10,7 @@ data class LibraryState(
     val selectedSource: LibrarySource = LibrarySource.LOCAL,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val playlists: List<Playlist>? = null // Sử dụng null làm giá trị mặc định
+    val playlists: List<Playlist>? = null
 )
 
 sealed interface LibraryIntent {

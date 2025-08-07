@@ -86,9 +86,7 @@ class SongRepository @Inject constructor(
                 }
 
                 val tempFile = File(cacheDir, "temp_art_$songId.jpg")
-
                 tempFile.writeBytes(artBytes)
-
                 Uri.fromFile(tempFile)
             } else {
                 null

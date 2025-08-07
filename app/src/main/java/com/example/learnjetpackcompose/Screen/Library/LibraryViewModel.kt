@@ -88,13 +88,9 @@ class LibraryViewModel @Inject constructor(
     }
 
     private fun addToPlaylist(song: Song) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
-                val playlists = _state.value.playlists
-                if (playlists.isNullOrEmpty()) {
-                    _effect.send(LibraryEffect.ShowDialogChoosePlaylist(song, emptyList()))
-                    return@launch
-                }
+                val playlists = _state.value.playlists ?: emptyList()
                 _effect.send(LibraryEffect.ShowDialogChoosePlaylist(song, playlists))
             } catch (e: Exception) {
                 _state.update { it.copy(error = "Failed to initiate playlist selection") }
@@ -108,7 +104,7 @@ class LibraryViewModel @Inject constructor(
             try {
 
                 _state.update { it.copy(isLoading = true, selectedSource = LibrarySource.LOCAL) }
-                delay(1000)
+                delay(500)
                 val localSongs = filterSongsBySource(_state.value.songs, LibrarySource.LOCAL)
                 _state.update {
                     it.copy(
@@ -133,7 +129,7 @@ class LibraryViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _state.update { it.copy(isLoading = true, selectedSource = LibrarySource.REMOTE) }
-                delay(1500)
+                delay(500)
                 val remoteSongs = songRepository.getRemoteSongs()
                 _state.update {
                     it.copy(
