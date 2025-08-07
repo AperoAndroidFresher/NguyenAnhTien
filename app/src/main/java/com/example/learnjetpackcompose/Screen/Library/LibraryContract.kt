@@ -10,7 +10,9 @@ data class LibraryState(
     val selectedSource: LibrarySource = LibrarySource.LOCAL,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val playlists: List<Playlist>? = null
+    val playlists: List<Playlist>? = null,
+    val showDialog: Boolean = false,
+    val selectedSong: Song? = null
 )
 
 sealed interface LibraryIntent {
@@ -20,6 +22,7 @@ sealed interface LibraryIntent {
     data object LoadLocalSongs : LibraryIntent
     data object LoadRemoteSongs : LibraryIntent
     data class ShareSong(val song: Song): LibraryIntent
+    data object DismissDialog : LibraryIntent
 }
 
 sealed interface LibraryEffect {

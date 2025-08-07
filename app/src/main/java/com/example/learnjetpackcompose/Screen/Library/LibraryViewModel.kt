@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okhttp3.Dispatcher
+
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,7 +25,7 @@ class LibraryViewModel @Inject constructor(
     private val _state = MutableStateFlow(LibraryState())
     val state = _state.asStateFlow()
 
-    private val _effect = Channel<LibraryEffect>()
+    private val _effect = Channel<LibraryEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
 
 
@@ -53,59 +53,68 @@ class LibraryViewModel @Inject constructor(
             is LibraryIntent.ShareSong -> {
                 // Handle share song intent
             }
+            is LibraryIntent.DismissDialog -> {
+                dismissDialog()
+            }
         }
     }
 
     private fun loadSongs(songs: List<Song>) {
-        _state.update {
-            it.copy(
+        _state.update { currentState ->
+            currentState.copy(
                 songs = songs,
-                filteredSongs = filterSongsBySource(songs, it.selectedSource),
+                filteredSongs = filterSongsBySource(songs, currentState.selectedSource),
                 error = null
             )
         }
     }
 
     private fun selectSource(source: LibrarySource) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _state.update {
-                it.copy(
-                    selectedSource = source,
-                    filteredSongs = filterSongsBySource(it.songs, source)
-                )
+        when (source) {
+            LibrarySource.LOCAL -> {
+                loadLocalSongs()
             }
-            when (source) {
-                LibrarySource.LOCAL -> {
-                    loadLocalSongs()
-                    _effect.send(LibraryEffect.ShowMessage("Showing local songs"))
-                }
-                LibrarySource.REMOTE -> {
-                    loadRemoteSongs()
-                    _effect.send(LibraryEffect.ShowMessage("Showing remote songs"))
-                }
+            LibrarySource.REMOTE -> {
+                loadRemoteSongs()
             }
         }
     }
 
     private fun addToPlaylist(song: Song) {
-        viewModelScope.launch {
-            try {
-                val playlists = _state.value.playlists ?: emptyList()
-                _effect.send(LibraryEffect.ShowDialogChoosePlaylist(song, playlists))
-            } catch (e: Exception) {
-                _state.update { it.copy(error = "Failed to initiate playlist selection") }
-            }
+        println("DEBUG: addToPlaylist called for song: ${song.title}")
+        _state.update {
+            it.copy(
+                showDialog = true,
+                selectedSong = song
+            )
+        }
+    }
+
+    private fun dismissDialog() {
+        _state.update {
+            it.copy(
+                showDialog = false,
+                selectedSong = null
+            )
         }
     }
 
     private fun loadLocalSongs() {
         viewModelScope.launch(Dispatchers.IO) {
-
             try {
-
-                _state.update { it.copy(isLoading = true, selectedSource = LibrarySource.LOCAL) }
+                _state.update {
+                    it.copy(
+                        isLoading = true,
+                        selectedSource = LibrarySource.LOCAL,
+                        showDialog = false,
+                        selectedSong = null
+                    )
+                }
                 delay(500)
-                val localSongs = filterSongsBySource(_state.value.songs, LibrarySource.LOCAL)
+
+                val allSongs = _state.value.songs
+                val localSongs = filterSongsBySource(allSongs, LibrarySource.LOCAL)
+
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -128,12 +137,23 @@ class LibraryViewModel @Inject constructor(
     private fun loadRemoteSongs() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                _state.update { it.copy(isLoading = true, selectedSource = LibrarySource.REMOTE) }
+                _state.update {
+                    it.copy(
+                        isLoading = true,
+                        selectedSource = LibrarySource.REMOTE,
+                        showDialog = false,
+                        selectedSong = null
+                    )
+                }
                 delay(500)
                 val remoteSongs = songRepository.getRemoteSongs()
+                val currentLocalSongs = filterSongsBySource(_state.value.songs, LibrarySource.LOCAL)
+                val allSongs = currentLocalSongs + remoteSongs
+
                 _state.update {
                     it.copy(
                         isLoading = false,
+                        songs = allSongs,
                         filteredSongs = remoteSongs,
                         error = null
                     )
@@ -151,6 +171,14 @@ class LibraryViewModel @Inject constructor(
     }
 
     private fun filterSongsBySource(songs: List<Song>, source: LibrarySource): List<Song> {
-        return songs
+        val result = when (source) {
+            LibrarySource.LOCAL -> {
+                songs.filter { !it.data.contains("/data/user/") && !it.data.contains("/files/songs") }
+            }
+            LibrarySource.REMOTE -> {
+                songs.filter { it.data.contains("/files/songs") }
+            }
+        }
+        return result
     }
 }
