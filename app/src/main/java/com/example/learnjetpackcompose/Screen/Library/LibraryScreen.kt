@@ -76,8 +76,6 @@ fun LibraryScreen(
     val state by libraryViewModel.state.collectAsState()
     val playlistState by playlistViewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    var showDialog by remember { mutableStateOf(false) }
-    var selectedSong by remember { mutableStateOf<Song?>(null) }
 
     LaunchedEffect(playlistState.playlists) {
         libraryViewModel.updatePlaylists(playlistState.playlists)
@@ -88,7 +86,7 @@ fun LibraryScreen(
         libraryViewModel.processIntent(LibraryIntent.LoadSongs(songs))
     }
 
-    LaunchedEffect(libraryViewModel) {
+    LaunchedEffect(Unit) {
         libraryViewModel.effect.collect { effect ->
             when (effect) {
                 is LibraryEffect.ShowMessage -> {
@@ -96,8 +94,6 @@ fun LibraryScreen(
                 }
 
                 is LibraryEffect.ShowDialogChoosePlaylist -> {
-                    selectedSong = effect.song
-                    showDialog = true
                 }
             }
         }
@@ -130,6 +126,7 @@ fun LibraryScreen(
                     selectedSource = state.selectedSource,
                     onClick = {
                         libraryViewModel.processIntent(LibraryIntent.LoadLocalSongs)
+
                     }
                 )
                 SourceButton(
@@ -154,6 +151,13 @@ fun LibraryScreen(
             if (state.isLoading) {
                 LoadingWithLottie()
             } else if (state.filteredSongs.isEmpty()) {
+                // Debug: Log empty songs
+                LaunchedEffect(state.selectedSource, state.songs.size) {
+                    println("DEBUG: filteredSongs is empty. Source: ${state.selectedSource}, Total songs: ${state.songs.size}")
+                    state.songs.forEach { song ->
+                        println("DEBUG: Song path: ${song.data}")
+                    }
+                }
                 ContentLoadFailure()
             } else {
                 LazyColumn(
@@ -175,25 +179,24 @@ fun LibraryScreen(
             }
         }
 
-        if (showDialog && selectedSong != null) {
+        if (state.showDialog && state.selectedSong != null) {
+            println("DEBUG: Rendering ChoosePlaylistDialog - showDialog: ${state.showDialog}, selectedSong: ${state.selectedSong?.title}")
             ChoosePlaylistDialog(
                 playlists = state.playlists ?: emptyList(),
                 onDismissRequest = {
-                    showDialog = false
-                    selectedSong = null
+                    libraryViewModel.processIntent(LibraryIntent.DismissDialog)
                 },
                 onPlaylistSelected = { playlist ->
                     playlistViewModel.processIntent(
                         PlaylistIntent.AddSongToPlaylist(
                             playlist.playlistId,
-                            selectedSong!!
+                            state.selectedSong!!
                         )
                     )
-                    showDialog = false
-                    selectedSong = null
+                    libraryViewModel.processIntent(LibraryIntent.DismissDialog)
                 },
                 onAddPlaylistClicked = {
-                    showDialog = false
+                    libraryViewModel.processIntent(LibraryIntent.DismissDialog)
                     onNavigateToPlaylist()
                 }
             )
@@ -355,7 +358,6 @@ fun LibrarySongCardList(
 
                 IconButton(
                     onClick = {
-
                         showDropdownMenu = true
                     },
                 ) {

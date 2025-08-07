@@ -14,16 +14,17 @@ import com.example.learnjetpackcompose.RoomDB.Entity.SongViewModel
 import com.example.learnjetpackcompose.Screen.HomeScreen
 import com.example.learnjetpackcompose.Screen.Library.LibraryScreen
 import com.example.learnjetpackcompose.Screen.Login.LoginScreen
+import com.example.learnjetpackcompose.Screen.Login.LoginViewModel
 import com.example.learnjetpackcompose.Screen.Login.SplashScreen
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistScreen
 import com.example.learnjetpackcompose.Screen.Playlist.Song.SongScreen
 import com.example.learnjetpackcompose.Screen.SignUp.SignUpScreen
 import com.example.learnjetpackcompose.Screen.Profile.MainProfileScreen
-
+import com.example.learnjetpackcompose.model.UserManager
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
-fun NavigationApp(){
+fun NavigationApp() {
     val context = LocalContext.current
     val backStack = rememberNavBackStack(SplashNavKey)
 
@@ -32,60 +33,71 @@ fun NavigationApp(){
 
     NavDisplay(
         backStack = backStack,
-        onBack = {backStack.removeLastOrNull()},
-        entryProvider = entryProvider{
-            entry<SplashNavKey>{key ->
+        onBack = { backStack.removeLastOrNull() },
+        entryProvider = entryProvider {
+            entry<SplashNavKey> { key ->
+                val viewModel = hiltViewModel<LoginViewModel>()
                 SplashScreen(onTimeout = {
-                    backStack.add(LoginNavKey())
+                    backStack.clear()
+                    if (viewModel.isLoggedIn()) {
+                        viewModel.getLoggedInUserId()?.let { userId ->
+                            UserManager.setCurrentUserId(userId.toInt())
+                        }
+                        backStack.add(HomeNavKey)
+                    } else {
+                        backStack.add(LoginNavKey())
+                    }
                 })
             }
 
-            entry<LoginNavKey>{key ->
+            entry<LoginNavKey> { key ->
                 LoginScreen(
                     viewModel = hiltViewModel(),
                     onLoginSuccess = {
                         backStack.clear()
                         backStack.add(HomeNavKey)
                     },
-                    onSignUpClick = { backStack.add(SignUpNavKey())}
+                    onSignUpClick = { backStack.add(SignUpNavKey()) }
                 )
             }
 
-            entry<SignUpNavKey>{key ->
+            entry<SignUpNavKey> { key ->
                 SignUpScreen(
                     viewModel = hiltViewModel(),
                     onBackClick = { backStack.removeLastOrNull() },
-                    onSignUpClick = { backStack.add(LoginNavKey())}
+                    onSignUpClick = { backStack.add(LoginNavKey()) }
                 )
             }
 
-            entry<HomeNavKey>{key ->
+            entry<HomeNavKey> { key ->
                 HomeScreen(
                     onMyProfileClick = { backStack.add(ProfileNavKey) },
-                    onPlaylistClick = { backStack.add(PlaylistNavKey) }, // Thêm navigation đến playlist
+                    onPlaylistClick = { backStack.add(PlaylistNavKey) },
                     onSongClick = { playlistId, playlistTitle ->
                         backStack.add(SongNavKey(playlistId, playlistTitle))
                     }
                 )
             }
 
-            entry<ProfileNavKey>{key ->
+            entry<ProfileNavKey> { key ->
                 MainProfileScreen()
             }
 
-            entry<PlaylistNavKey>{key ->
+            entry<PlaylistNavKey> { key ->
                 PlaylistScreen(
                     viewModel = hiltViewModel(),
                     onNavigateToSongs = { playlist ->
-                        backStack.add(SongNavKey(
-                            playlistId = playlist.playlistId,
-                            playlistTitle = playlist.title
-                        ))
+                        backStack.add(
+                            SongNavKey(
+                                playlistId = playlist.playlistId,
+                                playlistTitle = playlist.title
+                            )
+                        )
                     }
                 )
             }
 
-            entry<LibraryNavKey>{key ->
+            entry<LibraryNavKey> { key ->
                 LibraryScreen(
                     libraryViewModel = hiltViewModel(),
                     playlistViewModel = hiltViewModel(),
@@ -96,7 +108,7 @@ fun NavigationApp(){
                 )
             }
 
-            entry<SongNavKey>{key ->
+            entry<SongNavKey> { key ->
                 SongScreen(
                     playlistId = key.playlistId,
                     playlistTitle = key.playlistTitle,
