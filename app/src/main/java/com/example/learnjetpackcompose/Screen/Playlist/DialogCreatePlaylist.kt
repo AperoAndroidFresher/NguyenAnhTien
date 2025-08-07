@@ -73,7 +73,6 @@ fun DialogCreatePlaylist(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Nút Cancel
                     TextButton(
                         onClick = onDismissRequest,
                         modifier = Modifier
@@ -88,7 +87,6 @@ fun DialogCreatePlaylist(
                         )
                     }
 
-                    // Nút Create
                     TextButton(
                         onClick = {
                             if (playlistTitle.isNotBlank()) {
@@ -113,6 +111,63 @@ fun DialogCreatePlaylist(
     }
 }
 
+@Composable
+fun PlaylistDialogButtons(
+    playlistTitle: String,
+    onDismissRequest: () -> Unit,
+    onCreatePlaylist: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isCreateEnabled = playlistTitle.isNotBlank()
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Nút Cancel
+        DialogButton(
+            text = "Cancel",
+            onClick = onDismissRequest,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        )
+
+        // Nút Create
+        DialogButton(
+            text = "Create",
+            onClick = { if (isCreateEnabled) onCreatePlaylist(playlistTitle.trim()) },
+            color = if (isCreateEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            enabled = isCreateEnabled
+        )
+    }
+}
+
+@Composable
+private fun DialogButton(
+    text: String,
+    onClick: () -> Unit,
+    color: Color,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    TextButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier
+            .height(48.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge.copy(
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            ),
+            color = color
+        )
+    }
+}
 @Preview(showBackground = true)
 @Composable
 private fun PreviewDialogCreatePlaylist() {

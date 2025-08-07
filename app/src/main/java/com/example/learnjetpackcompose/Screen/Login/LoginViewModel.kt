@@ -18,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val userRepository: IUserRepository,
-    @ApplicationContext private val context: Context // Thêm Context vào constructor
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
@@ -27,7 +27,6 @@ class LoginViewModel @Inject constructor(
     private val _effect = Channel<LoginEffect>()
     val effect = _effect.receiveAsFlow()
 
-    // Khởi tạo sharedPreferences với context từ constructor
     private val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
 
     fun processIntent(intent: LoginIntent) {
