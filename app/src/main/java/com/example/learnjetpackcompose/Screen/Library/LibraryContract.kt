@@ -13,6 +13,8 @@ data class LibraryState(
     val playlists: List<Playlist>? = null,
     val showDialog: Boolean = false,
     val selectedSong: Song? = null,
+    val isPlaying: Boolean = false,
+    val showPlayerBar: Boolean = false
 )
 
 sealed interface LibraryIntent {
@@ -28,6 +30,7 @@ sealed interface LibraryIntent {
 sealed interface LibraryEffect {
     data class ShowMessage(val message: String) : LibraryEffect
     data class ShowDialogChoosePlaylist(val song: Song, val playlists: List<Playlist>) : LibraryEffect
+    data object NavigateToPlayer : LibraryEffect
 }
 
 enum class LibrarySource {

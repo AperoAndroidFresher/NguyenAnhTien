@@ -2,6 +2,7 @@ package com.example.learnjetpackcompose.Screen.Player
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -164,6 +165,39 @@ fun ButtonControl(
             painter = painter,
             contentDescription = title,
             tint = Color.White
+        )
+    }
+}
+
+@Composable
+fun PlayerBar(){
+    Row(
+        modifier = Modifier.fillMaxWidth().background(Color.DarkGray.copy(0.5f)).padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ){
+        IconButton(
+            onClick = {},
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.icon_play),
+                contentDescription = "Play",
+                tint = Color.White
+            )
+        }
+
+        Text(
+            text = "Anh khong lam gi dau anh the",
+            fontSize = 16.sp,
+            style = MaterialTheme.typography.titleSmall,
+            color = Color.White,
+            modifier = Modifier.weight(2f).basicMarquee()
+        )
+
+        Text(
+            text = "04:02",
+            fontSize = 16.sp,
+            color = Color.White.copy(0.7f)
         )
     }
 }

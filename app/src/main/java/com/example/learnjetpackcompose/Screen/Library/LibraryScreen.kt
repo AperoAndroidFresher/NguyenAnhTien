@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -95,6 +96,8 @@ fun LibraryScreen(
 
                 is LibraryEffect.ShowDialogChoosePlaylist -> {
                 }
+
+                LibraryEffect.NavigateToPlayer -> TODO()
             }
         }
     }
@@ -368,66 +371,16 @@ fun LibrarySongCardList(
                     )
                 }
 
-                DropdownMenu(
-                    shape = RoundedCornerShape(14.dp),
+                CustomDropDownMenu(
                     expanded = showDropdownMenu,
                     onDismissRequest = { showDropdownMenu = false },
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color.DarkGray)
-                ) {
-                    DropdownMenuItem(
-                        text = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(8.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.add_to_playlist),
-                                    contentDescription = "Add to playlist",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = "Add to playlist",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        },
-                        onClick = {
-                            onAddToPlaylist(song)
-                            showDropdownMenu = false
-                        }
-                    )
-
-                    DropdownMenuItem(
-                        text = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(8.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.icon_share),
-                                    contentDescription = "Share",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = "Share",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        },
-                        onClick = {
-                            println("Share clicked - coming soon")
-                            showDropdownMenu = false
-                        }
-                    )
-                }
+                    onAddToPlaylistClick = {
+                        onAddToPlaylist(song)
+                        showDropdownMenu = false},
+                    onShareClick = {
+                        showDropdownMenu = false
+                    }
+                )
             }
         }
     }
@@ -475,3 +428,68 @@ fun SongInfo(title: String, artist: String) {
         )
     }
 }
+
+@Composable
+fun CustomDropDownMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    onAddToPlaylistClick: () -> Unit,
+    onShareClick: () -> Unit
+){
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismissRequest,
+        shape = RoundedCornerShape(14.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color.DarkGray)
+    ){
+        DropdownMenuItemWithIcon(
+            iconId = R.drawable.add_to_playlist,
+            contentDescription = "Add to playlist",
+            text = "Add to playlist",
+            onClick = onAddToPlaylistClick
+        )
+
+        DropdownMenuItemWithIcon(
+            iconId = R.drawable.icon_share,
+            contentDescription = "Share",
+            text = "Share",
+            onClick = onShareClick
+        )
+
+    }
+
+}
+
+@Composable
+fun DropdownMenuItemWithIcon(
+    iconId: Int,
+    contentDescription: String,
+    text: String,
+    onClick: () -> Unit
+) {
+    DropdownMenuItem(
+        text = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = iconId),
+                    contentDescription = contentDescription,
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = text,
+                    color = Color.White,
+                    fontSize = 18.sp
+                )
+            }
+        },
+        onClick = onClick
+    )
+}
+
