@@ -98,6 +98,7 @@ fun LibraryScreen(
                 }
 
                 LibraryEffect.NavigateToPlayer -> TODO()
+                is LibraryEffect.StartMusicService -> TODO()
             }
         }
     }
@@ -492,4 +493,3 @@ fun DropdownMenuItemWithIcon(
         onClick = onClick
     )
 }
-

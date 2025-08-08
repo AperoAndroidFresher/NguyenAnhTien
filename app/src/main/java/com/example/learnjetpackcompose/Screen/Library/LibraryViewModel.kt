@@ -50,6 +50,11 @@ class LibraryViewModel @Inject constructor(
             }
 
             is LibraryIntent.DismissDialog -> dismissDialog()
+            LibraryIntent.PauseMusic -> TODO()
+            is LibraryIntent.PlaySong -> TODO()
+            LibraryIntent.ResumeMusic -> TODO()
+            LibraryIntent.StopMusic -> TODO()
+            is LibraryIntent.UpdatePlaybackState -> TODO()
         }
     }
 
