@@ -1,4 +1,4 @@
-package com.example.learnjetpackcompose.model
+package com.example.learnjetpackcompose.data.model
 
 import com.example.learnjetpackcompose.RoomDB.Entity.User
 
@@ -8,15 +8,15 @@ object UserManager {
     private var currentUserId: Int? = null
 
     fun setCurrentUserId(userId: Int) {
-        UserManager.currentUserId = userId
+        currentUserId = userId
     }
 
     fun getCurrentUserId(): Int {
-        return UserManager.currentUserId ?: 1
+        return currentUserId ?: 1
     }
 
     fun clearCurrentUserId() {
-        UserManager.currentUserId = null
+        currentUserId = null
     }
 
     fun addUser(user: User): Boolean {

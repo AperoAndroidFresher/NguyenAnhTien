@@ -3,7 +3,7 @@ package com.example.learnjetpackcompose.Screen.SignUp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.User
-import com.example.learnjetpackcompose.model.UserManager
+import com.example.learnjetpackcompose.data.model.UserManager
 import com.example.learnjetpackcompose.Utils.ValidationUtils
 import com.example.learnjetpackcompose.data.repository.IUserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel

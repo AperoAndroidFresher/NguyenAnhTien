@@ -139,7 +139,6 @@ class LibraryViewModel @Inject constructor(
                 val remoteSongs = songRepository.getRemoteSongs()
                 val currentLocalSongs = filterSongsBySource(_state.value.songs, LibrarySource.LOCAL)
                 val allSongs = currentLocalSongs + remoteSongs
-                println("DEBUG: Merged songs - Local: ${currentLocalSongs.size}, Remote: ${remoteSongs.size}, Total: ${allSongs.size}")
 
                 _state.update {
                     it.copy(

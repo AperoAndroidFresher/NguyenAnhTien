@@ -20,7 +20,7 @@ import com.example.learnjetpackcompose.Screen.Playlist.PlaylistScreen
 import com.example.learnjetpackcompose.Screen.Playlist.Song.SongScreen
 import com.example.learnjetpackcompose.Screen.SignUp.SignUpScreen
 import com.example.learnjetpackcompose.Screen.Profile.MainProfileScreen
-import com.example.learnjetpackcompose.model.UserManager
+import com.example.learnjetpackcompose.data.model.UserManager
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable

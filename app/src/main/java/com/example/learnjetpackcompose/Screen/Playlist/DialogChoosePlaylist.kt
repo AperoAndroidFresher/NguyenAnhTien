@@ -112,7 +112,10 @@ fun PlaylistListContent(
     playlists: List<Playlist>,
     onPlaylistSelected: (Playlist) -> Unit
 ) {
-    LazyColumn {
+    LazyColumn(
+        modifier = Modifier.fillMaxWidth()
+            .padding(10.dp)
+    ) {
         items(playlists) { playlist ->
             PlaylistItem(playlist = playlist) {
                 onPlaylistSelected(it)
@@ -130,7 +133,6 @@ fun PlaylistItem(playlist: Playlist, onClick: (Playlist) -> Unit) {
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Hình ảnh playlist (nếu có)
         if (playlist.imageUrl != null) {
             AsyncImage(
                 model = playlist.imageUrl,
@@ -143,7 +145,7 @@ fun PlaylistItem(playlist: Playlist, onClick: (Playlist) -> Unit) {
             )
         } else {
             Image(
-                painter = painterResource(id = R.drawable.rose),
+                painter = painterResource(id = R.drawable.icon_music),
                 contentDescription = "Profile Image",
                 modifier = Modifier
                     .size(64.dp)
@@ -153,7 +155,7 @@ fun PlaylistItem(playlist: Playlist, onClick: (Playlist) -> Unit) {
             )
         }
 
-        Column {
+        Column(modifier = Modifier.padding(10.dp)) {
             Text(
                 text = playlist.title,
                 color = Color.White,
@@ -168,7 +170,6 @@ fun PlaylistItem(playlist: Playlist, onClick: (Playlist) -> Unit) {
     }
 }
 
-// Cách sử dụng trong Composable của bạn
 @Preview(showBackground = true)
 @Composable
 private fun PreviewChoosePlaylistDialog() {

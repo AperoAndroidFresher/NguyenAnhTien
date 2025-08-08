@@ -12,7 +12,7 @@ data class LibraryState(
     val error: String? = null,
     val playlists: List<Playlist>? = null,
     val showDialog: Boolean = false,
-    val selectedSong: Song? = null
+    val selectedSong: Song? = null,
 )
 
 sealed interface LibraryIntent {

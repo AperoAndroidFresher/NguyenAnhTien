@@ -39,7 +39,7 @@ import com.example.learnjetpackcompose.Screen.Library.LibraryScreen
 import com.example.learnjetpackcompose.Screen.Library.LibraryViewModel
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistScreen
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
-import com.example.learnjetpackcompose.model.NavBottomItems
+import com.example.learnjetpackcompose.data.model.NavBottomItems
 
 @Composable
 fun HomeScreen(
