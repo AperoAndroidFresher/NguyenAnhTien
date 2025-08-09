@@ -37,3 +37,13 @@ data class SongNavKey(
     val playlistId: Int,
     val playlistTitle: String
 ) : NavKey
+
+@Serializable
+data class PlayerNavKey(
+    val songId: Long,
+    val title: String,
+    val artist: String,
+    val duration: String,
+    val data: String,
+    val albumArt: String?
+) : NavKey

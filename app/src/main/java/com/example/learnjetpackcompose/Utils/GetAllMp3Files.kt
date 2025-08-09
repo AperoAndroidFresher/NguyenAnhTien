@@ -31,10 +31,8 @@ fun getAllMp3Files(context: Context): List<Song> {
             val title = it.getString(titleIndex)
             val artist = it.getString(artistIndex)
             val data = it.getString(dataIndex)
-            val durationInSec = it.getLong(durationIndex) / 1000
-            val minutes = durationInSec / 60
-            val seconds = durationInSec % 60
-            val duration = String.format("%d:%02d", minutes, seconds)
+            val durationInSec = it.getLong(durationIndex)
+            val duration = formatDuration(durationInSec.toString())
 
             val albumArtUri = extractAlbumArtAsUri(context, data, id)
             val finalAlbumArtUri = albumArtUri ?: Uri.EMPTY

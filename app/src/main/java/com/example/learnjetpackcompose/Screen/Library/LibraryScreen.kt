@@ -1,9 +1,12 @@
 package com.example.learnjetpackcompose.Screen.Library
 
 import android.net.Uri
+import android.content.Intent
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,15 +22,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,26 +43,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.example.learnjetpackcompose.Component.AlbumArt
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Playlist.ChoosePlaylistDialog
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
-import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
-import kotlinx.coroutines.flow.collectLatest
+import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
+import com.example.learnjetpackcompose.Component.SongInfo
+import com.example.learnjetpackcompose.data.service.MusicService
+
 
 // onNavigateToPlaylist:() -> Unit,
 @Composable
@@ -77,6 +78,7 @@ fun LibraryScreen(
     val state by libraryViewModel.state.collectAsState()
     val playlistState by playlistViewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     LaunchedEffect(playlistState.playlists) {
         libraryViewModel.updatePlaylists(playlistState.playlists)
@@ -97,8 +99,19 @@ fun LibraryScreen(
                 is LibraryEffect.ShowDialogChoosePlaylist -> {
                 }
 
-                LibraryEffect.NavigateToPlayer -> TODO()
-                is LibraryEffect.StartMusicService -> TODO()
+                LibraryEffect.NavigateToPlayer -> Unit
+                is LibraryEffect.StartMusicService -> {
+                    val intent =                     Intent(context, MusicService::class.java).apply {
+                        action = MusicService.ACTION_PLAY
+                        putExtra(MusicService.EXTRA_SONG_ID, effect.song.songId)
+                        putExtra(MusicService.EXTRA_SONG_TITLE, effect.song.title)
+                        putExtra(MusicService.EXTRA_SONG_ARTIST, effect.song.artist)
+                        putExtra(MusicService.EXTRA_SONG_DATA, effect.song.data)
+                        putExtra(MusicService.EXTRA_SONG_DURATION, effect.song.duration)
+                        putExtra(MusicService.EXTRA_SONG_ALBUM_ART, effect.song.albumArt)
+                    }
+                    ContextCompat.startForegroundService(context, intent)
+                }
             }
         }
     }
@@ -109,7 +122,7 @@ fun LibraryScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(color = Color.Black)
-                .padding(12.dp),
+                .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header
@@ -118,31 +131,11 @@ fun LibraryScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Source Selection Buttons
-            Row(
-                modifier = Modifier
-                    .padding(12.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                SourceButton(
-                    label = "local",
-                    source = LibrarySource.LOCAL,
-                    selectedSource = state.selectedSource,
-                    onClick = {
-                        libraryViewModel.processIntent(LibraryIntent.LoadLocalSongs)
-
-                    }
-                )
-                SourceButton(
-                    label = "Remote",
-                    source = LibrarySource.REMOTE,
-                    selectedSource = state.selectedSource,
-                    onClick = {
-                        libraryViewModel.processIntent(LibraryIntent.LoadRemoteSongs)
-                    }
-                )
-            }
-
+            GroupButton(
+                loadLocalSongs = {libraryViewModel.processIntent(LibraryIntent.LoadLocalSongs)},
+                loadRemoteSongs = {libraryViewModel.processIntent(LibraryIntent.LoadRemoteSongs)},
+                state = state
+            )
             state.error?.let { error ->
                 Text(
                     text = error,
@@ -165,7 +158,7 @@ fun LibraryScreen(
                 ContentLoadFailure()
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(8.dp),
+                    contentPadding = PaddingValues(4.dp),
                 ) {
                     items(state.filteredSongs) { song ->
                         LibrarySongCardList(
@@ -176,11 +169,13 @@ fun LibraryScreen(
                                         it
                                     )
                                 )
-                            }
+                            },
+                            onPlaySong = { libraryViewModel.processIntent(LibraryIntent.PlaySong(it)) }
                         )
                     }
                 }
             }
+
         }
 
         if (state.showDialog && state.selectedSong != null) {
@@ -236,7 +231,7 @@ fun GroupButton(
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         SourceButton(
-            label = "local",
+            label = "Local",
             source = LibrarySource.LOCAL,
             selectedSource = state.selectedSource,
             onClick = loadLocalSongs
@@ -326,6 +321,7 @@ fun LoadingWithLottie() {
 fun LibrarySongCardList(
     song: Song,
     onAddToPlaylist: (Song) -> Unit,
+    onPlaySong: (Song) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showDropdownMenu by remember { mutableStateOf(false) }
@@ -333,33 +329,38 @@ fun LibrarySongCardList(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp),
+            .padding(start = 10.dp).background(Color.Black),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(color = Color.Black),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+                    .clickable { onPlaySong(song) }
+            ) {
 
-                SongAlbumArt(albumArtUri = song.albumArt)
+                AlbumArt(albumArtUri = song.albumArt)
 
                 SongInfo(song.title, song.artist)
 
             }
-
             Row(
+
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = song.duration,
                     modifier = Modifier.padding(start = 4.dp),
                     color = Color.White,
-                    fontSize = 14.sp
+                    fontSize = 12.sp
                 )
-
                 IconButton(
                     onClick = {
                         showDropdownMenu = true
@@ -387,48 +388,6 @@ fun LibrarySongCardList(
     }
 }
 
-@Composable
-fun SongAlbumArt(albumArtUri: String?) {
-    val uri = if (albumArtUri.isNullOrEmpty() || albumArtUri == Uri.EMPTY.toString()) {
-        null
-    } else {
-        Uri.parse(albumArtUri)
-    }
-
-    AsyncImage(
-        model = uri,
-        contentDescription = "Album Art",
-        modifier = Modifier
-            .size(64.dp)
-            .clip(RoundedCornerShape(8.dp)),
-        contentScale = ContentScale.Crop,
-        placeholder = painterResource(R.drawable.icon_music),
-        error = painterResource(R.drawable.icon_music),
-        fallback = painterResource(R.drawable.icon_music)
-    )
-}
-
-@Composable
-fun SongInfo(title: String, artist: String) {
-    Column(modifier = Modifier.padding(10.dp)) {
-        Text(
-            text = title,
-            modifier = Modifier
-                .padding(10.dp)
-                .width(150.dp)
-                .basicMarquee(),
-            style = MaterialTheme.typography.titleSmall,
-            fontSize = 16.sp,
-            color = Color.White
-        )
-        Text(
-            text = artist,
-            modifier = Modifier.padding(10.dp),
-            color = Color.White.copy(alpha = 0.7f),
-            fontSize = 14.sp
-        )
-    }
-}
 
 @Composable
 fun CustomDropDownMenu(
@@ -460,36 +419,5 @@ fun CustomDropDownMenu(
         )
 
     }
-
 }
 
-@Composable
-fun DropdownMenuItemWithIcon(
-    iconId: Int,
-    contentDescription: String,
-    text: String,
-    onClick: () -> Unit
-) {
-    DropdownMenuItem(
-        text = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = iconId),
-                    contentDescription = contentDescription,
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = text,
-                    color = Color.White,
-                    fontSize = 18.sp
-                )
-            }
-        },
-        onClick = onClick
-    )
-}

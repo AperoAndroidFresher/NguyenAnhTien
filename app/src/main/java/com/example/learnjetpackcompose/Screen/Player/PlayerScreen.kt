@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,16 +35,19 @@ import coil.compose.AsyncImage
 import com.example.learnjetpackcompose.R
 
 
-@Preview
 @Composable
 fun PlayerScreen(
-    onBackClick: () -> Unit ={},
-    onExitClick: () -> Unit={},
-    onShuffleClick: () -> Unit={},
-    onPreviousClick: () -> Unit={},
-    onPlayClick: () -> Unit={},
-    onNextClick: () -> Unit={},
-    onRepeatClick: () -> Unit={},
+    songTitle: String = "Unknown Title",
+    songArtist: String = "Unknown Artist",
+    songDuration: String = "0:00",
+    albumArtUrl: String? = null,
+    onBackClick: () -> Unit = {},
+    onExitClick: () -> Unit = {},
+    onShuffleClick: () -> Unit = {},
+    onPreviousClick: () -> Unit = {},
+    onPlayClick: () -> Unit = {},
+    onNextClick: () -> Unit = {},
+    onRepeatClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -51,7 +55,7 @@ fun PlayerScreen(
     ) {
         Header(onBackClick, onExitClick, modifier)
         Spacer(modifier = modifier.height(10.dp))
-        Content()
+        Content(songTitle, songArtist, albumArtUrl)
         Spacer(modifier = modifier.height(10.dp))
         ButtonControls(onShuffleClick,
             onPreviousClick,
@@ -61,6 +65,12 @@ fun PlayerScreen(
     }
 }
 
+@Preview
+@Composable
+fun PlayerScreenPreview() {
+    PlayerScreen()
+}
+
 @Composable
 private fun Header(
     onBackClick: () -> Unit,
@@ -68,7 +78,7 @@ private fun Header(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ){
@@ -103,28 +113,43 @@ private fun Header(
 }
 
 @Composable
-fun Content(){
-
+fun Content(
+    songTitle: String = "Unknown Title",
+    songArtist: String = "Unknown Artist",
+    albumArtUrl: String? = null
+){
     Column(
         modifier = Modifier.fillMaxWidth().padding(20.dp),
         verticalArrangement = Arrangement.Center
     ){
-        Image(
-            painter = painterResource(R.drawable.rose),
-            contentDescription = "Default Playlist Image",
-            modifier = Modifier.size(420.dp)
-                .clip(RoundedCornerShape(10.dp)),
-            contentScale = ContentScale.Crop
-        )
+        if (albumArtUrl != null && albumArtUrl.isNotEmpty()) {
+            AsyncImage(
+                model = albumArtUrl,
+                contentDescription = "Album Art",
+                modifier = Modifier.size(420.dp)
+                    .clip(RoundedCornerShape(10.dp)),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.icon_music)
+            )
+        } else {
+            Image(
+                painter = painterResource(R.drawable.rose),
+                contentDescription = "Default Album Art",
+                modifier = Modifier.size(420.dp)
+                    .clip(RoundedCornerShape(10.dp)),
+                contentScale = ContentScale.Crop
+            )
+        }
+
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = "Grainy days",
+            text = songTitle,
             fontSize = 18.sp,
             color = Color.White,
         )
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = "Artist",
+            text = songArtist,
             fontSize = 16.sp,
             color = Color.White.copy(0.7f),
         )
@@ -170,24 +195,41 @@ fun ButtonControl(
 }
 
 @Composable
-fun PlayerBar(){
+fun PlayerBar(
+    title: String,
+    duration: String,
+    isPlaying: Boolean,
+    onPlayPauseClick: () -> Unit,
+    onPlayerBarClick: () -> Unit = {},
+    modifier: Modifier = Modifier
+){
+    val safeDuration = when {
+        duration.isBlank() || duration == "null" || duration.isEmpty() -> "--:--"
+        duration == "0:00" -> "--:--"
+        else -> duration
+    }
+
     Row(
-        modifier = Modifier.fillMaxWidth().background(Color.DarkGray.copy(0.5f)).padding(10.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color.DarkGray.copy(0.5f))
+            .clickable { onPlayerBarClick() }
+            .padding(10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ){
         IconButton(
-            onClick = {},
+            onClick = onPlayPauseClick,
         ) {
             Icon(
-                painter = painterResource(R.drawable.icon_play),
-                contentDescription = "Play",
+                painter = painterResource(if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play),
+                contentDescription = if (isPlaying) "Pause" else "Play",
                 tint = Color.White
             )
         }
 
         Text(
-            text = "Anh khong lam gi dau anh the",
+            text = title,
             fontSize = 16.sp,
             style = MaterialTheme.typography.titleSmall,
             color = Color.White,
@@ -195,9 +237,10 @@ fun PlayerBar(){
         )
 
         Text(
-            text = "04:02",
+            text = safeDuration,
             fontSize = 16.sp,
-            color = Color.White.copy(0.7f)
+            color = Color.White,
+            style = MaterialTheme.typography.bodyMedium
         )
     }
 }

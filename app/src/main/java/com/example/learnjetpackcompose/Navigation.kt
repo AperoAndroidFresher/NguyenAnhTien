@@ -17,10 +17,35 @@ import com.example.learnjetpackcompose.Screen.Login.LoginScreen
 import com.example.learnjetpackcompose.Screen.Login.LoginViewModel
 import com.example.learnjetpackcompose.Screen.Login.SplashScreen
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistScreen
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.res.painterResource
+import com.example.learnjetpackcompose.data.model.NavBottomItems
 import com.example.learnjetpackcompose.Screen.Playlist.Song.SongScreen
 import com.example.learnjetpackcompose.Screen.SignUp.SignUpScreen
 import com.example.learnjetpackcompose.Screen.Profile.MainProfileScreen
+import com.example.learnjetpackcompose.Screen.Player.PlayerScreen
 import com.example.learnjetpackcompose.data.model.UserManager
+import com.example.learnjetpackcompose.data.model.PlaybackManager
+import com.example.learnjetpackcompose.Screen.Player.PlayerBar
+import com.example.learnjetpackcompose.data.service.MusicService
+import androidx.compose.runtime.collectAsState
+import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import android.util.Log
+import androidx.compose.foundation.layout.PaddingValues
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
@@ -70,13 +95,26 @@ fun NavigationApp() {
             }
 
             entry<HomeNavKey> { key ->
-                HomeScreen(
-                    onMyProfileClick = { backStack.add(ProfileNavKey) },
-                    onPlaylistClick = { backStack.add(PlaylistNavKey) },
-                    onSongClick = { playlistId, playlistTitle ->
-                        backStack.add(SongNavKey(playlistId, playlistTitle))
-                    }
-                )
+                AppShell(
+                    currentIndex = 0,
+                    onNavigate = { idx ->
+                        when (idx) {
+                            0 -> { backStack.clear(); backStack.add(HomeNavKey) }
+                            1 -> { backStack.clear(); backStack.add(LibraryNavKey) }
+                            2 -> { backStack.clear(); backStack.add(PlaylistNavKey) }
+                        }
+                    },
+                    backStack = backStack
+                ) { innerPadding ->
+                    HomeScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        onMyProfileClick = { backStack.add(ProfileNavKey) },
+                        onPlaylistClick = { backStack.add(PlaylistNavKey) },
+                        onSongClick = { playlistId, playlistTitle ->
+                            backStack.add(SongNavKey(playlistId, playlistTitle))
+                        }
+                    )
+                }
             }
 
             entry<ProfileNavKey> { key ->
@@ -84,37 +122,157 @@ fun NavigationApp() {
             }
 
             entry<PlaylistNavKey> { key ->
-                PlaylistScreen(
-                    viewModel = hiltViewModel(),
-                    onNavigateToSongs = { playlist ->
-                        backStack.add(
-                            SongNavKey(
-                                playlistId = playlist.playlistId,
-                                playlistTitle = playlist.title
+                AppShell(
+                    currentIndex = 2,
+                    onNavigate = { idx ->
+                        when (idx) {
+                            0 -> { backStack.clear(); backStack.add(HomeNavKey) }
+                            1 -> { backStack.clear(); backStack.add(LibraryNavKey) }
+                            2 -> { backStack.clear(); backStack.add(PlaylistNavKey) }
+                        }
+                    },
+                    backStack = backStack
+                ) { innerPadding ->
+                    PlaylistScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        viewModel = hiltViewModel(),
+                        onNavigateToSongs = { playlist ->
+                            backStack.add(
+                                SongNavKey(
+                                    playlistId = playlist.playlistId,
+                                    playlistTitle = playlist.title
+                                )
                             )
-                        )
-                    }
-                )
+                        }
+                    )
+                }
             }
 
             entry<LibraryNavKey> { key ->
-                LibraryScreen(
-                    libraryViewModel = hiltViewModel(),
-                    playlistViewModel = hiltViewModel(),
-                    songs = songs,
-                    onNavigateToPlaylist = {
-                        backStack.add(PlaylistNavKey)
-                    }
-                )
+                AppShell(
+                    currentIndex = 1,
+                    onNavigate = { idx ->
+                        when (idx) {
+                            0 -> { backStack.clear(); backStack.add(HomeNavKey) }
+                            1 -> { backStack.clear(); backStack.add(LibraryNavKey) }
+                            2 -> { backStack.clear(); backStack.add(PlaylistNavKey) }
+                        }
+                    },
+                    backStack = backStack
+                ) { innerPadding ->
+                    LibraryScreen(
+                        libraryViewModel = hiltViewModel(),
+                        playlistViewModel = hiltViewModel(),
+                        songs = songs,
+                        onNavigateToPlaylist = {
+                            backStack.add(PlaylistNavKey)
+                        },
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
             }
 
             entry<SongNavKey> { key ->
-                SongScreen(
-                    playlistId = key.playlistId,
-                    playlistTitle = key.playlistTitle,
+                AppShell(
+                    currentIndex = 2,
+                    onNavigate = { idx ->
+                        when (idx) {
+                            0 -> { backStack.clear(); backStack.add(HomeNavKey) }
+                            1 -> { backStack.clear(); backStack.add(LibraryNavKey) }
+                            2 -> { backStack.clear(); backStack.add(PlaylistNavKey) }
+                        }
+                    },
+                    backStack = backStack
+                ) { innerPadding ->
+                    SongScreen(
+                        playlistId = key.playlistId,
+                        playlistTitle = key.playlistTitle,
+                        onBackClick = { backStack.removeLastOrNull() },
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
+            }
+
+            entry<PlayerNavKey> { key ->
+                PlayerScreen(
+                    songTitle = key.title,
+                    songArtist = key.artist,
+                    songDuration = key.duration,
+                    albumArtUrl = key.albumArt,
                     onBackClick = { backStack.removeLastOrNull() }
                 )
             }
         }
     )
+}
+
+@Composable
+private fun AppShell(
+    currentIndex: Int,
+    onNavigate: (Int) -> Unit,
+    backStack: androidx.navigation3.runtime.NavBackStack,
+    content: @Composable (PaddingValues) -> Unit
+) {
+    val navItemsList = listOf(
+        NavBottomItems("Home", R.drawable.icon_home),
+        NavBottomItems("Library", R.drawable.icon_library),
+        NavBottomItems("My Playlist", R.drawable.icon_playlist)
+    )
+    var selectedIndex by remember { mutableStateOf(currentIndex) }
+
+    val appContext = LocalContext.current.applicationContext
+    val currentSong by PlaybackManager.currentSong.collectAsState()
+    val isPlaying by PlaybackManager.isPlaying.collectAsState()
+
+    Scaffold(
+        bottomBar = {
+            Column {
+                if (currentSong != null) {
+                    PlayerBar(
+                        title = currentSong!!.title,
+                        duration = currentSong!!.duration,
+                        isPlaying = isPlaying,
+                        onPlayPauseClick = {
+                            val action = if (isPlaying) MusicService.ACTION_PAUSE else MusicService.ACTION_PLAY
+                            val intent = android.content.Intent(appContext, MusicService::class.java).apply {
+                                this.action = action
+                                putExtra(MusicService.EXTRA_SONG_TITLE, currentSong!!.title)
+                                putExtra(MusicService.EXTRA_SONG_ARTIST, currentSong!!.artist)
+                                putExtra(MusicService.EXTRA_SONG_DATA, currentSong!!.data)
+                                putExtra(MusicService.EXTRA_SONG_DURATION, currentSong!!.duration)
+                            }
+                            ContextCompat.startForegroundService(appContext, intent)
+                        },
+                        onPlayerBarClick = {
+                            val playerNavKey = PlayerNavKey(
+                                songId = currentSong!!.songId,
+                                title = currentSong!!.title,
+                                artist = currentSong!!.artist,
+                                duration = currentSong!!.duration,
+                                data = currentSong!!.data,
+                                albumArt = currentSong!!.albumArt
+                            )
+                            backStack.add(playerNavKey)
+                        }
+                    )
+                }
+
+                NavigationBar {
+                    navItemsList.forEachIndexed { index, navItem ->
+                        NavigationBarItem(
+                            selected = selectedIndex == index,
+                            onClick = {
+                                selectedIndex = index
+                                onNavigate(index)
+                            },
+                            icon = { Icon(painterResource(navItem.icon), contentDescription = navItem.label) },
+                            label = { Text(navItem.label, style = MaterialTheme.typography.labelMedium) }
+                        )
+                    }
+                }
+            }
+        }
+    ) { innerPadding ->
+        content(innerPadding)
+    }
 }

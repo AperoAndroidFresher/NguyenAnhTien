@@ -57,32 +57,7 @@ fun HomeScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        bottomBar = {
-            NavigationBar {
-                navItemsList.forEachIndexed { index, navItem ->
-                    NavigationBarItem(
-                        selected = selectedIndex == index,
-                        onClick = {
-                            selectedIndex = index
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(navItem.icon),
-                                contentDescription = "Icon page",
-                                modifier = Modifier.size(25.dp)
-                            )
-                        },
-                        label = {
-                            Text(
-                                navItem.label,
-                                fontSize = 16.sp,
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                        }
-                    )
-                }
-            }
-        }
+
     ) { innerPadding ->
         ContentScreen(
             modifier = Modifier.padding(innerPadding).fillMaxSize(),
@@ -98,7 +73,6 @@ fun HomeScreen(
 fun HomePage(
     modifier: Modifier,
     onMyProfileClick: () -> Unit,
-    onPlaylistClick: () -> Unit = {}
 ) {
     Column(
         modifier = modifier,
@@ -148,7 +122,6 @@ fun ContentScreen(
         0 -> HomePage(
             modifier,
             onMyProfileClick = onMyProfileClick,
-            onPlaylistClick = onPlaylistClick
         )
         1 -> LibraryScreen(
             libraryViewModel = libraryViewModel,

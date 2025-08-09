@@ -107,5 +107,6 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
 
     implementation("com.airbnb.android:lottie-compose:6.1.0")
-
+// Media notification
+    implementation("androidx.media:media:1.7.0")
 }

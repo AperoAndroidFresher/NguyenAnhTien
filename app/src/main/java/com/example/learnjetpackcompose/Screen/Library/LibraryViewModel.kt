@@ -50,11 +50,14 @@ class LibraryViewModel @Inject constructor(
             }
 
             is LibraryIntent.DismissDialog -> dismissDialog()
-            LibraryIntent.PauseMusic -> TODO()
-            is LibraryIntent.PlaySong -> TODO()
-            LibraryIntent.ResumeMusic -> TODO()
-            LibraryIntent.StopMusic -> TODO()
-            is LibraryIntent.UpdatePlaybackState -> TODO()
+            is LibraryIntent.PauseMusic -> pauseMusic()
+            is LibraryIntent.PlaySong -> playSong(intent.song)
+            is LibraryIntent.ResumeMusic -> resumeMusic()
+            is LibraryIntent.StopMusic -> stopMusic()
+            is LibraryIntent.UpdatePlaybackState -> updatePlaybackState(
+                intent.isPlaying,
+                intent.currentSong
+            )
         }
     }
 
@@ -176,5 +179,40 @@ class LibraryViewModel @Inject constructor(
             }
         }
         return result
+    }
+
+    private fun playSong(song: Song) {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isPlaying = true,
+                    showPlayerBar = true,
+                    currentPlayingSong = song
+                )
+            }
+            _effect.send(LibraryEffect.StartMusicService(song))
+        }
+    }
+
+    private fun pauseMusic() {
+        viewModelScope.launch {
+            _state.update { it.copy(isPlaying = false) }
+        }
+    }
+
+    private fun resumeMusic() {
+        viewModelScope.launch {
+            _state.update { it.copy(isPlaying = true) }
+        }
+    }
+
+    private fun stopMusic() {
+        viewModelScope.launch {
+            _state.update { it.copy(isPlaying = false, showPlayerBar = false, currentPlayingSong = null) }
+        }
+    }
+
+    private fun updatePlaybackState(isPlaying: Boolean, currentSong: Song?) {
+        _state.update { it.copy(isPlaying = isPlaying, currentPlayingSong = currentSong) }
     }
 }
