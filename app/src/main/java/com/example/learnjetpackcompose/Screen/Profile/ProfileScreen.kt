@@ -173,7 +173,7 @@ fun ProfileNoEdit(
                 )
             } else {
                 Image(
-                    painter = painterResource(id = R.drawable.rose),
+                    painter = painterResource(id = R.drawable.default_avatar),
                     contentDescription = "Profile Image",
                     modifier = Modifier
                         .size(140.dp)

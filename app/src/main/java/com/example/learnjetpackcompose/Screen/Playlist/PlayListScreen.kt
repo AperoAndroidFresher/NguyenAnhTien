@@ -1,6 +1,7 @@
 package com.example.learnjetpackcompose.Screen.Playlist
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -49,8 +50,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.learnjetpackcompose.Component.AlbumArt
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
+import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
+import com.example.learnjetpackcompose.Component.SongInfo
 import com.example.learnjetpackcompose.Screen.Library.LibraryViewModel
 
 
@@ -103,42 +107,12 @@ fun PlaylistCardList(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(color = Color.Black),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            if (playlist.imageUrl != null) {
-                AsyncImage(
-                    model = playlist.imageUrl,
-                    contentDescription = "Image Playlist",
-                    modifier = Modifier
-                        .size(64.dp)
-                        .border(2.dp, Color.LightGray, CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Image(
-                    painter = painterResource(R.drawable.icon_music),
-                    contentDescription = "Default Playlist Image",
-                    modifier = Modifier.size(64.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                )
-            }
+            AlbumArt(playlist.imageUrl)
 
-            Column {
-                Text(
-                    text = playlist.title,
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .width(150.dp)
-                        .basicMarquee(),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-                Text(
-                    text = "${playlist.songs.size} songs",
-                    modifier = Modifier.padding(start = 10.dp),
-                    color = Color.White.copy(alpha = 0.7f),
-                )
-            }
+            SongInfo(playlist.title, playlist.songs.size.toString() + " Songs")
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -151,72 +125,23 @@ fun PlaylistCardList(
                     },
                 ) {
                     Icon(
-                        imageVector = Icons.Default.MoreVert,
+                        painter = painterResource(R.drawable.icon_morevert),
                         contentDescription = "Mở menu tùy chọn",
                         tint = Color.White
                     )
                 }
-
-                DropdownMenu(
-                    shape = RoundedCornerShape(14.dp),
+                CustomDropDownMenu(
                     expanded = showDropdownMenu,
-                    onDismissRequest = { showDropdownMenu = false },
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color.DarkGray)
-                ) {
-                    DropdownMenuItem(
-                        text = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(8.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.icon_remove),
-                                    contentDescription = "Remove playlist",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = "Remove playlist",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        },
-                        onClick = {
-                            onRemovePlaylist(playlist)
-                            showDropdownMenu = false
-                        }
-                    )
-
-                    DropdownMenuItem(
-                        text = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(8.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.icon_rename),
-                                    contentDescription = "Rename playlist",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = "Rename",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        },
-                        onClick = {
-                            onRenamePlaylist(playlist)
-                            showDropdownMenu = false
-                        }
-                    )
-                }
+                    onDismissRequest = {showDropdownMenu = false},
+                    onRemovePlaylistClick = {
+                        onRemovePlaylist(playlist)
+                        showDropdownMenu = false
+                    },
+                    onRenamePlaylistClick = {
+                        onRenamePlaylist(playlist)
+                        showDropdownMenu = false
+                    }
+                )
             }
         }
     }
@@ -227,7 +152,7 @@ fun PlaylistScreen(
     modifier: Modifier = Modifier,
     viewModel: PlaylistViewModel,
     onNavigateToSongs: (Playlist) -> Unit = {},
-    libraryViewModel: LibraryViewModel? = null // Thêm tham số LibraryViewModel
+    libraryViewModel: LibraryViewModel? = null
 ) {
     val state by viewModel.state.collectAsState()
     val listState = rememberLazyListState()
@@ -298,6 +223,40 @@ fun PlaylistScreen(
         )
     }
 }
+
+
+@Composable
+fun CustomDropDownMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    onRemovePlaylistClick: () -> Unit,
+    onRenamePlaylistClick: () -> Unit
+){
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismissRequest,
+        shape = RoundedCornerShape(14.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color.DarkGray)
+    ){
+        DropdownMenuItemWithIcon(
+            iconId = R.drawable.icon_remove,
+            contentDescription = "Remove playlist",
+            text = "Remove playlist",
+            onClick = onRemovePlaylistClick
+        )
+
+        DropdownMenuItemWithIcon(
+            iconId = R.drawable.icon_rename,
+            contentDescription = "Rename",
+            text = "Rename",
+            onClick = onRenamePlaylistClick
+        )
+
+    }
+}
+
 
 
 

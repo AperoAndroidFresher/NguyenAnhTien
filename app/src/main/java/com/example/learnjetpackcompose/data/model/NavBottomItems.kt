@@ -1,4 +1,4 @@
-package com.example.learnjetpackcompose.model
+package com.example.learnjetpackcompose.data.model
 
 import androidx.compose.ui.graphics.vector.ImageVector
 

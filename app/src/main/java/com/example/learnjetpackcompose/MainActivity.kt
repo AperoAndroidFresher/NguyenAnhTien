@@ -15,6 +15,7 @@ import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.compose.runtime.Composable
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -47,7 +48,6 @@ class MainActivity : ComponentActivity() {
             setContent {
                 LearnJetPackComposeTheme {
                     Surface(modifier = Modifier.fillMaxSize()) {
-//                        PlaylistScreen(viewModel.songs)
                         NavigationApp()
                     }
                 }

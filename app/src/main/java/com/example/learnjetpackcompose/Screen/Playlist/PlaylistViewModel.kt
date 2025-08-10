@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.data.repository.IPlaylistRepository
-import com.example.learnjetpackcompose.model.UserManager
+import com.example.learnjetpackcompose.data.model.UserManager
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

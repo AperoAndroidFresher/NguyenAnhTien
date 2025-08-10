@@ -1,9 +1,12 @@
 package com.example.learnjetpackcompose.Screen.Library
 
 import android.net.Uri
+import android.content.Intent
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -48,20 +51,25 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Playlist.ChoosePlaylistDialog
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
+import com.example.learnjetpackcompose.data.service.MusicService
+
 import kotlinx.coroutines.flow.collectLatest
 
 // onNavigateToPlaylist:() -> Unit,
@@ -76,6 +84,8 @@ fun LibraryScreen(
     val state by libraryViewModel.state.collectAsState()
     val playlistState by playlistViewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    var selectedSongId by remember { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(playlistState.playlists) {
         libraryViewModel.updatePlaylists(playlistState.playlists)
@@ -94,6 +104,20 @@ fun LibraryScreen(
                 }
 
                 is LibraryEffect.ShowDialogChoosePlaylist -> {
+                }
+
+                LibraryEffect.NavigateToPlayer -> Unit
+                is LibraryEffect.StartMusicService -> {
+                    val intent =                     Intent(context, MusicService::class.java).apply {
+                        action = MusicService.ACTION_PLAY
+                        putExtra(MusicService.EXTRA_SONG_ID, effect.song.songId)
+                        putExtra(MusicService.EXTRA_SONG_TITLE, effect.song.title)
+                        putExtra(MusicService.EXTRA_SONG_ARTIST, effect.song.artist)
+                        putExtra(MusicService.EXTRA_SONG_DATA, effect.song.data)
+                        putExtra(MusicService.EXTRA_SONG_DURATION, effect.song.duration)
+                        putExtra(MusicService.EXTRA_SONG_ALBUM_ART, effect.song.albumArt)
+                    }
+                    ContextCompat.startForegroundService(context, intent)
                 }
             }
         }
@@ -166,17 +190,24 @@ fun LibraryScreen(
                     items(state.filteredSongs) { song ->
                         LibrarySongCardList(
                             song = song,
+                            isSelected = selectedSongId == song.songId,
                             onAddToPlaylist = {
                                 libraryViewModel.processIntent(
                                     LibraryIntent.AddSongToPlaylist(
                                         it
                                     )
                                 )
-                            }
+                            },
+                            onPlaySong = {
+                                selectedSongId = it.songId
+                                libraryViewModel.processIntent(LibraryIntent.PlaySong(it))
+                            },
+                            onSelectSong = { selectedSongId = it.songId }
                         )
                     }
                 }
             }
+
         }
 
         if (state.showDialog && state.selectedSong != null) {
@@ -321,24 +352,35 @@ fun LoadingWithLottie() {
 @Composable
 fun LibrarySongCardList(
     song: Song,
+    isSelected: Boolean,
     onAddToPlaylist: (Song) -> Unit,
+    onPlaySong: (Song) -> Unit,
+    onSelectSong: (Song) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showDropdownMenu by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) Color.DarkGray else Color.Black
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(color = Color.Black),
+                .padding(10.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clickable {
+                        onSelectSong(song)
+                        onPlaySong(song)
+                    }
+            ) {
 
                 SongAlbumArt(albumArtUri = song.albumArt)
 
@@ -368,66 +410,16 @@ fun LibrarySongCardList(
                     )
                 }
 
-                DropdownMenu(
-                    shape = RoundedCornerShape(14.dp),
+                CustomDropDownMenu(
                     expanded = showDropdownMenu,
                     onDismissRequest = { showDropdownMenu = false },
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color.DarkGray)
-                ) {
-                    DropdownMenuItem(
-                        text = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(8.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.add_to_playlist),
-                                    contentDescription = "Add to playlist",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = "Add to playlist",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        },
-                        onClick = {
-                            onAddToPlaylist(song)
-                            showDropdownMenu = false
-                        }
-                    )
-
-                    DropdownMenuItem(
-                        text = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(8.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.icon_share),
-                                    contentDescription = "Share",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = "Share",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        },
-                        onClick = {
-                            println("Share clicked - coming soon")
-                            showDropdownMenu = false
-                        }
-                    )
-                }
+                    onAddToPlaylistClick = {
+                        onAddToPlaylist(song)
+                        showDropdownMenu = false},
+                    onShareClick = {
+                        showDropdownMenu = false
+                    }
+                )
             }
         }
     }
@@ -445,7 +437,7 @@ fun SongAlbumArt(albumArtUri: String?) {
         model = uri,
         contentDescription = "Album Art",
         modifier = Modifier
-            .size(64.dp)
+            .size(48.dp)
             .clip(RoundedCornerShape(8.dp)),
         contentScale = ContentScale.Crop,
         placeholder = painterResource(R.drawable.icon_music),
@@ -456,12 +448,11 @@ fun SongAlbumArt(albumArtUri: String?) {
 
 @Composable
 fun SongInfo(title: String, artist: String) {
-    Column(modifier = Modifier.padding(10.dp)) {
+    Column(modifier = Modifier.padding(start = 10.dp)) {
         Text(
             text = title,
             modifier = Modifier
-                .padding(10.dp)
-                .width(150.dp)
+                .width(170.dp)
                 .basicMarquee(),
             style = MaterialTheme.typography.titleSmall,
             fontSize = 16.sp,
@@ -469,9 +460,44 @@ fun SongInfo(title: String, artist: String) {
         )
         Text(
             text = artist,
-            modifier = Modifier.padding(10.dp),
+            modifier = Modifier.width(170.dp)
+                .basicMarquee(),
             color = Color.White.copy(alpha = 0.7f),
             fontSize = 14.sp
         )
     }
 }
+
+@Composable
+fun CustomDropDownMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    onAddToPlaylistClick: () -> Unit,
+    onShareClick: () -> Unit
+){
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismissRequest,
+        shape = RoundedCornerShape(14.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color.DarkGray)
+    ){
+        DropdownMenuItemWithIcon(
+            iconId = R.drawable.add_to_playlist,
+            contentDescription = "Add to playlist",
+            text = "Add to playlist",
+            onClick = onAddToPlaylistClick
+        )
+
+        DropdownMenuItemWithIcon(
+            iconId = R.drawable.icon_share,
+            contentDescription = "Share",
+            text = "Share",
+            onClick = onShareClick
+        )
+
+    }
+
+}
+

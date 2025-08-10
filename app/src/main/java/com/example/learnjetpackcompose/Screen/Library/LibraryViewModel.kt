@@ -1,9 +1,11 @@
 package com.example.learnjetpackcompose.Screen.Library
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
+import com.example.learnjetpackcompose.data.repository.PlayerRepository
 
 import com.example.learnjetpackcompose.data.repository.SongRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +22,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    private val songRepository: SongRepository
+    private val songRepository: SongRepository,
+    private val playerRepository: PlayerRepository,
+    private val appContext: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LibraryState())
@@ -50,6 +54,14 @@ class LibraryViewModel @Inject constructor(
             }
 
             is LibraryIntent.DismissDialog -> dismissDialog()
+            is LibraryIntent.PauseMusic -> pauseMusic()
+            is LibraryIntent.PlaySong -> playSong(intent.song)
+            is LibraryIntent.ResumeMusic -> resumeMusic()
+            is LibraryIntent.StopMusic -> stopMusic()
+            is LibraryIntent.UpdatePlaybackState -> updatePlaybackState(
+                intent.isPlaying,
+                intent.currentSong
+            )
         }
     }
 
@@ -139,7 +151,6 @@ class LibraryViewModel @Inject constructor(
                 val remoteSongs = songRepository.getRemoteSongs()
                 val currentLocalSongs = filterSongsBySource(_state.value.songs, LibrarySource.LOCAL)
                 val allSongs = currentLocalSongs + remoteSongs
-                println("DEBUG: Merged songs - Local: ${currentLocalSongs.size}, Remote: ${remoteSongs.size}, Total: ${allSongs.size}")
 
                 _state.update {
                     it.copy(
@@ -172,5 +183,41 @@ class LibraryViewModel @Inject constructor(
             }
         }
         return result
+    }
+
+    private fun playSong(song: Song) {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isPlaying = true,
+                    showPlayerBar = true,
+                    currentPlayingSong = song
+                )
+            }
+            // Phát nhạc trực tiếp qua PlayerRepository để đảm bảo đồng bộ khi ở tab Remote
+            playerRepository.playSong(appContext, song)
+        }
+    }
+
+    private fun pauseMusic() {
+        viewModelScope.launch {
+            _state.update { it.copy(isPlaying = false) }
+        }
+    }
+
+    private fun resumeMusic() {
+        viewModelScope.launch {
+            _state.update { it.copy(isPlaying = true) }
+        }
+    }
+
+    private fun stopMusic() {
+        viewModelScope.launch {
+            _state.update { it.copy(isPlaying = false, showPlayerBar = false, currentPlayingSong = null) }
+        }
+    }
+
+    private fun updatePlaybackState(isPlaying: Boolean, currentSong: Song?) {
+        _state.update { it.copy(isPlaying = isPlaying, currentPlayingSong = currentSong) }
     }
 }

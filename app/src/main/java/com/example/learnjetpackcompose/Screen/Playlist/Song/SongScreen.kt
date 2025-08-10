@@ -1,10 +1,9 @@
 package com.example.learnjetpackcompose.Screen.Playlist.Song
 
 import android.net.Uri
-import androidx.compose.foundation.Image
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +24,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.core.content.ContextCompat
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -34,9 +35,11 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,11 +48,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,61 +58,53 @@ import coil.compose.AsyncImage
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
+import com.example.learnjetpackcompose.data.service.MusicService
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.learnjetpackcompose.Component.AlbumArt
+import com.example.learnjetpackcompose.Component.SongInfo
+import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 
 
 @Composable
-fun SongCardList(song: Song,
-                 onRemoveSong: (Song) -> Unit,
-                 modifier: Modifier = Modifier){
+fun SongCardList(
+    song: Song,
+    isSelected: Boolean,
+    onRemoveSong: (Song) -> Unit,
+    onPlaySong: (Song) -> Unit,
+    onSelectSong: (Song) -> Unit,
+    modifier: Modifier = Modifier
+){
     var showDropdownMenu by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.fillMaxWidth()
-            .padding(10.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        modifier = Modifier
+            .fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors( // 👈 Thêm phần này để đặt màu nền
+            containerColor = if (isSelected) Color.DarkGray else Color.Black
+        )
     ){
         Row(
-            modifier = Modifier.fillMaxWidth()
-                .background(color = Color.Black),
-        ){
-            AsyncImage(
-                model = if (song.albumArt.isNullOrEmpty() || song.albumArt == Uri.EMPTY.toString()) {
-                    null
-                } else {
-                    Uri.parse(song.albumArt)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp)
+                .clickable {
+                    onSelectSong(song)
+                    onPlaySong(song)
                 },
-                contentDescription = "Album Art",
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(id = R.drawable.music_note),
-                error = painterResource(id = R.drawable.music_note),
-                fallback = painterResource(id = R.drawable.music_note)
-            )
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            AlbumArt(song.albumArt)
 
-
-            Column(){
-                Text(
-                    text = song.title,
-                    modifier = Modifier.padding(10.dp).width(150.dp).basicMarquee(),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-                Text(
-                    text = song.artist,
-                    modifier = Modifier.padding(start = 10.dp),
-                    color = Color.White.copy(alpha = 0.7f),
-                )
-            }
+            SongInfo(song.title, song.artist)
 
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = song.duration.toString(),
+                text = song.duration,
                 modifier = Modifier.align(Alignment.CenterVertically),
                 color = Color.White,
-                fontSize = 20.sp
+                fontSize = 14.sp
             )
 
             Box(
@@ -193,17 +186,30 @@ fun SongCardList(song: Song,
 }
 
 @Composable
-fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
+fun SongCardGrid(
+    song: Song,
+    isSelected: Boolean,
+    onRemoveSong: (Song) -> Unit,
+    onPlaySong: (Song) -> Unit,
+    onSelectSong: (Song) -> Unit
+){
     var showDropdownMenu by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth()
             .padding(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) Color.DarkGray else Color.Black
+        )
     ){
         Column(
-            modifier = Modifier.fillMaxWidth()
-                .background(color = Color.Black),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    onSelectSong(song)
+                    onPlaySong(song)
+                },
             horizontalAlignment = Alignment.CenterHorizontally
         ){
             Box(){
@@ -335,9 +341,12 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit){
 fun SongLinear(
     modifier: Modifier,
     songs: List<Song>,
+    selectedSongId: Long?,
     onToggleView: () -> Unit,
     onRemoveSong: (Song) -> Unit,
-    onReorder: (Int, Int) -> Unit
+    onReorder: (Int, Int) -> Unit,
+    onPlaySong: (Song) -> Unit,
+    onSelectSong: (Song) -> Unit
 ){
 
     val listState = rememberLazyListState()
@@ -398,7 +407,13 @@ fun SongLinear(
             contentPadding = PaddingValues(8.dp),
         ){
             items(songs){playlist ->
-                SongCardList(song = playlist, onRemoveSong = onRemoveSong )
+                SongCardList(
+                    song = playlist,
+                    isSelected = selectedSongId == playlist.songId,
+                    onRemoveSong = onRemoveSong,
+                    onPlaySong = onPlaySong,
+                    onSelectSong = onSelectSong
+                )
             }
         }
 
@@ -432,7 +447,12 @@ fun SongLinear(
 fun SongGrid(
     modifier: Modifier,
     songs: List<Song>,
-    onToggleView: () -> Unit, onRemoveSong: (Song) -> Unit){
+    selectedSongId: Long?,
+    onToggleView: () -> Unit,
+    onRemoveSong: (Song) -> Unit,
+    onPlaySong: (Song) -> Unit,
+    onSelectSong: (Song) -> Unit
+){
     Column(
         modifier = modifier
             .background(color = Color.Black)
@@ -484,7 +504,13 @@ fun SongGrid(
             columns = GridCells.Fixed(2)
         ){
             items(songs){song ->
-                SongCardGrid(song = song, onRemoveSong = onRemoveSong)
+                SongCardGrid(
+                    song = song,
+                    isSelected = selectedSongId == song.songId,
+                    onRemoveSong = onRemoveSong,
+                    onPlaySong = onPlaySong,
+                    onSelectSong = onSelectSong
+                )
             }
         }
     }
@@ -498,14 +524,16 @@ fun SongScreen(
     modifier: Modifier = Modifier
 ) {
     val playlistViewModel: PlaylistViewModel = hiltViewModel()
-    val playlist = playlistViewModel.getPlaylistById(playlistId)
-    val songs = playlist?.songs ?: emptyList()
+    val playlistState by playlistViewModel.state.collectAsState()
+    val songs = playlistState.playlists.find { it.playlistId == playlistId }?.songs ?: emptyList()
+    val appContext = LocalContext.current.applicationContext
 
     var isGridView by remember { mutableStateOf(false) }
+    var selectedSongId by remember { mutableStateOf<Long?>(null) }
 
     val removeSong: (Song) -> Unit = { songToRemove ->
         playlistViewModel.processIntent(
-            com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent.RemoveSongFromPlaylist(
+            PlaylistIntent.RemoveSongFromPlaylist(
                 playlistId, songToRemove
             )
         )
@@ -588,18 +616,49 @@ fun SongScreen(
                 SongGrid(
                     modifier = Modifier.fillMaxSize(),
                     songs = songs,
+                    selectedSongId = selectedSongId,
                     onToggleView = { isGridView = false },
-                    onRemoveSong = removeSong
+                    onRemoveSong = removeSong,
+                    onPlaySong = { song ->
+                        selectedSongId = song.songId
+                        val intent = Intent(appContext, MusicService::class.java).apply {
+                            action = MusicService.ACTION_PLAY
+                            putExtra(MusicService.EXTRA_SONG_ID, song.songId)
+                            putExtra(MusicService.EXTRA_SONG_TITLE, song.title)
+                            putExtra(MusicService.EXTRA_SONG_ARTIST, song.artist)
+                            putExtra(MusicService.EXTRA_SONG_DATA, song.data)
+                            putExtra(MusicService.EXTRA_SONG_DURATION, song.duration)
+                            putExtra(MusicService.EXTRA_SONG_ALBUM_ART, song.albumArt)
+                        }
+                        ContextCompat.startForegroundService(appContext, intent)
+                    },
+                    onSelectSong = { selectedSongId = it.songId }
                 )
             } else {
                 SongLinear(
                     modifier = Modifier.fillMaxSize(),
                     songs = songs,
+                    selectedSongId = selectedSongId,
                     onToggleView = { isGridView = true },
                     onRemoveSong = removeSong,
-                    onReorder = reorder
+                    onReorder = reorder,
+                    onPlaySong = { song ->
+                        selectedSongId = song.songId
+                        val intent = Intent(appContext, MusicService::class.java).apply {
+                            action = MusicService.ACTION_PLAY
+                            putExtra(MusicService.EXTRA_SONG_ID, song.songId)
+                            putExtra(MusicService.EXTRA_SONG_TITLE, song.title)
+                            putExtra(MusicService.EXTRA_SONG_ARTIST, song.artist)
+                            putExtra(MusicService.EXTRA_SONG_DATA, song.data)
+                            putExtra(MusicService.EXTRA_SONG_DURATION, song.duration)
+                            putExtra(MusicService.EXTRA_SONG_ALBUM_ART, song.albumArt)
+                        }
+                        ContextCompat.startForegroundService(appContext, intent)
+                    },
+                    onSelectSong = { selectedSongId = it.songId }
                 )
             }
         }
+
     }
 }
