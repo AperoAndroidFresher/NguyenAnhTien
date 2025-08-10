@@ -49,6 +49,7 @@ class MusicService : Service() {
     private var currentTitle: String = ""
     private var currentArtist: String = ""
     private var currentData: String = ""
+    private var currentAlbumArt: String = ""
 
     override fun onCreate(){
         super.onCreate()
@@ -62,10 +63,11 @@ class MusicService : Service() {
                 val artist = intent.getStringExtra(EXTRA_SONG_ARTIST) ?: ""
                 val data = intent.getStringExtra(EXTRA_SONG_DATA) ?: ""
                 val duration = intent.getStringExtra(EXTRA_SONG_DURATION) ?: "0:00"
+                val albumArt = intent.getStringExtra(EXTRA_SONG_ALBUM_ART) ?: ""
                 if (mediaPlayer != null && currentData == data && mediaPlayer?.isPlaying == false) {
                     resumePlayback()
                 } else {
-                    startPlayback(title, artist, data, duration)
+                    startPlayback(title, artist, data, duration, albumArt)
                 }
             }
 
@@ -87,13 +89,15 @@ class MusicService : Service() {
         return START_NOT_STICKY
     }
 
-    private fun startPlayback(title: String, artist: String, data: String, duration: String) {
+    private fun startPlayback(title: String, artist: String, data: String, duration: String, albumArt: String) {
         currentTitle = title
         currentArtist = artist
         currentData = data
+        currentAlbumArt = albumArt
+
 
         Log.d("MusicService", "Setting song with duration: '$duration' for '$title'")
-        PlaybackManager.setNowPlaying(Song(0, title, artist, null, duration, data))
+        PlaybackManager.setNowPlaying(Song(0, title, artist, albumArt, duration, data))
 
         mediaPlayer?.release()
         mediaPlayer = MediaPlayer().apply {

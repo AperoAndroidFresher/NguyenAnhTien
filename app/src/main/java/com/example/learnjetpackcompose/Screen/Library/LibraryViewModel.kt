@@ -1,9 +1,11 @@
 package com.example.learnjetpackcompose.Screen.Library
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
+import com.example.learnjetpackcompose.data.repository.PlayerRepository
 
 import com.example.learnjetpackcompose.data.repository.SongRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +22,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    private val songRepository: SongRepository
+    private val songRepository: SongRepository,
+    private val playerRepository: PlayerRepository,
+    private val appContext: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LibraryState())
@@ -190,7 +194,8 @@ class LibraryViewModel @Inject constructor(
                     currentPlayingSong = song
                 )
             }
-            _effect.send(LibraryEffect.StartMusicService(song))
+            // Phát nhạc trực tiếp qua PlayerRepository để đảm bảo đồng bộ khi ở tab Remote
+            playerRepository.playSong(appContext, song)
         }
     }
 

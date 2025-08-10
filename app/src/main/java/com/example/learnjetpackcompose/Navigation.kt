@@ -11,7 +11,7 @@ import androidx.navigation3.runtime.entry
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import com.example.learnjetpackcompose.RoomDB.Entity.SongViewModel
-import com.example.learnjetpackcompose.Screen.HomeScreen
+import com.example.learnjetpackcompose.Screen.Home.HomeScreen
 import com.example.learnjetpackcompose.Screen.Library.LibraryScreen
 import com.example.learnjetpackcompose.Screen.Login.LoginScreen
 import com.example.learnjetpackcompose.Screen.Login.LoginViewModel
@@ -22,12 +22,10 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.res.painterResource
@@ -39,13 +37,11 @@ import com.example.learnjetpackcompose.Screen.Player.PlayerScreen
 import com.example.learnjetpackcompose.data.model.UserManager
 import com.example.learnjetpackcompose.data.model.PlaybackManager
 import com.example.learnjetpackcompose.Screen.Player.PlayerBar
-import com.example.learnjetpackcompose.data.service.MusicService
 import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.layout.Column
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
 import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
+import com.example.learnjetpackcompose.Screen.Player.PlayerViewModel
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
@@ -99,9 +95,9 @@ fun NavigationApp() {
                     currentIndex = 0,
                     onNavigate = { idx ->
                         when (idx) {
-                            0 -> { backStack.clear(); backStack.add(HomeNavKey) }
-                            1 -> { backStack.clear(); backStack.add(LibraryNavKey) }
-                            2 -> { backStack.clear(); backStack.add(PlaylistNavKey) }
+                            0 -> { backStack.add(HomeNavKey) }
+                            1 -> { backStack.add(LibraryNavKey) }
+                            2 -> { backStack.add(PlaylistNavKey) }
                         }
                     },
                     backStack = backStack
@@ -126,9 +122,9 @@ fun NavigationApp() {
                     currentIndex = 2,
                     onNavigate = { idx ->
                         when (idx) {
-                            0 -> { backStack.clear(); backStack.add(HomeNavKey) }
-                            1 -> { backStack.clear(); backStack.add(LibraryNavKey) }
-                            2 -> { backStack.clear(); backStack.add(PlaylistNavKey) }
+                            0 -> { backStack.add(HomeNavKey) }
+                            1 -> { backStack.add(LibraryNavKey) }
+                            2 -> { backStack.add(PlaylistNavKey) }
                         }
                     },
                     backStack = backStack
@@ -153,9 +149,9 @@ fun NavigationApp() {
                     currentIndex = 1,
                     onNavigate = { idx ->
                         when (idx) {
-                            0 -> { backStack.clear(); backStack.add(HomeNavKey) }
-                            1 -> { backStack.clear(); backStack.add(LibraryNavKey) }
-                            2 -> { backStack.clear(); backStack.add(PlaylistNavKey) }
+                            0 -> { backStack.add(HomeNavKey) }
+                            1 -> { backStack.add(LibraryNavKey) }
+                            2 -> { backStack.add(PlaylistNavKey) }
                         }
                     },
                     backStack = backStack
@@ -177,9 +173,10 @@ fun NavigationApp() {
                     currentIndex = 2,
                     onNavigate = { idx ->
                         when (idx) {
-                            0 -> { backStack.clear(); backStack.add(HomeNavKey) }
-                            1 -> { backStack.clear(); backStack.add(LibraryNavKey) }
-                            2 -> { backStack.clear(); backStack.add(PlaylistNavKey) }
+//                            0 -> { backStack.clear(); backStack.add(HomeNavKey) }
+                            0 -> { backStack.add(HomeNavKey) }
+                            1 -> { backStack.add(LibraryNavKey) }
+                            2 -> { backStack.add(PlaylistNavKey) }
                         }
                     },
                     backStack = backStack
@@ -194,12 +191,20 @@ fun NavigationApp() {
             }
 
             entry<PlayerNavKey> { key ->
+                val playerViewModel: PlayerViewModel = hiltViewModel()
+
                 PlayerScreen(
                     songTitle = key.title,
                     songArtist = key.artist,
                     songDuration = key.duration,
                     albumArtUrl = key.albumArt,
-                    onBackClick = { backStack.removeLastOrNull() }
+                    onBackClick = { backStack.removeLastOrNull() },
+                    onExitClick = {
+                        // Return to home screen
+//                        backStack.clear()
+                        backStack.add(HomeNavKey)
+                    },
+                    viewModel = playerViewModel
                 )
             }
         }
@@ -220,30 +225,24 @@ private fun AppShell(
     )
     var selectedIndex by remember { mutableStateOf(currentIndex) }
 
-    val appContext = LocalContext.current.applicationContext
     val currentSong by PlaybackManager.currentSong.collectAsState()
     val isPlaying by PlaybackManager.isPlaying.collectAsState()
-
+    val playerViewModel: PlayerViewModel = hiltViewModel()
     Scaffold(
         bottomBar = {
             Column {
+                // PlayerBar được đặt phía trên bottomBar
                 if (currentSong != null) {
+                    Log.d("PlayerBar", "Displaying: '${currentSong!!.title}', Duration: '${currentSong!!.duration}'")
                     PlayerBar(
                         title = currentSong!!.title,
                         duration = currentSong!!.duration,
                         isPlaying = isPlaying,
                         onPlayPauseClick = {
-                            val action = if (isPlaying) MusicService.ACTION_PAUSE else MusicService.ACTION_PLAY
-                            val intent = android.content.Intent(appContext, MusicService::class.java).apply {
-                                this.action = action
-                                putExtra(MusicService.EXTRA_SONG_TITLE, currentSong!!.title)
-                                putExtra(MusicService.EXTRA_SONG_ARTIST, currentSong!!.artist)
-                                putExtra(MusicService.EXTRA_SONG_DATA, currentSong!!.data)
-                                putExtra(MusicService.EXTRA_SONG_DURATION, currentSong!!.duration)
-                            }
-                            ContextCompat.startForegroundService(appContext, intent)
+                            playerViewModel.togglePlayPause()
                         },
                         onPlayerBarClick = {
+                            // Navigate to PlayerScreen với thông tin bài hát hiện tại
                             val playerNavKey = PlayerNavKey(
                                 songId = currentSong!!.songId,
                                 title = currentSong!!.title,
@@ -253,10 +252,13 @@ private fun AppShell(
                                 albumArt = currentSong!!.albumArt
                             )
                             backStack.add(playerNavKey)
-                        }
+                        },
+                        modifier = Modifier,
+                        viewModel = playerViewModel
                     )
                 }
 
+                // NavigationBar ở phía dưới
                 NavigationBar {
                     navItemsList.forEachIndexed { index, navItem ->
                         NavigationBarItem(

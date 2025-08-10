@@ -35,9 +35,11 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,28 +60,40 @@ import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 import com.example.learnjetpackcompose.data.service.MusicService
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.learnjetpackcompose.Component.AlbumArt
 import com.example.learnjetpackcompose.Component.SongInfo
+import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 
 
 @Composable
-fun SongCardList(song: Song,
-                 onRemoveSong: (Song) -> Unit,
-                 onPlaySong: (Song) -> Unit,
-                 modifier: Modifier = Modifier){
+fun SongCardList(
+    song: Song,
+    isSelected: Boolean,
+    onRemoveSong: (Song) -> Unit,
+    onPlaySong: (Song) -> Unit,
+    onSelectSong: (Song) -> Unit,
+    modifier: Modifier = Modifier
+){
     var showDropdownMenu by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors( // 👈 Thêm phần này để đặt màu nền
+            containerColor = if (isSelected) Color.DarkGray else Color.Black
+        )
     ){
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(color = Color.Black)
-                .clickable { onPlaySong(song) },
+                .padding(10.dp)
+                .clickable {
+                    onSelectSong(song)
+                    onPlaySong(song)
+                },
+            verticalAlignment = Alignment.CenterVertically
         ){
             AlbumArt(song.albumArt)
 
@@ -90,7 +104,7 @@ fun SongCardList(song: Song,
                 text = song.duration,
                 modifier = Modifier.align(Alignment.CenterVertically),
                 color = Color.White,
-                fontSize = 20.sp
+                fontSize = 14.sp
             )
 
             Box(
@@ -172,19 +186,30 @@ fun SongCardList(song: Song,
 }
 
 @Composable
-fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit, onPlaySong: (Song) -> Unit){
+fun SongCardGrid(
+    song: Song,
+    isSelected: Boolean,
+    onRemoveSong: (Song) -> Unit,
+    onPlaySong: (Song) -> Unit,
+    onSelectSong: (Song) -> Unit
+){
     var showDropdownMenu by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth()
             .padding(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) Color.DarkGray else Color.Black
+        )
     ){
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(color = Color.Black)
-                .clickable { onPlaySong(song) },
+                .clickable {
+                    onSelectSong(song)
+                    onPlaySong(song)
+                },
             horizontalAlignment = Alignment.CenterHorizontally
         ){
             Box(){
@@ -316,10 +341,12 @@ fun SongCardGrid(song: Song, onRemoveSong: (Song) -> Unit, onPlaySong: (Song) ->
 fun SongLinear(
     modifier: Modifier,
     songs: List<Song>,
+    selectedSongId: Long?,
     onToggleView: () -> Unit,
     onRemoveSong: (Song) -> Unit,
     onReorder: (Int, Int) -> Unit,
-    onPlaySong: (Song) -> Unit
+    onPlaySong: (Song) -> Unit,
+    onSelectSong: (Song) -> Unit
 ){
 
     val listState = rememberLazyListState()
@@ -382,8 +409,10 @@ fun SongLinear(
             items(songs){playlist ->
                 SongCardList(
                     song = playlist,
+                    isSelected = selectedSongId == playlist.songId,
                     onRemoveSong = onRemoveSong,
-                    onPlaySong = onPlaySong
+                    onPlaySong = onPlaySong,
+                    onSelectSong = onSelectSong
                 )
             }
         }
@@ -418,9 +447,11 @@ fun SongLinear(
 fun SongGrid(
     modifier: Modifier,
     songs: List<Song>,
+    selectedSongId: Long?,
     onToggleView: () -> Unit,
     onRemoveSong: (Song) -> Unit,
-    onPlaySong: (Song) -> Unit
+    onPlaySong: (Song) -> Unit,
+    onSelectSong: (Song) -> Unit
 ){
     Column(
         modifier = modifier
@@ -475,8 +506,10 @@ fun SongGrid(
             items(songs){song ->
                 SongCardGrid(
                     song = song,
+                    isSelected = selectedSongId == song.songId,
                     onRemoveSong = onRemoveSong,
-                    onPlaySong = onPlaySong
+                    onPlaySong = onPlaySong,
+                    onSelectSong = onSelectSong
                 )
             }
         }
@@ -491,15 +524,16 @@ fun SongScreen(
     modifier: Modifier = Modifier
 ) {
     val playlistViewModel: PlaylistViewModel = hiltViewModel()
-    val playlist = playlistViewModel.getPlaylistById(playlistId)
-    val songs = playlist?.songs ?: emptyList()
+    val playlistState by playlistViewModel.state.collectAsState()
+    val songs = playlistState.playlists.find { it.playlistId == playlistId }?.songs ?: emptyList()
     val appContext = LocalContext.current.applicationContext
 
     var isGridView by remember { mutableStateOf(false) }
+    var selectedSongId by remember { mutableStateOf<Long?>(null) }
 
     val removeSong: (Song) -> Unit = { songToRemove ->
         playlistViewModel.processIntent(
-            com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent.RemoveSongFromPlaylist(
+            PlaylistIntent.RemoveSongFromPlaylist(
                 playlistId, songToRemove
             )
         )
@@ -582,9 +616,11 @@ fun SongScreen(
                 SongGrid(
                     modifier = Modifier.fillMaxSize(),
                     songs = songs,
+                    selectedSongId = selectedSongId,
                     onToggleView = { isGridView = false },
                     onRemoveSong = removeSong,
                     onPlaySong = { song ->
+                        selectedSongId = song.songId
                         val intent = Intent(appContext, MusicService::class.java).apply {
                             action = MusicService.ACTION_PLAY
                             putExtra(MusicService.EXTRA_SONG_ID, song.songId)
@@ -595,16 +631,19 @@ fun SongScreen(
                             putExtra(MusicService.EXTRA_SONG_ALBUM_ART, song.albumArt)
                         }
                         ContextCompat.startForegroundService(appContext, intent)
-                    }
+                    },
+                    onSelectSong = { selectedSongId = it.songId }
                 )
             } else {
                 SongLinear(
                     modifier = Modifier.fillMaxSize(),
                     songs = songs,
+                    selectedSongId = selectedSongId,
                     onToggleView = { isGridView = true },
                     onRemoveSong = removeSong,
                     onReorder = reorder,
                     onPlaySong = { song ->
+                        selectedSongId = song.songId
                         val intent = Intent(appContext, MusicService::class.java).apply {
                             action = MusicService.ACTION_PLAY
                             putExtra(MusicService.EXTRA_SONG_ID, song.songId)
@@ -615,7 +654,8 @@ fun SongScreen(
                             putExtra(MusicService.EXTRA_SONG_ALBUM_ART, song.albumArt)
                         }
                         ContextCompat.startForegroundService(appContext, intent)
-                    }
+                    },
+                    onSelectSong = { selectedSongId = it.songId }
                 )
             }
         }

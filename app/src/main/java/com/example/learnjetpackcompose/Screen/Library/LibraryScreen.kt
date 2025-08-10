@@ -22,11 +22,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,9 +47,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
@@ -55,16 +61,16 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.example.learnjetpackcompose.Component.AlbumArt
+import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Playlist.ChoosePlaylistDialog
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
-import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
-import com.example.learnjetpackcompose.Component.SongInfo
+import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.data.service.MusicService
 
+import kotlinx.coroutines.flow.collectLatest
 
 // onNavigateToPlaylist:() -> Unit,
 @Composable
@@ -79,6 +85,7 @@ fun LibraryScreen(
     val playlistState by playlistViewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    var selectedSongId by remember { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(playlistState.playlists) {
         libraryViewModel.updatePlaylists(playlistState.playlists)
@@ -122,7 +129,7 @@ fun LibraryScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(color = Color.Black)
-                .padding(8.dp),
+                .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header
@@ -131,11 +138,31 @@ fun LibraryScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Source Selection Buttons
-            GroupButton(
-                loadLocalSongs = {libraryViewModel.processIntent(LibraryIntent.LoadLocalSongs)},
-                loadRemoteSongs = {libraryViewModel.processIntent(LibraryIntent.LoadRemoteSongs)},
-                state = state
-            )
+            Row(
+                modifier = Modifier
+                    .padding(12.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                SourceButton(
+                    label = "local",
+                    source = LibrarySource.LOCAL,
+                    selectedSource = state.selectedSource,
+                    onClick = {
+                        libraryViewModel.processIntent(LibraryIntent.LoadLocalSongs)
+
+                    }
+                )
+                SourceButton(
+                    label = "Remote",
+                    source = LibrarySource.REMOTE,
+                    selectedSource = state.selectedSource,
+                    onClick = {
+                        libraryViewModel.processIntent(LibraryIntent.LoadRemoteSongs)
+                    }
+                )
+            }
+
             state.error?.let { error ->
                 Text(
                     text = error,
@@ -158,11 +185,12 @@ fun LibraryScreen(
                 ContentLoadFailure()
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(4.dp),
+                    contentPadding = PaddingValues(8.dp),
                 ) {
                     items(state.filteredSongs) { song ->
                         LibrarySongCardList(
                             song = song,
+                            isSelected = selectedSongId == song.songId,
                             onAddToPlaylist = {
                                 libraryViewModel.processIntent(
                                     LibraryIntent.AddSongToPlaylist(
@@ -170,7 +198,11 @@ fun LibraryScreen(
                                     )
                                 )
                             },
-                            onPlaySong = { libraryViewModel.processIntent(LibraryIntent.PlaySong(it)) }
+                            onPlaySong = {
+                                selectedSongId = it.songId
+                                libraryViewModel.processIntent(LibraryIntent.PlaySong(it))
+                            },
+                            onSelectSong = { selectedSongId = it.songId }
                         )
                     }
                 }
@@ -231,7 +263,7 @@ fun GroupButton(
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         SourceButton(
-            label = "Local",
+            label = "local",
             source = LibrarySource.LOCAL,
             selectedSource = state.selectedSource,
             onClick = loadLocalSongs
@@ -320,47 +352,52 @@ fun LoadingWithLottie() {
 @Composable
 fun LibrarySongCardList(
     song: Song,
+    isSelected: Boolean,
     onAddToPlaylist: (Song) -> Unit,
     onPlaySong: (Song) -> Unit,
+    onSelectSong: (Song) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showDropdownMenu by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 10.dp).background(Color.Black),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) Color.DarkGray else Color.Black
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(color = Color.Black),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
-                    .clickable { onPlaySong(song) }
+                    .clickable {
+                        onSelectSong(song)
+                        onPlaySong(song)
+                    }
             ) {
 
-                AlbumArt(albumArtUri = song.albumArt)
+                SongAlbumArt(albumArtUri = song.albumArt)
 
                 SongInfo(song.title, song.artist)
 
             }
-            Row(
 
+            Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = song.duration,
                     modifier = Modifier.padding(start = 4.dp),
                     color = Color.White,
-                    fontSize = 12.sp
+                    fontSize = 14.sp
                 )
+
                 IconButton(
                     onClick = {
                         showDropdownMenu = true
@@ -388,6 +425,48 @@ fun LibrarySongCardList(
     }
 }
 
+@Composable
+fun SongAlbumArt(albumArtUri: String?) {
+    val uri = if (albumArtUri.isNullOrEmpty() || albumArtUri == Uri.EMPTY.toString()) {
+        null
+    } else {
+        Uri.parse(albumArtUri)
+    }
+
+    AsyncImage(
+        model = uri,
+        contentDescription = "Album Art",
+        modifier = Modifier
+            .size(48.dp)
+            .clip(RoundedCornerShape(8.dp)),
+        contentScale = ContentScale.Crop,
+        placeholder = painterResource(R.drawable.icon_music),
+        error = painterResource(R.drawable.icon_music),
+        fallback = painterResource(R.drawable.icon_music)
+    )
+}
+
+@Composable
+fun SongInfo(title: String, artist: String) {
+    Column(modifier = Modifier.padding(start = 10.dp)) {
+        Text(
+            text = title,
+            modifier = Modifier
+                .width(170.dp)
+                .basicMarquee(),
+            style = MaterialTheme.typography.titleSmall,
+            fontSize = 16.sp,
+            color = Color.White
+        )
+        Text(
+            text = artist,
+            modifier = Modifier.width(170.dp)
+                .basicMarquee(),
+            color = Color.White.copy(alpha = 0.7f),
+            fontSize = 14.sp
+        )
+    }
+}
 
 @Composable
 fun CustomDropDownMenu(
@@ -419,5 +498,6 @@ fun CustomDropDownMenu(
         )
 
     }
+
 }
 

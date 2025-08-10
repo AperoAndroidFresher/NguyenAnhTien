@@ -1,6 +1,7 @@
 package com.example.learnjetpackcompose.di
 
 import android.content.Context
+import com.example.learnjetpackcompose.data.repository.PlayerRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,5 +17,10 @@ object AppModule {
     @Singleton
     fun provideContext(@ApplicationContext context: Context): Context {
         return context
+    }
+    @Provides
+    @Singleton
+    fun providePlayerRepository(): PlayerRepository {
+        return PlayerRepository()
     }
 }
