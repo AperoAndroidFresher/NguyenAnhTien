@@ -64,6 +64,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.learnjetpackcompose.Component.AlbumArt
 import com.example.learnjetpackcompose.Component.SongInfo
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
+import com.example.learnjetpackcompose.Screen.Player.PlayerViewModel
 
 
 @Composable
@@ -524,6 +525,7 @@ fun SongScreen(
     modifier: Modifier = Modifier
 ) {
     val playlistViewModel: PlaylistViewModel = hiltViewModel()
+    val playerViewModel: PlayerViewModel = hiltViewModel()
     val playlistState by playlistViewModel.state.collectAsState()
     val songs = playlistState.playlists.find { it.playlistId == playlistId }?.songs ?: emptyList()
     val appContext = LocalContext.current.applicationContext
@@ -621,16 +623,10 @@ fun SongScreen(
                     onRemoveSong = removeSong,
                     onPlaySong = { song ->
                         selectedSongId = song.songId
-                        val intent = Intent(appContext, MusicService::class.java).apply {
-                            action = MusicService.ACTION_PLAY
-                            putExtra(MusicService.EXTRA_SONG_ID, song.songId)
-                            putExtra(MusicService.EXTRA_SONG_TITLE, song.title)
-                            putExtra(MusicService.EXTRA_SONG_ARTIST, song.artist)
-                            putExtra(MusicService.EXTRA_SONG_DATA, song.data)
-                            putExtra(MusicService.EXTRA_SONG_DURATION, song.duration)
-                            putExtra(MusicService.EXTRA_SONG_ALBUM_ART, song.albumArt)
-                        }
-                        ContextCompat.startForegroundService(appContext, intent)
+                        // Set queue for Playlist context then start playback via ViewModel
+                        val startIndex = songs.indexOfFirst { it.songId == song.songId }.let { if (it >= 0) it else 0 }
+                        playerViewModel.setQueueFromPlaylist(playlistId.toString(), songs, startIndex)
+                        playerViewModel.playSong(song)
                     },
                     onSelectSong = { selectedSongId = it.songId }
                 )
@@ -644,16 +640,10 @@ fun SongScreen(
                     onReorder = reorder,
                     onPlaySong = { song ->
                         selectedSongId = song.songId
-                        val intent = Intent(appContext, MusicService::class.java).apply {
-                            action = MusicService.ACTION_PLAY
-                            putExtra(MusicService.EXTRA_SONG_ID, song.songId)
-                            putExtra(MusicService.EXTRA_SONG_TITLE, song.title)
-                            putExtra(MusicService.EXTRA_SONG_ARTIST, song.artist)
-                            putExtra(MusicService.EXTRA_SONG_DATA, song.data)
-                            putExtra(MusicService.EXTRA_SONG_DURATION, song.duration)
-                            putExtra(MusicService.EXTRA_SONG_ALBUM_ART, song.albumArt)
-                        }
-                        ContextCompat.startForegroundService(appContext, intent)
+                        // Set queue for Playlist context then start playback via ViewModel
+                        val startIndex = songs.indexOfFirst { it.songId == song.songId }.let { if (it >= 0) it else 0 }
+                        playerViewModel.setQueueFromPlaylist(playlistId.toString(), songs, startIndex)
+                        playerViewModel.playSong(song)
                     },
                     onSelectSong = { selectedSongId = it.songId }
                 )

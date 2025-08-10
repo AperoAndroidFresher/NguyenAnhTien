@@ -43,8 +43,6 @@ class MainActivity : ComponentActivity() {
                 )
             }
         } else {
-            // Đã có quyền => xử lý logic tiếp (ví dụ load danh sách nhạc)
-//            val viewModel = SongViewModel(application)
             setContent {
                 LearnJetPackComposeTheme {
                     Surface(modifier = Modifier.fillMaxSize()) {

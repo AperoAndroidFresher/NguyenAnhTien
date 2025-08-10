@@ -1,11 +1,6 @@
 package com.example.learnjetpackcompose.Screen.Playlist
 
-import android.annotation.SuppressLint
-import android.net.Uri
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,14 +16,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,19 +34,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.learnjetpackcompose.Component.AlbumArt
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
 import com.example.learnjetpackcompose.Component.SongInfo
 import com.example.learnjetpackcompose.Screen.Library.LibraryViewModel
+import com.example.learnjetpackcompose.Screen.Playlist.Component.DialogCreatePlaylist
+import com.example.learnjetpackcompose.Screen.Playlist.Component.DialogRenamePlaylist
 
 
 @Composable
@@ -157,6 +146,7 @@ fun PlaylistScreen(
     val state by viewModel.state.collectAsState()
     val listState = rememberLazyListState()
     var showCreateDialog by remember { mutableStateOf(false) }
+    var showRenameDialog by remember { mutableStateOf<Playlist?>(null) }
 
 
     Column(
@@ -203,7 +193,7 @@ fun PlaylistScreen(
                     PlaylistCardList(
                         playlist = playlist,
                         onRemovePlaylist = { viewModel.processIntent(PlaylistIntent.RemovePlaylist(it)) },
-                        onRenamePlaylist = { viewModel.processIntent(PlaylistIntent.RenamePlaylist(it)) },
+                        onRenamePlaylist = { showRenameDialog = it },
                         onPlaylistClick = { onNavigateToSongs(it) }
                     )
                 }
@@ -219,6 +209,23 @@ fun PlaylistScreen(
 
                 viewModel.processIntent(PlaylistIntent.AddPlaylist(playlistTitle))
                 showCreateDialog = false
+            }
+        )
+    }
+
+    // Dialog đổi tên playlist
+    val renameTarget = showRenameDialog
+    if (renameTarget != null) {
+        DialogRenamePlaylist(
+            playlist = renameTarget,
+            onDismissRequest = { showRenameDialog = null },
+            onConfirmRename = { newTitle ->
+                viewModel.processIntent(
+                    PlaylistIntent.RenamePlaylist(
+                        renameTarget.copy(title = newTitle)
+                    )
+                )
+                showRenameDialog = null
             }
         )
     }

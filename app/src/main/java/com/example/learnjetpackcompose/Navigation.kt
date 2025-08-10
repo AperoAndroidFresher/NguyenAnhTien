@@ -105,10 +105,6 @@ fun NavigationApp() {
                     HomeScreen(
                         modifier = Modifier.padding(innerPadding),
                         onMyProfileClick = { backStack.add(ProfileNavKey) },
-                        onPlaylistClick = { backStack.add(PlaylistNavKey) },
-                        onSongClick = { playlistId, playlistTitle ->
-                            backStack.add(SongNavKey(playlistId, playlistTitle))
-                        }
                     )
                 }
             }
@@ -200,8 +196,6 @@ fun NavigationApp() {
                     albumArtUrl = key.albumArt,
                     onBackClick = { backStack.removeLastOrNull() },
                     onExitClick = {
-                        // Return to home screen
-//                        backStack.clear()
                         backStack.add(HomeNavKey)
                     },
                     viewModel = playerViewModel
@@ -231,7 +225,6 @@ private fun AppShell(
     Scaffold(
         bottomBar = {
             Column {
-                // PlayerBar được đặt phía trên bottomBar
                 if (currentSong != null) {
                     Log.d("PlayerBar", "Displaying: '${currentSong!!.title}', Duration: '${currentSong!!.duration}'")
                     PlayerBar(
@@ -258,7 +251,6 @@ private fun AppShell(
                     )
                 }
 
-                // NavigationBar ở phía dưới
                 NavigationBar {
                     navItemsList.forEachIndexed { index, navItem ->
                         NavigationBarItem(

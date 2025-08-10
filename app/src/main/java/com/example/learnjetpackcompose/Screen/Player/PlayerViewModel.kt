@@ -1,47 +1,41 @@
 package com.example.learnjetpackcompose.Screen.Player
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
-import com.example.learnjetpackcompose.data.repository.PlayerRepository
+import com.example.learnjetpackcompose.RoomDB.Entity.Song
+import com.example.learnjetpackcompose.domain.repository.PlayerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    private val playerRepository: PlayerRepository,
-    @ApplicationContext private val context: Context
+    private val playerRepository: PlayerRepository
 ) : ViewModel() {
 
     val currentSong = playerRepository.currentSong
     val isPlaying: StateFlow<Boolean> = playerRepository.isPlaying
+    val isShuffle: StateFlow<Boolean> = playerRepository.isShuffle
+    val repeatMode: StateFlow<RepeatMode> = playerRepository.repeatMode
 
-    /**
-     * Toggle play/pause state of the current song
-     */
-    fun togglePlayPause() {
-        playerRepository.togglePlayPause(context)
-    }
+    fun togglePlayPause() = playerRepository.togglePlayPause()
 
-    /**
-     * Stop playback and clear player state
-     */
-    fun stopPlayback() {
-        playerRepository.stopPlayback(context)
-    }
+    fun stopPlayback() = playerRepository.stopPlayback()
 
-    /**
-     * Skip to next song
-     */
-    fun skipToNext() {
-        playerRepository.skipToNext(context)
-    }
+    fun skipToNext() = playerRepository.skipToNext()
 
-    /**
-     * Skip to previous song
-     */
-    fun skipToPrevious() {
-        playerRepository.skipToPrevious(context)
-    }
+    fun skipToPrevious() = playerRepository.skipToPrevious()
+
+    fun setQueueFromLocal(songs: List<Song>, startIndex: Int) = playerRepository.setQueueFromLocal(songs, startIndex)
+
+    fun setQueueFromRemote(songs: List<Song>, startIndex: Int, queryId: String? = null) =
+        playerRepository.setQueueFromRemote(songs, startIndex, queryId)
+
+    fun setQueueFromPlaylist(playlistId: String, songs: List<Song>, startIndex: Int) =
+        playerRepository.setQueueFromPlaylist(playlistId, songs, startIndex)
+
+    fun toggleShuffle() = playerRepository.toggleShuffle()
+
+    fun cycleRepeatMode() = playerRepository.cycleRepeatMode()
+
+    fun playSong(song: Song) = playerRepository.playSong(song)
 }

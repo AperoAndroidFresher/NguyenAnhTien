@@ -1,13 +1,11 @@
 package com.example.learnjetpackcompose.Screen.Library
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
-import com.example.learnjetpackcompose.data.repository.PlayerRepository
-
-import com.example.learnjetpackcompose.data.repository.SongRepository
+import com.example.learnjetpackcompose.data.repository.SongRepositoryImpl
+import com.example.learnjetpackcompose.domain.repository.PlayerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -22,9 +20,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    private val songRepository: SongRepository,
-    private val playerRepository: PlayerRepository,
-    private val appContext: Context
+    private val songRepository: SongRepositoryImpl,
+    private val playerRepository: PlayerRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LibraryState())
@@ -194,8 +191,19 @@ class LibraryViewModel @Inject constructor(
                     currentPlayingSong = song
                 )
             }
-            // Phát nhạc trực tiếp qua PlayerRepository để đảm bảo đồng bộ khi ở tab Remote
-            playerRepository.playSong(appContext, song)
+            // Thiết lập queue theo nguồn hiện tại trước khi phát
+            val currentSource = _state.value.selectedSource
+            val visibleList = _state.value.filteredSongs
+            val queueSongs = if (visibleList.isNotEmpty()) visibleList else listOf(song)
+            val startIndex =
+                queueSongs.indexOfFirst { it.songId == song.songId }.let { if (it >= 0) it else 0 }
+
+            when (currentSource) {
+                LibrarySource.LOCAL -> playerRepository.setQueueFromLocal(queueSongs, startIndex)
+                LibrarySource.REMOTE -> playerRepository.setQueueFromRemote(queueSongs, startIndex, queryId = null)
+            }
+
+            playerRepository.playSong(song)
         }
     }
 
@@ -213,7 +221,13 @@ class LibraryViewModel @Inject constructor(
 
     private fun stopMusic() {
         viewModelScope.launch {
-            _state.update { it.copy(isPlaying = false, showPlayerBar = false, currentPlayingSong = null) }
+            _state.update {
+                it.copy(
+                    isPlaying = false,
+                    showPlayerBar = false,
+                    currentPlayingSong = null
+                )
+            }
         }
     }
 

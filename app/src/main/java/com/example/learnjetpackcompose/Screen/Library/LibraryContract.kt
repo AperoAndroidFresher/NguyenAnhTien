@@ -35,7 +35,6 @@ sealed interface LibraryIntent {
 sealed interface LibraryEffect {
     data class ShowMessage(val message: String) : LibraryEffect
     data class ShowDialogChoosePlaylist(val song: Song, val playlists: List<Playlist>) : LibraryEffect
-    data class StartMusicService(val song: Song) : LibraryEffect
     data object NavigateToPlayer : LibraryEffect
 }
 

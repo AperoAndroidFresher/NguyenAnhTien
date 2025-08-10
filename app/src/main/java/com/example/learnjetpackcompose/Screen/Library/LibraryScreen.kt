@@ -1,8 +1,6 @@
 package com.example.learnjetpackcompose.Screen.Library
 
 import android.net.Uri
-import android.content.Intent
-import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
@@ -11,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,15 +19,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,11 +40,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
@@ -64,15 +55,10 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
-import com.example.learnjetpackcompose.Screen.Playlist.ChoosePlaylistDialog
+import com.example.learnjetpackcompose.Screen.Playlist.Component.ChoosePlaylistDialog
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
-import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
-import com.example.learnjetpackcompose.data.service.MusicService
 
-import kotlinx.coroutines.flow.collectLatest
-
-// onNavigateToPlaylist:() -> Unit,
 @Composable
 fun LibraryScreen(
     libraryViewModel: LibraryViewModel,
@@ -91,38 +77,25 @@ fun LibraryScreen(
         libraryViewModel.updatePlaylists(playlistState.playlists)
     }
 
-    // Initialize songs when screen loads
     LaunchedEffect(songs) {
         libraryViewModel.processIntent(LibraryIntent.LoadSongs(songs))
+    }
+    LaunchedEffect(state.selectedSource) {
+        when (state.selectedSource) {
+            LibrarySource.LOCAL -> Unit
+            LibrarySource.REMOTE -> libraryViewModel.processIntent(LibraryIntent.LoadRemoteSongs)
+        }
     }
 
     LaunchedEffect(Unit) {
         libraryViewModel.effect.collect { effect ->
             when (effect) {
-                is LibraryEffect.ShowMessage -> {
-                    snackbarHostState.showSnackbar(effect.message)
-                }
-
-                is LibraryEffect.ShowDialogChoosePlaylist -> {
-                }
-
+                is LibraryEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.message)
+                is LibraryEffect.ShowDialogChoosePlaylist -> {}
                 LibraryEffect.NavigateToPlayer -> Unit
-                is LibraryEffect.StartMusicService -> {
-                    val intent =                     Intent(context, MusicService::class.java).apply {
-                        action = MusicService.ACTION_PLAY
-                        putExtra(MusicService.EXTRA_SONG_ID, effect.song.songId)
-                        putExtra(MusicService.EXTRA_SONG_TITLE, effect.song.title)
-                        putExtra(MusicService.EXTRA_SONG_ARTIST, effect.song.artist)
-                        putExtra(MusicService.EXTRA_SONG_DATA, effect.song.data)
-                        putExtra(MusicService.EXTRA_SONG_DURATION, effect.song.duration)
-                        putExtra(MusicService.EXTRA_SONG_ALBUM_ART, effect.song.albumArt)
-                    }
-                    ContextCompat.startForegroundService(context, intent)
-                }
             }
         }
     }
-
 
     Box(modifier = modifier) {
         Column(
@@ -132,12 +105,10 @@ fun LibraryScreen(
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header
             Header()
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Source Selection Buttons
             Row(
                 modifier = Modifier
                     .padding(12.dp)

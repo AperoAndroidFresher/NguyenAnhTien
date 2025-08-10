@@ -58,6 +58,8 @@ fun PlayerScreen(
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val isPlaying = viewModel.isPlaying.collectAsState().value
+    val isShuffle = viewModel.isShuffle.collectAsState().value
+    val repeatMode = viewModel.repeatMode.collectAsState().value
 
     // Play/Pause function
     val handlePlayClick = {
@@ -91,11 +93,19 @@ fun PlayerScreen(
         Spacer(modifier = modifier.height(10.dp))
         Content(songTitle, songArtist, albumArtUrl)
         Spacer(modifier = modifier.height(10.dp))
-        ButtonControls(onShuffleClick,
+        val handleShuffleClick = {
+            viewModel.toggleShuffle()
+            onShuffleClick()
+        }
+        val handleRepeatClick = {
+            viewModel.cycleRepeatMode()
+            onRepeatClick()
+        }
+        ButtonControls(handleShuffleClick,
             handlePreviousClick,
             handlePlayClick,
             handleNextClick,
-            onRepeatClick,
+            handleRepeatClick,
             isPlaying)
     }
 }

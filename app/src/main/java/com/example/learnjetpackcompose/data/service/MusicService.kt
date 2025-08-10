@@ -49,7 +49,7 @@ class MusicService : Service() {
     private var currentTitle: String = ""
     private var currentArtist: String = ""
     private var currentData: String = ""
-    private var currentAlbumArt: String = ""
+    private var currentAlbumArt: String? = null
 
     override fun onCreate(){
         super.onCreate()
@@ -80,16 +80,31 @@ class MusicService : Service() {
             }
 
             ACTION_NEXT -> {
-                // Queue management not implemented
+                val next = PlaybackManager.nextManual()
+                if (next != null) {
+                    startPlayback(next.title, next.artist, next.data, next.duration, next.albumArt)
+                } else {
+                    // No next based on repeat/queue state -> stop
+                    updateNotification(isPlaying = false)
+                    PlaybackManager.setIsPlaying(false)
+                    stopSelf()
+                }
             }
             ACTION_PREVIOUS -> {
-                // Queue management not implemented
+                val prev = PlaybackManager.previousManual()
+                if (prev != null) {
+                    startPlayback(prev.title, prev.artist, prev.data, prev.duration, prev.albumArt)
+                } else {
+                    updateNotification(isPlaying = false)
+                    PlaybackManager.setIsPlaying(false)
+                    stopSelf()
+                }
             }
         }
         return START_NOT_STICKY
     }
 
-    private fun startPlayback(title: String, artist: String, data: String, duration: String, albumArt: String) {
+    private fun startPlayback(title: String, artist: String, data: String, duration: String, albumArt: String?) {
         currentTitle = title
         currentArtist = artist
         currentData = data
@@ -126,9 +141,15 @@ class MusicService : Service() {
                 PlaybackManager.setIsPlaying(true)
             }
             setOnCompletionListener {
-                updateNotification(isPlaying = false)
-                PlaybackManager.setIsPlaying(false)
-                stopSelf()
+                val next = PlaybackManager.onSongCompleted()
+                if (next != null) {
+                    // Continue with the next decided by manager
+                    startPlayback(next.title, next.artist, next.data, next.duration, next.albumArt)
+                } else {
+                    updateNotification(isPlaying = false)
+                    PlaybackManager.setIsPlaying(false)
+                    stopSelf()
+                }
             }
             setOnErrorListener { _, _, _ ->
                 updateNotification(isPlaying = false)
@@ -252,7 +273,7 @@ class MusicService : Service() {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setStyle(
                 androidx.media.app.NotificationCompat.MediaStyle()
-                .setShowActionsInCompactView(0, 1, 2, 3))
+                    .setShowActionsInCompactView(0, 1, 2, 3))
         return builder.build()
     }
 

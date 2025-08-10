@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
-import com.example.learnjetpackcompose.data.repository.IPlaylistRepository
+import com.example.learnjetpackcompose.domain.repository.PlaylistRepository
 import com.example.learnjetpackcompose.data.model.UserManager
 
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,10 +19,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlaylistViewModel @Inject constructor(
-    private val playlistRepository: IPlaylistRepository
+    private val playlistRepository: PlaylistRepository
 ) : ViewModel() {
 
-    // Get the current user ID from CurrentUserManager
     private val currentUserId: Int get() = UserManager.getCurrentUserId()
 
     private val _state = MutableStateFlow(PlaylistState())
@@ -107,16 +106,7 @@ class PlaylistViewModel @Inject constructor(
     private fun renamePlaylist(playlist: Playlist) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val currentPlaylists = _state.value.playlists
-                val updatedPlaylists = currentPlaylists.map {
-                    if (it.playlistId == playlist.playlistId) {
-                        it.copy(title = playlist.title)
-                    } else {
-                        it
-                    }
-                }
-
-                _state.update { it.copy(playlists = updatedPlaylists) }
+                playlistRepository.addPlaylist(playlist)
                 loadPlaylists()
                 _effect.send(PlaylistEffect.ShowMessage("Playlist renamed to '${playlist.title}'"))
             } catch (e: Exception) {
