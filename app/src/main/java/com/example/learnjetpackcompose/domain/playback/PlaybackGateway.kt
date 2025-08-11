@@ -1,4 +1,4 @@
-package com.example.learnjetpackcompose.domain.gateway
+package com.example.learnjetpackcompose.domain.playback
 
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Player.RepeatMode

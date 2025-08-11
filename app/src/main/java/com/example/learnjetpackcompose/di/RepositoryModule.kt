@@ -4,8 +4,8 @@ import com.example.learnjetpackcompose.data.repository.PlaylistRepositoryImpl
 import com.example.learnjetpackcompose.data.repository.PlayerRepositoryImpl
 import com.example.learnjetpackcompose.data.repository.SongRepositoryImpl
 import com.example.learnjetpackcompose.data.repository.UserRepositoryImpl
-import com.example.learnjetpackcompose.domain.gateway.PlaybackGateway
-import com.example.learnjetpackcompose.data.gateway.PlaybackGatewayImpl
+import com.example.learnjetpackcompose.domain.playback.PlaybackGateway
+import com.example.learnjetpackcompose.data.playback.PlaybackGatewayImpl
 import com.example.learnjetpackcompose.domain.repository.PlayerRepository
 import com.example.learnjetpackcompose.domain.repository.PlaylistRepository
 import com.example.learnjetpackcompose.domain.repository.SongRepository

@@ -6,6 +6,7 @@ import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.data.repository.SongRepositoryImpl
 import com.example.learnjetpackcompose.domain.repository.PlayerRepository
+import com.example.learnjetpackcompose.domain.playback.PlaybackCoordinator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -21,7 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     private val songRepository: SongRepositoryImpl,
-    private val playerRepository: PlayerRepository
+    private val playerRepository: PlayerRepository,
+    private val playbackCoordinator: PlaybackCoordinator
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LibraryState())
@@ -29,6 +31,19 @@ class LibraryViewModel @Inject constructor(
 
     private val _effect = Channel<LibraryEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
+
+    init {
+        viewModelScope.launch {
+            playbackCoordinator.previewCurrentSong.collect { song ->
+                _state.update { it.copy(currentPlayingSong = song) }
+            }
+        }
+        viewModelScope.launch {
+            playbackCoordinator.previewIsPlaying.collect { playing ->
+                _state.update { it.copy(isPlaying = playing) }
+            }
+        }
+    }
 
     fun updatePlaylists(playlists: List<Playlist>) {
         _state.update { it.copy(playlists = playlists) }
@@ -192,25 +207,14 @@ class LibraryViewModel @Inject constructor(
 
     private fun playSong(song: Song) {
         viewModelScope.launch {
+            playbackCoordinator.togglePreview(song)
             _state.update {
                 it.copy(
-                    isPlaying = true,
-                    showPlayerBar = true,
+                    isPlaying = playbackCoordinator.previewIsPlaying.value,
+                    showPlayerBar = false, // preview mode: no global player bar
                     currentPlayingSong = song
                 )
             }
-            val currentSource = _state.value.selectedSource
-            val visibleList = _state.value.filteredSongs
-            val queueSongs = if (visibleList.isNotEmpty()) visibleList else listOf(song)
-            val startIndex =
-                queueSongs.indexOfFirst { it.songId == song.songId }.let { if (it >= 0) it else 0 }
-
-            when (currentSource) {
-                LibrarySource.LOCAL -> playerRepository.setQueueFromLocal(queueSongs, startIndex)
-                LibrarySource.REMOTE -> playerRepository.setQueueFromRemote(queueSongs, startIndex, queryId = null)
-            }
-
-            playerRepository.playSong(song)
         }
     }
 

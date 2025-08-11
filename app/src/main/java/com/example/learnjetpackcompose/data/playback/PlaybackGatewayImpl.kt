@@ -1,4 +1,4 @@
-package com.example.learnjetpackcompose.data.gateway
+package com.example.learnjetpackcompose.data.playback
 
 import android.content.Context
 import android.content.Intent
@@ -6,7 +6,7 @@ import androidx.core.content.ContextCompat
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.data.model.PlaybackManager
 import com.example.learnjetpackcompose.data.service.MusicService
-import com.example.learnjetpackcompose.domain.gateway.PlaybackGateway
+import com.example.learnjetpackcompose.domain.playback.PlaybackGateway
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -33,6 +33,7 @@ class PlaybackGatewayImpl @Inject constructor(
     override fun play(song: Song) {
         val intent = Intent(appContext, MusicService::class.java).apply {
             action = MusicService.ACTION_PLAY
+            putExtra(MusicService.EXTRA_SONG_ID, song.songId)
             putExtra(MusicService.EXTRA_SONG_TITLE, song.title)
             putExtra(MusicService.EXTRA_SONG_ARTIST, song.artist)
             putExtra(MusicService.EXTRA_SONG_DATA, song.data)
@@ -58,7 +59,8 @@ class PlaybackGatewayImpl @Inject constructor(
 
     override fun stop() {
         val intent = Intent(appContext, MusicService::class.java).apply { action = MusicService.ACTION_STOP }
-        ContextCompat.startForegroundService(appContext, intent)
+        // Use normal startService for STOP to avoid foreground requirement crash
+        appContext.startService(intent)
         PlaybackManager.setNowPlaying(null)
         PlaybackManager.setIsPlaying(false)
     }

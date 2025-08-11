@@ -3,7 +3,7 @@ package com.example.learnjetpackcompose.data.repository
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.data.model.PlaybackManager
 import com.example.learnjetpackcompose.Screen.Player.RepeatMode
-import com.example.learnjetpackcompose.domain.gateway.PlaybackGateway
+import com.example.learnjetpackcompose.domain.playback.PlaybackGateway
 import com.example.learnjetpackcompose.domain.repository.PlayerRepository
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject

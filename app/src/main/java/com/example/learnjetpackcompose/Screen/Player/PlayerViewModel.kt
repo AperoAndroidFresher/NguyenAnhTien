@@ -3,13 +3,15 @@ package com.example.learnjetpackcompose.Screen.Player
 import androidx.lifecycle.ViewModel
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.domain.repository.PlayerRepository
+import com.example.learnjetpackcompose.domain.playback.PlaybackCoordinator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    private val playerRepository: PlayerRepository
+    private val playerRepository: PlayerRepository,
+    private val playbackCoordinator: PlaybackCoordinator
 ) : ViewModel() {
 
     val currentSong = playerRepository.currentSong
@@ -25,11 +27,6 @@ class PlayerViewModel @Inject constructor(
 
     fun skipToPrevious() = playerRepository.skipToPrevious()
 
-    fun setQueueFromLocal(songs: List<Song>, startIndex: Int) = playerRepository.setQueueFromLocal(songs, startIndex)
-
-    fun setQueueFromRemote(songs: List<Song>, startIndex: Int, queryId: String? = null) =
-        playerRepository.setQueueFromRemote(songs, startIndex, queryId)
-
     fun setQueueFromPlaylist(playlistId: String, songs: List<Song>, startIndex: Int) =
         playerRepository.setQueueFromPlaylist(playlistId, songs, startIndex)
 
@@ -38,4 +35,11 @@ class PlayerViewModel @Inject constructor(
     fun cycleRepeatMode() = playerRepository.cycleRepeatMode()
 
     fun playSong(song: Song) = playerRepository.playSong(song)
+
+    fun preparePlaylistPlayback(playlistId: String, songs: List<Song>, startIndex: Int) {
+        playbackCoordinator.onFullPlaybackStarting()
+        playerRepository.setQueueFromPlaylist(playlistId, songs, startIndex)
+    }
+
+    fun stopPreview() { playbackCoordinator.stopPreview() }
 }

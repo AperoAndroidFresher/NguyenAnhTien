@@ -52,6 +52,7 @@ fun NavigationApp() {
 
     val songViewModel = SongViewModel(context.applicationContext as Application)
     val songs = songViewModel.songs
+    val playerVM: PlayerViewModel = hiltViewModel()
 
     NavDisplay(
         backStack = backStack,
@@ -105,7 +106,7 @@ fun NavigationApp() {
                 ) { innerPadding ->
                     HomeScreen(
                         modifier = Modifier.padding(innerPadding),
-                        onMyProfileClick = { backStack.add(ProfileNavKey) },
+                        onMyProfileClick = { playerVM.stopPreview();backStack.add(ProfileNavKey) },
                     )
                 }
             }

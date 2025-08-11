@@ -19,16 +19,12 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -218,12 +213,6 @@ fun SongLinear(
     onShareSong: (Song) -> Unit,
     modifier: Modifier
 ){
-
-    val listState = rememberLazyListState()
-//    val reorderState = rememberReorderableLazyListState(
-//        listState = listState,
-//        onMove = { from, to -> onReorder(from.index, to.index) }
-//    )
     Column(modifier = modifier
         .background(color = Color.Black)
     ) {
@@ -270,30 +259,6 @@ fun SongLinear(
                 )
             }
         }
-
-//        LazyColumn(
-//            state = listState,
-//            modifier = Modifier
-//                .fillMaxSize()
-//        ) {
-//            items(
-//                items = songs,
-//                key = { it.name }
-//            ) { song ->
-//                ReorderableItem(reorderState, key = song.name) { isDragging ->
-//                    val elevation = if (isDragging) 8.dp else 4.dp
-//                    SongCardList(
-//                        song = song,
-//                        onRemoveSong = onRemoveSong,
-//                        modifier = Modifier
-//                            .detectReorderAfterLongPress(reorderState)
-//                            .graphicsLayer {
-//                                shadowElevation = elevation.toPx()
-//                            }
-//                    )
-//                }
-//            }
-//        }
     }
 }
 
@@ -384,7 +349,6 @@ fun SongScreen(
     }
 
     val reorder: (Int, Int) -> Unit = { from, to ->
-        // Sẽ implement sau nếu cần
         println("Reorder from $from to $to")
     }
 
@@ -423,10 +387,14 @@ fun SongScreen(
                     onRemoveSong = removeSong,
                     onPlaySong = { song ->
                         selectedSongId = song.songId
-                        // Set queue for Playlist context then start playback via ViewModel
                         val startIndex = songs.indexOfFirst { it.songId == song.songId }.let { if (it >= 0) it else 0 }
-                        playerViewModel.setQueueFromPlaylist(playlistId.toString(), songs, startIndex)
-                        playerViewModel.playSong(song)
+                        val current = playerViewModel.currentSong.value
+                        if (current?.songId == song.songId) {
+                            playerViewModel.togglePlayPause()
+                        } else {
+                            playerViewModel.preparePlaylistPlayback(playlistId.toString(), songs, startIndex)
+                            playerViewModel.playSong(song)
+                        }
                     },
                     onSelectSong = { selectedSongId = it.songId },
                     onShareSong = { song -> songViewModel.processIntent(SongIntent.ShareSong(song)) }
@@ -442,10 +410,14 @@ fun SongScreen(
                     onReorder = reorder,
                     onPlaySong = { song ->
                         selectedSongId = song.songId
-                        // Set queue for Playlist context then start playback via ViewModel
                         val startIndex = songs.indexOfFirst { it.songId == song.songId }.let { if (it >= 0) it else 0 }
-                        playerViewModel.setQueueFromPlaylist(playlistId.toString(), songs, startIndex)
-                        playerViewModel.playSong(song)
+                        val current = playerViewModel.currentSong.value
+                        if (current?.songId == song.songId) {
+                            playerViewModel.togglePlayPause()
+                        } else {
+                            playerViewModel.preparePlaylistPlayback(playlistId.toString(), songs, startIndex)
+                            playerViewModel.playSong(song)
+                        }
                     },
                     onSelectSong = { selectedSongId = it.songId },
                     onShareSong = { song -> songViewModel.processIntent(SongIntent.ShareSong(song)) }
