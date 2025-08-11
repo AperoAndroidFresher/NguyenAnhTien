@@ -150,7 +150,9 @@ fun PlaylistScreen(
 
 
     Column(
-        modifier = modifier.background(color = Color.Black)
+        modifier = modifier
+            .fillMaxSize()
+            .background(color = Color.Black)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -260,7 +262,6 @@ fun CustomDropDownMenu(
             text = "Rename",
             onClick = onRenamePlaylistClick
         )
-
     }
 }
 

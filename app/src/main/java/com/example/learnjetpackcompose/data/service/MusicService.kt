@@ -110,8 +110,6 @@ class MusicService : Service() {
         currentData = data
         currentAlbumArt = albumArt
 
-
-        Log.d("MusicService", "Setting song with duration: '$duration' for '$title'")
         PlaybackManager.setNowPlaying(Song(0, title, artist, albumArt, duration, data))
 
         mediaPlayer?.release()
@@ -268,7 +266,6 @@ class MusicService : Service() {
                 "",
                 stopPendingIntent
             )
-            // MediaStyle for better media controls
             .setCategory(NotificationCompat.CATEGORY_TRANSPORT)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setStyle(

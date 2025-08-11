@@ -73,31 +73,31 @@ fun HomeScreen(
 
         item { SectionTitle(text = "Rankings") }
 
-        // Top Albums
-        item { SectionHeader(title = "Top Albums", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllAlbums) }) }
-        item { AlbumsGrid(albums = state.topAlbums) }
-
-        // Top Tracks
-        item { SectionHeader(title = "Top Tracks", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllTracks) }) }
-        item {
-            LazyRow(contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(state.topTracks) { song ->
-                    TrackCard(title = song.title, artist = song.artist, cover = song.albumArt)
-                }
-            }
-        }
-
-        // Top Artist
-        item { SectionHeader(title = "Top Artist", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllArtists) }) }
-        item {
-            LazyRow(contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(state.topArtists) { artist ->
-                    ArtistCard(name = artist.name, avatar = artist.avatarUri)
-                }
-            }
-        }
-
-        item { Spacer(modifier = Modifier.height(24.dp)) }
+//        // Top Albums
+//        item { SectionHeader(title = "Top Albums", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllAlbums) }) }
+//        item { AlbumsGrid(albums = state.topAlbums) }
+//
+//        // Top Tracks
+//        item { SectionHeader(title = "Top Tracks", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllTracks) }) }
+//        item {
+//            LazyRow(contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+//                items(state.topTracks) { song ->
+//                    TrackCard(title = song.title, artist = song.artist, cover = song.albumArt)
+//                }
+//            }
+//        }
+//
+//        // Top Artist
+//        item { SectionHeader(title = "Top Artist", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllArtists) }) }
+//        item {
+//            LazyRow(contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+//                items(state.topArtists) { artist ->
+//                    ArtistCard(name = artist.name, avatar = artist.avatarUri)
+//                }
+//            }
+//        }
+//
+//        item { Spacer(modifier = Modifier.height(24.dp)) }
     }
 }
 

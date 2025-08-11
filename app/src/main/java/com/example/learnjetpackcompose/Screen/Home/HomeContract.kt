@@ -2,19 +2,15 @@ package com.example.learnjetpackcompose.Screen.Home
 
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 
-/**
- * Contract for Home screen using a simple MVI style similar to other screens.
- */
+
 data class HomeState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val displayName: String = "",
     val userAvatar: String? = null,
-    // visible (may be truncated) lists for UI
     val topAlbums: List<HomeAlbum> = emptyList(),
     val topTracks: List<Song> = emptyList(),
     val topArtists: List<HomeArtist> = emptyList(),
-    // full lists for "See all"
     val allAlbums: List<HomeAlbum> = emptyList(),
     val allTracks: List<Song> = emptyList(),
     val allArtists: List<HomeArtist> = emptyList()

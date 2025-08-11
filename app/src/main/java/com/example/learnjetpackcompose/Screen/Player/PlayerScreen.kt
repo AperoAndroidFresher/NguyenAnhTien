@@ -39,6 +39,7 @@ import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.data.model.PlaybackManager
 import com.example.learnjetpackcompose.data.service.MusicService
 import androidx.compose.runtime.collectAsState
+import com.example.learnjetpackcompose.Component.IconButtonCustom
 
 
 @Composable
@@ -61,17 +62,12 @@ fun PlayerScreen(
     val isShuffle = viewModel.isShuffle.collectAsState().value
     val repeatMode = viewModel.repeatMode.collectAsState().value
 
-    // Play/Pause function
     val handlePlayClick = {
         viewModel.togglePlayPause()
     }
 
-    // Exit function - return to home and stop playback
     val handleExitClick = {
-        // Stop music playback
         viewModel.stopPlayback()
-
-        // Navigate back to home screen
         onExitClick()
     }
 
@@ -238,12 +234,14 @@ fun ButtonControl(
     painter: Painter
 ){
     IconButton(
-        onClick = onClick
+        onClick = onClick,
+        modifier = Modifier.size(48.dp)
     ) {
         Icon(
             painter = painter,
             contentDescription = title,
-            tint = Color.White
+            tint = Color.White,
+            modifier = Modifier.size(24.dp)
         )
     }
 }
@@ -278,42 +276,45 @@ fun PlayerBar(
                 )
             }
         }
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .background(Color.DarkGray.copy(0.5f))
-                .clickable { onPlayerBarClick() }
-                .padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ){
-            IconButton(
-                onClick = onPlayPauseClick,
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    painter = painterResource(if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play),
-                    contentDescription = if (isPlaying) "Pause" else "Play",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            Text(
-                text = title,
-                fontSize = 16.sp,
-                style = MaterialTheme.typography.titleSmall,
-                color = Color.White,
-                modifier = Modifier.weight(2f).basicMarquee()
-            )
-
-            Text(
-                text = duration,
-                fontSize = 16.sp,
-                color = Color.White,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
+        PlayBarInfo(isPlaying, title, duration, onPlayPauseClick, onPlayerBarClick, modifier)
     }
+}
 
+@Composable
+fun PlayBarInfo(
+    isPlaying: Boolean,
+    title: String,
+    duration: String,
+    onPlayPauseClick: () -> Unit,
+    onPlayerBarClick: () -> Unit,
+    modifier: Modifier = Modifier
+){
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color(0xFF292929))
+            .clickable { onPlayerBarClick() }
+            .padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ){
+        IconButtonCustom(onPlayPauseClick,
+            if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play,
+            if (isPlaying) "Pause" else "Play",
+            Modifier.size(36.dp))
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            style = MaterialTheme.typography.titleSmall,
+            color = Color.White,
+            modifier = Modifier.weight(2f).basicMarquee()
+        )
+
+        Text(
+            text = duration,
+            fontSize = 16.sp,
+            color = Color.White,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
 }
