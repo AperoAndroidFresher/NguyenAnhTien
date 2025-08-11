@@ -1,4 +1,4 @@
-package com.example.learnjetpackcompose.Screen.Playlist
+package com.example.learnjetpackcompose.Screen.Playlist.Component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,18 +21,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 
 @Composable
-fun DialogCreatePlaylist(
+fun DialogRenamePlaylist(
+    playlist: Playlist,
     onDismissRequest: () -> Unit,
-    onCreatePlaylist: (String) -> Unit
+    onConfirmRename: (String) -> Unit
 ) {
-    var playlistTitle by remember { mutableStateOf("") }
+    var title by remember(playlist.playlistId) { mutableStateOf(playlist.title) }
 
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -47,7 +48,7 @@ fun DialogCreatePlaylist(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "New Playlist",
+                    text = "Rename Playlist",
                     color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
@@ -55,9 +56,9 @@ fun DialogCreatePlaylist(
                 )
 
                 OutlinedTextField(
-                    value = playlistTitle,
-                    onValueChange = { playlistTitle = it },
-                    label = { Text("Name playlist", color = Color.White.copy(alpha = 0.7f)) },
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("New name", color = Color.White.copy(alpha = 0.7f)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
@@ -87,20 +88,17 @@ fun DialogCreatePlaylist(
                         )
                     }
 
+                    val enabled = title.isNotBlank() && title != playlist.title
                     TextButton(
-                        onClick = {
-                            if (playlistTitle.isNotBlank()) {
-                                onCreatePlaylist(playlistTitle.trim())
-                            }
-                        },
-                        enabled = playlistTitle.isNotBlank(),
+                        onClick = { if (enabled) onConfirmRename(title.trim()) },
+                        enabled = enabled,
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp)
                     ) {
                         Text(
-                            "Create",
-                            color = if (playlistTitle.isNotBlank()) Color(0xFF00BCD4) else Color.Gray,
+                            "Rename",
+                            color = if (enabled) Color(0xFF00BCD4) else Color.Gray,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -109,70 +107,4 @@ fun DialogCreatePlaylist(
             }
         }
     }
-}
-
-@Composable
-fun PlaylistDialogButtons(
-    playlistTitle: String,
-    onDismissRequest: () -> Unit,
-    onCreatePlaylist: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val isCreateEnabled = playlistTitle.isNotBlank()
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Nút Cancel
-        DialogButton(
-            text = "Cancel",
-            onClick = onDismissRequest,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-        )
-
-        // Nút Create
-        DialogButton(
-            text = "Create",
-            onClick = { if (isCreateEnabled) onCreatePlaylist(playlistTitle.trim()) },
-            color = if (isCreateEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            enabled = isCreateEnabled
-        )
-    }
-}
-
-@Composable
-private fun DialogButton(
-    text: String,
-    onClick: () -> Unit,
-    color: Color,
-    enabled: Boolean = true,
-    modifier: Modifier = Modifier
-) {
-    TextButton(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier
-            .height(48.dp)
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            ),
-            color = color
-        )
-    }
-}
-@Preview(showBackground = true)
-@Composable
-private fun PreviewDialogCreatePlaylist() {
-    DialogCreatePlaylist(
-        onDismissRequest = {},
-        onCreatePlaylist = {}
-    )
 }

@@ -29,7 +29,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.res.painterResource
-import com.example.learnjetpackcompose.data.model.NavBottomItems
 import com.example.learnjetpackcompose.Screen.Playlist.Song.SongScreen
 import com.example.learnjetpackcompose.Screen.SignUp.SignUpScreen
 import com.example.learnjetpackcompose.Screen.Profile.MainProfileScreen
@@ -41,6 +40,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.layout.Column
 import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.graphics.Color
+import com.example.learnjetpackcompose.Component.AppNavigationBottomBar
 import com.example.learnjetpackcompose.Screen.Player.PlayerViewModel
 
 @SuppressLint("ViewModelConstructorInComposable")
@@ -51,6 +52,7 @@ fun NavigationApp() {
 
     val songViewModel = SongViewModel(context.applicationContext as Application)
     val songs = songViewModel.songs
+    val playerVM: PlayerViewModel = hiltViewModel()
 
     NavDisplay(
         backStack = backStack,
@@ -104,11 +106,7 @@ fun NavigationApp() {
                 ) { innerPadding ->
                     HomeScreen(
                         modifier = Modifier.padding(innerPadding),
-                        onMyProfileClick = { backStack.add(ProfileNavKey) },
-                        onPlaylistClick = { backStack.add(PlaylistNavKey) },
-                        onSongClick = { playlistId, playlistTitle ->
-                            backStack.add(SongNavKey(playlistId, playlistTitle))
-                        }
+                        onMyProfileClick = { playerVM.stopPreview();backStack.add(ProfileNavKey) },
                     )
                 }
             }
@@ -192,16 +190,9 @@ fun NavigationApp() {
 
             entry<PlayerNavKey> { key ->
                 val playerViewModel: PlayerViewModel = hiltViewModel()
-
                 PlayerScreen(
-                    songTitle = key.title,
-                    songArtist = key.artist,
-                    songDuration = key.duration,
-                    albumArtUrl = key.albumArt,
                     onBackClick = { backStack.removeLastOrNull() },
                     onExitClick = {
-                        // Return to home screen
-//                        backStack.clear()
                         backStack.add(HomeNavKey)
                     },
                     viewModel = playerViewModel
@@ -218,11 +209,7 @@ private fun AppShell(
     backStack: androidx.navigation3.runtime.NavBackStack,
     content: @Composable (PaddingValues) -> Unit
 ) {
-    val navItemsList = listOf(
-        NavBottomItems("Home", R.drawable.icon_home),
-        NavBottomItems("Library", R.drawable.icon_library),
-        NavBottomItems("My Playlist", R.drawable.icon_playlist)
-    )
+
     var selectedIndex by remember { mutableStateOf(currentIndex) }
 
     val currentSong by PlaybackManager.currentSong.collectAsState()
@@ -231,7 +218,6 @@ private fun AppShell(
     Scaffold(
         bottomBar = {
             Column {
-                // PlayerBar được đặt phía trên bottomBar
                 if (currentSong != null) {
                     Log.d("PlayerBar", "Displaying: '${currentSong!!.title}', Duration: '${currentSong!!.duration}'")
                     PlayerBar(
@@ -258,20 +244,7 @@ private fun AppShell(
                     )
                 }
 
-                // NavigationBar ở phía dưới
-                NavigationBar {
-                    navItemsList.forEachIndexed { index, navItem ->
-                        NavigationBarItem(
-                            selected = selectedIndex == index,
-                            onClick = {
-                                selectedIndex = index
-                                onNavigate(index)
-                            },
-                            icon = { Icon(painterResource(navItem.icon), contentDescription = navItem.label) },
-                            label = { Text(navItem.label, style = MaterialTheme.typography.labelMedium) }
-                        )
-                    }
-                }
+                AppNavigationBottomBar(selectedIndex, onNavigate)
             }
         }
     ) { innerPadding ->

@@ -9,17 +9,18 @@ import com.example.learnjetpackcompose.Utils.Mp3Downloader
 import getOfflineRemoteSongs
 import com.example.learnjetpackcompose.data.api.ApiService
 import com.example.learnjetpackcompose.data.api.RemoteSongDto
+import com.example.learnjetpackcompose.domain.repository.SongRepository
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.absoluteValue
 
 @Singleton
-class SongRepository @Inject constructor(
+class SongRepositoryImpl @Inject constructor(
     private val songDao: SongDao,
     private val apiService: ApiService,
     private val downloader: Mp3Downloader
-) : ISongRepository {
+) : SongRepository {
 
     override suspend fun getAllSongs(): List<Song> {
         return emptyList()
@@ -102,3 +103,5 @@ class SongRepository @Inject constructor(
         }
     }
 }
+
+

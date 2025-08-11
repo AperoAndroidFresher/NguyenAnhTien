@@ -2,10 +2,9 @@ package com.example.learnjetpackcompose.Screen.Profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.learnjetpackcompose.RoomDB.Entity.User
 import com.example.learnjetpackcompose.Utils.ValidationUtils
-import com.example.learnjetpackcompose.data.repository.IUserRepository
 import com.example.learnjetpackcompose.data.model.UserManager
+import com.example.learnjetpackcompose.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -18,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val userRepository: IUserRepository
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileState())
@@ -58,6 +57,8 @@ class ProfileViewModel @Inject constructor(
                 ProfileIntent.LoadUserData -> {
                     loadUserData()
                 }
+
+                ProfileIntent.Logout -> {}
             }
         }
     }

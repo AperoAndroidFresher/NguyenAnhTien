@@ -16,7 +16,7 @@ class SongViewModel: ViewModel() {
     private val _state = MutableStateFlow(SongState())
     val state = _state.asStateFlow()
 
-    private val _effect = Channel<SongEffect>()
+    private val _effect = Channel<SongEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
 
     fun processIntent(intent: SongIntent) {
@@ -35,6 +35,10 @@ class SongViewModel: ViewModel() {
 
             is SongIntent.ReorderSongs -> {
                 reorderSongs(intent.fromIndex, intent.toIndex)
+            }
+
+            is SongIntent.ShareSong -> {
+                shareSong(intent.song)
             }
         }
     }
@@ -64,6 +68,16 @@ class SongViewModel: ViewModel() {
                 }
             } catch (e: Exception) {
                 _state.update { it.copy(error = "Failed to reorder songs") }
+            }
+        }
+    }
+
+    private fun shareSong(song: Song) {
+        viewModelScope.launch {
+            try {
+                _effect.send(SongEffect.ShareSongFile(song))
+            } catch (e: Exception) {
+                _effect.send(SongEffect.ShowMessage("Failed to share song"))
             }
         }
     }

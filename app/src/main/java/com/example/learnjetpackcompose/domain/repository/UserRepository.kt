@@ -1,8 +1,8 @@
-package com.example.learnjetpackcompose.data.repository
+package com.example.learnjetpackcompose.domain.repository
 
 import com.example.learnjetpackcompose.RoomDB.Entity.User
 
-interface IUserRepository {
+interface UserRepository {
     suspend fun insertUser(user: User)
     suspend fun updateUser(user: User)
     suspend fun getUserByUsername(username: String): User?

@@ -2,13 +2,14 @@ package com.example.learnjetpackcompose.data.repository
 
 import com.example.learnjetpackcompose.RoomDB.DAO.UserDao
 import com.example.learnjetpackcompose.RoomDB.Entity.User
+import com.example.learnjetpackcompose.domain.repository.UserRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class UserRepository @Inject constructor(
+class UserRepositoryImpl @Inject constructor(
     private val userDao: UserDao
-) : IUserRepository {
+) : UserRepository {
 
     override suspend fun insertUser(user: User) {
         userDao.insertUser(user)
@@ -30,3 +31,5 @@ class UserRepository @Inject constructor(
         return userDao.getUserById(userId)
     }
 }
+
+

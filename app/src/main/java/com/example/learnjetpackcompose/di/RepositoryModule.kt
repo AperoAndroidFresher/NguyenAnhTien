@@ -1,6 +1,15 @@
 package com.example.learnjetpackcompose.di
 
-import com.example.learnjetpackcompose.data.repository.*
+import com.example.learnjetpackcompose.data.repository.PlaylistRepositoryImpl
+import com.example.learnjetpackcompose.data.repository.PlayerRepositoryImpl
+import com.example.learnjetpackcompose.data.repository.SongRepositoryImpl
+import com.example.learnjetpackcompose.data.repository.UserRepositoryImpl
+import com.example.learnjetpackcompose.domain.playback.PlaybackGateway
+import com.example.learnjetpackcompose.data.playback.PlaybackGatewayImpl
+import com.example.learnjetpackcompose.domain.repository.PlayerRepository
+import com.example.learnjetpackcompose.domain.repository.PlaylistRepository
+import com.example.learnjetpackcompose.domain.repository.SongRepository
+import com.example.learnjetpackcompose.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -12,16 +21,26 @@ abstract class RepositoryModule {
 
     @Binds
     abstract fun bindUserRepository(
-        userRepository: UserRepository
-    ): IUserRepository
+        userRepository: UserRepositoryImpl
+    ): UserRepository
 
     @Binds
     abstract fun bindPlaylistRepository(
-        playlistRepository: PlaylistRepository
-    ): IPlaylistRepository
+        playlistRepository: PlaylistRepositoryImpl
+    ): PlaylistRepository
 
     @Binds
     abstract fun bindSongRepository(
-        songRepository: SongRepository
-    ): ISongRepository
+        songRepository: SongRepositoryImpl
+    ): SongRepository
+
+    @Binds
+    abstract fun bindPlayerRepository(
+        playerRepository: PlayerRepositoryImpl
+    ): PlayerRepository
+
+    @Binds
+    abstract fun bindPlaybackGateway(
+        playbackGatewayImpl: PlaybackGatewayImpl
+    ): PlaybackGateway
 }

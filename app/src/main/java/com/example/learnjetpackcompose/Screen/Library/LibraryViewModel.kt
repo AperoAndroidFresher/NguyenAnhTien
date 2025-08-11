@@ -1,13 +1,12 @@
 package com.example.learnjetpackcompose.Screen.Library
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
-import com.example.learnjetpackcompose.data.repository.PlayerRepository
-
-import com.example.learnjetpackcompose.data.repository.SongRepository
+import com.example.learnjetpackcompose.data.repository.SongRepositoryImpl
+import com.example.learnjetpackcompose.domain.repository.PlayerRepository
+import com.example.learnjetpackcompose.domain.playback.PlaybackCoordinator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -22,9 +21,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    private val songRepository: SongRepository,
+    private val songRepository: SongRepositoryImpl,
     private val playerRepository: PlayerRepository,
-    private val appContext: Context
+    private val playbackCoordinator: PlaybackCoordinator
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LibraryState())
@@ -32,6 +31,19 @@ class LibraryViewModel @Inject constructor(
 
     private val _effect = Channel<LibraryEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
+
+    init {
+        viewModelScope.launch {
+            playbackCoordinator.previewCurrentSong.collect { song ->
+                _state.update { it.copy(currentPlayingSong = song) }
+            }
+        }
+        viewModelScope.launch {
+            playbackCoordinator.previewIsPlaying.collect { playing ->
+                _state.update { it.copy(isPlaying = playing) }
+            }
+        }
+    }
 
     fun updatePlaylists(playlists: List<Playlist>) {
         _state.update { it.copy(playlists = playlists) }
@@ -49,9 +61,7 @@ class LibraryViewModel @Inject constructor(
 
             is LibraryIntent.LoadRemoteSongs -> loadRemoteSongs()
 
-            is LibraryIntent.ShareSong -> {
-                // Handle share song intent
-            }
+            is LibraryIntent.ShareSong -> shareSong(intent.song)
 
             is LibraryIntent.DismissDialog -> dismissDialog()
             is LibraryIntent.PauseMusic -> pauseMusic()
@@ -97,6 +107,16 @@ class LibraryViewModel @Inject constructor(
                 showDialog = false,
                 selectedSong = null
             )
+        }
+    }
+
+    private fun shareSong(song: Song) {
+        viewModelScope.launch {
+            try {
+                _effect.send(LibraryEffect.ShareSongFile(song))
+            } catch (e: Exception) {
+                _effect.send(LibraryEffect.ShowMessage("Failed to share song"))
+            }
         }
     }
 
@@ -187,15 +207,14 @@ class LibraryViewModel @Inject constructor(
 
     private fun playSong(song: Song) {
         viewModelScope.launch {
+            playbackCoordinator.togglePreview(song)
             _state.update {
                 it.copy(
-                    isPlaying = true,
-                    showPlayerBar = true,
+                    isPlaying = playbackCoordinator.previewIsPlaying.value,
+                    showPlayerBar = false, // preview mode: no global player bar
                     currentPlayingSong = song
                 )
             }
-            // Phát nhạc trực tiếp qua PlayerRepository để đảm bảo đồng bộ khi ở tab Remote
-            playerRepository.playSong(appContext, song)
         }
     }
 
@@ -213,7 +232,13 @@ class LibraryViewModel @Inject constructor(
 
     private fun stopMusic() {
         viewModelScope.launch {
-            _state.update { it.copy(isPlaying = false, showPlayerBar = false, currentPlayingSong = null) }
+            _state.update {
+                it.copy(
+                    isPlaying = false,
+                    showPlayerBar = false,
+                    currentPlayingSong = null
+                )
+            }
         }
     }
 

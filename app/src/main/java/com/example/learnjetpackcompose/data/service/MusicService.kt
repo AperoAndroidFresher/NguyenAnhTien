@@ -49,7 +49,7 @@ class MusicService : Service() {
     private var currentTitle: String = ""
     private var currentArtist: String = ""
     private var currentData: String = ""
-    private var currentAlbumArt: String = ""
+    private var currentAlbumArt: String? = null
 
     override fun onCreate(){
         super.onCreate()
@@ -59,6 +59,7 @@ class MusicService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when(intent?.action) {
             ACTION_PLAY -> {
+                val id = intent.getLongExtra(EXTRA_SONG_ID, 0L)
                 val title = intent.getStringExtra(EXTRA_SONG_TITLE) ?: ""
                 val artist = intent.getStringExtra(EXTRA_SONG_ARTIST) ?: ""
                 val data = intent.getStringExtra(EXTRA_SONG_DATA) ?: ""
@@ -67,7 +68,7 @@ class MusicService : Service() {
                 if (mediaPlayer != null && currentData == data && mediaPlayer?.isPlaying == false) {
                     resumePlayback()
                 } else {
-                    startPlayback(title, artist, data, duration, albumArt)
+                    startPlayback(id, title, artist, data, duration, albumArt)
                 }
             }
 
@@ -80,24 +81,38 @@ class MusicService : Service() {
             }
 
             ACTION_NEXT -> {
-                // Queue management not implemented
+                val next = PlaybackManager.nextManual()
+                if (next != null) {
+                    startPlayback(next.songId, next.title, next.artist, next.data, next.duration, next.albumArt)
+                } else {
+                    // No next based on repeat/queue state -> stop
+                    updateNotification(isPlaying = false)
+                    PlaybackManager.setIsPlaying(false)
+                    stopSelf()
+                }
             }
             ACTION_PREVIOUS -> {
-                // Queue management not implemented
+                val prev = PlaybackManager.previousManual()
+                if (prev != null) {
+                    startPlayback(prev.songId, prev.title, prev.artist, prev.data, prev.duration, prev.albumArt)
+                } else {
+                    updateNotification(isPlaying = false)
+                    PlaybackManager.setIsPlaying(false)
+                    stopSelf()
+                }
             }
         }
         return START_NOT_STICKY
     }
 
-    private fun startPlayback(title: String, artist: String, data: String, duration: String, albumArt: String) {
+    private fun startPlayback(id: Long, title: String, artist: String, data: String, duration: String, albumArt: String?) {
+
         currentTitle = title
         currentArtist = artist
         currentData = data
         currentAlbumArt = albumArt
 
-
-        Log.d("MusicService", "Setting song with duration: '$duration' for '$title'")
-        PlaybackManager.setNowPlaying(Song(0, title, artist, albumArt, duration, data))
+        PlaybackManager.setNowPlaying(Song(id, title, artist, albumArt, duration, data))
 
         mediaPlayer?.release()
         mediaPlayer = MediaPlayer().apply {
@@ -126,9 +141,15 @@ class MusicService : Service() {
                 PlaybackManager.setIsPlaying(true)
             }
             setOnCompletionListener {
-                updateNotification(isPlaying = false)
-                PlaybackManager.setIsPlaying(false)
-                stopSelf()
+                val next = PlaybackManager.onSongCompleted()
+                if (next != null) {
+                    // Continue with the next decided by manager
+                    startPlayback(next.songId, next.title, next.artist, next.data, next.duration, next.albumArt)
+                } else {
+                    updateNotification(isPlaying = false)
+                    PlaybackManager.setIsPlaying(false)
+                    stopSelf()
+                }
             }
             setOnErrorListener { _, _, _ ->
                 updateNotification(isPlaying = false)
@@ -247,12 +268,11 @@ class MusicService : Service() {
                 "",
                 stopPendingIntent
             )
-            // MediaStyle for better media controls
             .setCategory(NotificationCompat.CATEGORY_TRANSPORT)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setStyle(
                 androidx.media.app.NotificationCompat.MediaStyle()
-                .setShowActionsInCompactView(0, 1, 2, 3))
+                    .setShowActionsInCompactView(0, 1, 2, 3))
         return builder.build()
     }
 

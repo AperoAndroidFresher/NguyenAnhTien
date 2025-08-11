@@ -39,14 +39,11 @@ import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.data.model.PlaybackManager
 import com.example.learnjetpackcompose.data.service.MusicService
 import androidx.compose.runtime.collectAsState
+import com.example.learnjetpackcompose.Component.IconButtonCustom
 
 
 @Composable
 fun PlayerScreen(
-    songTitle: String = "Unknown Title",
-    songArtist: String = "Unknown Artist",
-    songDuration: String = "0:00",
-    albumArtUrl: String? = null,
     onBackClick: () -> Unit = {},
     onExitClick: () -> Unit = {},
     onShuffleClick: () -> Unit = {},
@@ -58,22 +55,19 @@ fun PlayerScreen(
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val isPlaying = viewModel.isPlaying.collectAsState().value
+    val isShuffle = viewModel.isShuffle.collectAsState().value
+    val repeatMode = viewModel.repeatMode.collectAsState().value
+    val currentSong = viewModel.currentSong.collectAsState().value
 
-    // Play/Pause function
     val handlePlayClick = {
         viewModel.togglePlayPause()
     }
 
-    // Exit function - return to home and stop playback
     val handleExitClick = {
-        // Stop music playback
         viewModel.stopPlayback()
-
-        // Navigate back to home screen
         onExitClick()
     }
 
-    // Previous/Next functions
     val handlePreviousClick = {
         viewModel.skipToPrevious()
         onPreviousClick()
@@ -83,20 +77,33 @@ fun PlayerScreen(
         viewModel.skipToNext()
         onNextClick()
     }
+    val handleShuffleClick = {
+        viewModel.toggleShuffle()
+        onShuffleClick()
+    }
+    val handleRepeatClick = {
+        viewModel.cycleRepeatMode()
+        onRepeatClick()
+    }
 
     Column(
-        modifier = modifier.fillMaxSize().background(Color.Black)
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Black)
     ) {
         Header(onBackClick, handleExitClick, modifier)
         Spacer(modifier = modifier.height(10.dp))
-        Content(songTitle, songArtist, albumArtUrl)
+        Content(currentSong?.title, currentSong?.artist, currentSong?.albumArt)
         Spacer(modifier = modifier.height(10.dp))
-        ButtonControls(onShuffleClick,
+        ButtonControls(handleShuffleClick,
             handlePreviousClick,
             handlePlayClick,
             handleNextClick,
-            onRepeatClick,
-            isPlaying)
+            handleRepeatClick,
+            isPlaying,
+            isShuffle,
+            repeatMode,
+            modifier)
     }
 }
 
@@ -113,22 +120,13 @@ private fun Header(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ){
-        IconButton(
-            onClick = onBackClick,
-            modifier = Modifier.size(36.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.icon_back),
-                contentDescription = "Icon back",
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-        }
+        IconButtonCustom(onBackClick,R.drawable.icon_back, "Back", Modifier.size(36.dp))
 
         Text(
             text = "Now Playing",
@@ -137,58 +135,44 @@ private fun Header(
             color = Color.White
         )
 
-        IconButton(
-            onClick = onExitClick,
-            modifier = Modifier.size(36.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.icon_no),
-                contentDescription = "Stop Player",
-                tint = Color.White,
-            )
-        }
-
+        IconButtonCustom(onExitClick, R.drawable.icon_no, "Exit", Modifier.size(36.dp))
     }
 }
 
 @Composable
 fun Content(
-    songTitle: String = "Unknown Title",
-    songArtist: String = "Unknown Artist",
+    songTitle: String? = "Unknown Title",
+    songArtist: String? = "Unknown Artist",
     albumArtUrl: String? = null
 ){
     Column(
-        modifier = Modifier.fillMaxWidth().padding(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp),
         verticalArrangement = Arrangement.Center
     ){
-        if (albumArtUrl != null && albumArtUrl.isNotEmpty()) {
-            AsyncImage(
-                model = albumArtUrl,
-                contentDescription = "Album Art",
-                modifier = Modifier.size(420.dp)
-                    .clip(RoundedCornerShape(10.dp)),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(R.drawable.rose)
-            )
-        } else {
-            Image(
-                painter = painterResource(R.drawable.rose),
-                contentDescription = "Default Album Art",
-                modifier = Modifier.size(420.dp)
-                    .clip(RoundedCornerShape(10.dp)),
-                contentScale = ContentScale.Crop
-            )
-        }
+
+        AsyncImage(
+            model = albumArtUrl,
+            contentDescription = "Album Art",
+            modifier = Modifier
+                .size(400.dp)
+                .clip(RoundedCornerShape(12.dp)),
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(R.drawable.icon_music),
+            error = painterResource(R.drawable.icon_music),
+            fallback = painterResource(R.drawable.icon_music)
+        )
 
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = songTitle,
+            text = songTitle.toString(),
             fontSize = 18.sp,
             color = Color.White,
         )
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = songArtist,
+            text = songArtist.toString(),
             fontSize = 16.sp,
             color = Color.White.copy(0.7f),
         )
@@ -199,41 +183,47 @@ fun Content(
 fun ButtonControls(
     onShuffleClick: () -> Unit,
     onPreviousClick: () -> Unit,
-    onPlayClick: () -> Unit,
+    onPlayPauseClick: () -> Unit,
     onNextClick: () -> Unit,
     onRepeatClick: () -> Unit,
-    isPlaying: Boolean = false
+    isPlaying: Boolean = false,
+    isShuffled: Boolean = false,
+    isRepeated: RepeatMode = RepeatMode.REPEAT_ONE,
+    modifier: Modifier = Modifier
 ){
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ){
-        ButtonControl(onShuffleClick, "Shuffle", painterResource(R.drawable.icon_shuffle))
-        ButtonControl(onPreviousClick, "Previous", painterResource(R.drawable.icon_previous))
-        ButtonControl(
-            onClick = onPlayClick,
-            title = if (isPlaying) "Pause" else "Play",
-            painter = painterResource(if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play)
+        IconButtonCustom(
+            onShuffleClick, R.drawable.icon_shuffle, "Shuffle",
+            if (isShuffled) Modifier
+                .size(36.dp)
+                .background(Color(0xFF00C2CB).copy(0.5f))
+            else Modifier.size(36.dp)
         )
-        ButtonControl(onNextClick, "Next", painterResource(R.drawable.icon_next))
-        ButtonControl(onRepeatClick, "Repeat", painterResource(R.drawable.icon_repeat))
-    }
-}
-
-@Composable
-fun ButtonControl(
-    onClick: () -> Unit,
-    title: String,
-    painter: Painter
-){
-    IconButton(
-        onClick = onClick
-    ) {
-        Icon(
-            painter = painter,
-            contentDescription = title,
-            tint = Color.White
+        IconButtonCustom(
+            onPreviousClick,
+            R.drawable.icon_previous,
+            "Previous",
+            Modifier.size(36.dp)
+        )
+        IconButtonCustom(
+            onPlayPauseClick,
+            if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play,
+            if (isPlaying) "Pause" else "Play",
+            Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF00C2CB))
+        )
+        IconButtonCustom(onNextClick, R.drawable.icon_next, "Next", Modifier.size(36.dp))
+        IconButtonCustom(
+            onRepeatClick, R.drawable.icon_repeat, "Repeat",
+            Modifier
+                .size(36.dp)
+                .background(Color(0xFF00C2CB).copy(0.5f))
         )
     }
 }
@@ -251,59 +241,62 @@ fun PlayerBar(
     Box(
     ){
         Box(
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier
+                .size(24.dp)
                 .align(Alignment.TopEnd)
                 .offset(x = 1.dp, y = (-24).dp)
                 .background(Color.Transparent, shape = CircleShape)
         ){
-            IconButton(
-                onClick = {viewModel.stopPlayback()},
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    painter = painterResource( R.drawable.icon_no),
-                    contentDescription = "Stop",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            IconButtonCustom({viewModel.stopPlayback()},
+                R.drawable.icon_no, "Stop",
+                Modifier.size(36.dp))
         }
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .background(Color.DarkGray.copy(0.5f))
-                .clickable { onPlayerBarClick() }
-                .padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ){
-            IconButton(
-                onClick = onPlayPauseClick,
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    painter = painterResource(if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play),
-                    contentDescription = if (isPlaying) "Pause" else "Play",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            Text(
-                text = title,
-                fontSize = 16.sp,
-                style = MaterialTheme.typography.titleSmall,
-                color = Color.White,
-                modifier = Modifier.weight(2f).basicMarquee()
-            )
-
-            Text(
-                text = duration,
-                fontSize = 16.sp,
-                color = Color.White,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
+        PlayBarInfo(isPlaying, title, duration,
+            onPlayPauseClick, onPlayerBarClick, modifier)
     }
+}
 
+@Composable
+fun PlayBarInfo(
+    isPlaying: Boolean,
+    title: String,
+    duration: String,
+    onPlayPauseClick: () -> Unit,
+    onPlayerBarClick: () -> Unit,
+    modifier: Modifier = Modifier
+){
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color(0xFF292929))
+            .clickable { onPlayerBarClick() }
+            .padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ){
+        IconButtonCustom(onPlayPauseClick,
+            if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play,
+            if (isPlaying) "Pause" else "Play",
+            Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF00C2CB)))
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            style = MaterialTheme.typography.titleSmall,
+            color = Color.White,
+            modifier = Modifier
+                .weight(2f)
+                .padding(10.dp)
+                .basicMarquee()
+        )
+
+        Text(
+            text = duration,
+            fontSize = 16.sp,
+            color = Color.White,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
 }

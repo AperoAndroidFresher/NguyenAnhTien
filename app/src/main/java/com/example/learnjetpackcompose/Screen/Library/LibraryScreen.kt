@@ -1,8 +1,7 @@
 package com.example.learnjetpackcompose.Screen.Library
 
-import android.net.Uri
+import android.content.Context
 import android.content.Intent
-import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,17 +20,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -47,32 +39,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
-import coil.compose.AsyncImage
+import androidx.core.content.FileProvider
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.example.learnjetpackcompose.Component.AlbumArt
 import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
+import com.example.learnjetpackcompose.Component.IconButtonCustom
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
-import com.example.learnjetpackcompose.Screen.Playlist.ChoosePlaylistDialog
+import com.example.learnjetpackcompose.Screen.Playlist.Component.ChoosePlaylistDialog
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
-import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
-import com.example.learnjetpackcompose.data.service.MusicService
+import java.io.File
+import com.example.learnjetpackcompose.Utils.ShareUtils
 
-import kotlinx.coroutines.flow.collectLatest
-
-// onNavigateToPlaylist:() -> Unit,
 @Composable
 fun LibraryScreen(
     libraryViewModel: LibraryViewModel,
@@ -91,77 +78,40 @@ fun LibraryScreen(
         libraryViewModel.updatePlaylists(playlistState.playlists)
     }
 
-    // Initialize songs when screen loads
     LaunchedEffect(songs) {
         libraryViewModel.processIntent(LibraryIntent.LoadSongs(songs))
+    }
+    LaunchedEffect(state.selectedSource) {
+        when (state.selectedSource) {
+            LibrarySource.LOCAL -> Unit
+            LibrarySource.REMOTE -> libraryViewModel.processIntent(LibraryIntent.LoadRemoteSongs)
+        }
     }
 
     LaunchedEffect(Unit) {
         libraryViewModel.effect.collect { effect ->
             when (effect) {
-                is LibraryEffect.ShowMessage -> {
-                    snackbarHostState.showSnackbar(effect.message)
-                }
-
-                is LibraryEffect.ShowDialogChoosePlaylist -> {
-                }
-
+                is LibraryEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.message)
+                is LibraryEffect.ShowDialogChoosePlaylist -> {}
+                is LibraryEffect.ShareSongFile -> ShareUtils.shareAudioFile(context, effect.song)
                 LibraryEffect.NavigateToPlayer -> Unit
-                is LibraryEffect.StartMusicService -> {
-                    val intent =                     Intent(context, MusicService::class.java).apply {
-                        action = MusicService.ACTION_PLAY
-                        putExtra(MusicService.EXTRA_SONG_ID, effect.song.songId)
-                        putExtra(MusicService.EXTRA_SONG_TITLE, effect.song.title)
-                        putExtra(MusicService.EXTRA_SONG_ARTIST, effect.song.artist)
-                        putExtra(MusicService.EXTRA_SONG_DATA, effect.song.data)
-                        putExtra(MusicService.EXTRA_SONG_DURATION, effect.song.duration)
-                        putExtra(MusicService.EXTRA_SONG_ALBUM_ART, effect.song.albumArt)
-                    }
-                    ContextCompat.startForegroundService(context, intent)
-                }
             }
         }
     }
 
-
     Box(modifier = modifier) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = Color.Black)
-                .padding(12.dp),
+            modifier = Modifier.fillMaxSize()
+                .background(color = Color.Black).padding(2.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header
             Header()
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Source Selection Buttons
-            Row(
-                modifier = Modifier
-                    .padding(12.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                SourceButton(
-                    label = "local",
-                    source = LibrarySource.LOCAL,
-                    selectedSource = state.selectedSource,
-                    onClick = {
-                        libraryViewModel.processIntent(LibraryIntent.LoadLocalSongs)
-
-                    }
-                )
-                SourceButton(
-                    label = "Remote",
-                    source = LibrarySource.REMOTE,
-                    selectedSource = state.selectedSource,
-                    onClick = {
-                        libraryViewModel.processIntent(LibraryIntent.LoadRemoteSongs)
-                    }
-                )
-            }
+            GroupButton(
+                {libraryViewModel.processIntent(LibraryIntent.LoadLocalSongs)},
+                {libraryViewModel.processIntent(LibraryIntent.LoadRemoteSongs)},
+                state
+            )
 
             state.error?.let { error ->
                 Text(
@@ -175,13 +125,6 @@ fun LibraryScreen(
             if (state.isLoading) {
                 LoadingWithLottie()
             } else if (state.filteredSongs.isEmpty()) {
-                // Debug: Log empty songs
-                LaunchedEffect(state.selectedSource, state.songs.size) {
-                    println("DEBUG: filteredSongs is empty. Source: ${state.selectedSource}, Total songs: ${state.songs.size}")
-                    state.songs.forEach { song ->
-                        println("DEBUG: Song path: ${song.data}")
-                    }
-                }
                 ContentLoadFailure()
             } else {
                 LazyColumn(
@@ -202,16 +145,17 @@ fun LibraryScreen(
                                 selectedSongId = it.songId
                                 libraryViewModel.processIntent(LibraryIntent.PlaySong(it))
                             },
-                            onSelectSong = { selectedSongId = it.songId }
+                            onSelectSong = { selectedSongId = it.songId },
+                            onShareSong = {
+                                libraryViewModel.processIntent(LibraryIntent.ShareSong(it))
+                            }
                         )
                     }
                 }
             }
-
         }
 
         if (state.showDialog && state.selectedSong != null) {
-            println("DEBUG: Rendering ChoosePlaylistDialog - showDialog: ${state.showDialog}, selectedSong: ${state.selectedSong?.title}")
             ChoosePlaylistDialog(
                 playlists = state.playlists ?: emptyList(),
                 onDismissRequest = {
@@ -235,8 +179,40 @@ fun LibraryScreen(
     }
 }
 
+private fun shareAudioFile(context: Context, song: Song) {
+    try {
+        val file = File(song.data)
+        if (!file.exists()) {
+            // Show error message
+            return
+        }
+
+        val uri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file
+        )
+
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "audio/*"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_SUBJECT, "Sharing: ${song.title}")
+            putExtra(Intent.EXTRA_TEXT, "Check out this song: ${song.title} by ${song.artist}")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        val chooserIntent = Intent.createChooser(shareIntent, "Share ${song.title}")
+        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(chooserIntent)
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+
 @Composable
-fun Header() {
+private fun Header() {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
@@ -251,7 +227,7 @@ fun Header() {
 }
 
 @Composable
-fun GroupButton(
+private fun GroupButton(
     loadLocalSongs: () -> Unit,
     loadRemoteSongs: () -> Unit,
     state: LibraryState
@@ -278,7 +254,7 @@ fun GroupButton(
 }
 
 @Composable
-fun ContentLoadFailure(
+private fun ContentLoadFailure(
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -307,7 +283,7 @@ fun ContentLoadFailure(
 }
 
 @Composable
-fun SourceButton(
+private fun SourceButton(
     label: String,
     source: LibrarySource,
     selectedSource: LibrarySource,
@@ -335,7 +311,6 @@ fun LoadingWithLottie() {
         composition,
         iterations = LottieConstants.IterateForever
     )
-
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -350,12 +325,13 @@ fun LoadingWithLottie() {
 }
 
 @Composable
-fun LibrarySongCardList(
+private fun LibrarySongCardList(
     song: Song,
     isSelected: Boolean,
     onAddToPlaylist: (Song) -> Unit,
     onPlaySong: (Song) -> Unit,
     onSelectSong: (Song) -> Unit,
+    onShareSong: (Song) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showDropdownMenu by remember { mutableStateOf(false) }
@@ -381,35 +357,20 @@ fun LibrarySongCardList(
                         onPlaySong(song)
                     }
             ) {
-
-                SongAlbumArt(albumArtUri = song.albumArt)
-
+                AlbumArt(albumArtUri = song.albumArt)
                 SongInfo(song.title, song.artist)
-
             }
 
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = song.duration,
                     modifier = Modifier.padding(start = 4.dp),
-                    color = Color.White,
-                    fontSize = 14.sp
+                    color = Color.White, fontSize = 14.sp
                 )
-
-                IconButton(
-                    onClick = {
-                        showDropdownMenu = true
-                    },
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.icon_morevert),
-                        contentDescription = "Mở menu tùy chọn",
-                        tint = Color.White
-                    )
-                }
-
+                IconButtonCustom({showDropdownMenu = true}, R.drawable.icon_morevert,
+                    "Mở menu tùy chọn", Modifier.size(36.dp))
                 CustomDropDownMenu(
                     expanded = showDropdownMenu,
                     onDismissRequest = { showDropdownMenu = false },
@@ -417,6 +378,7 @@ fun LibrarySongCardList(
                         onAddToPlaylist(song)
                         showDropdownMenu = false},
                     onShareClick = {
+                        onShareSong(song)
                         showDropdownMenu = false
                     }
                 )
@@ -426,33 +388,12 @@ fun LibrarySongCardList(
 }
 
 @Composable
-fun SongAlbumArt(albumArtUri: String?) {
-    val uri = if (albumArtUri.isNullOrEmpty() || albumArtUri == Uri.EMPTY.toString()) {
-        null
-    } else {
-        Uri.parse(albumArtUri)
-    }
-
-    AsyncImage(
-        model = uri,
-        contentDescription = "Album Art",
-        modifier = Modifier
-            .size(48.dp)
-            .clip(RoundedCornerShape(8.dp)),
-        contentScale = ContentScale.Crop,
-        placeholder = painterResource(R.drawable.icon_music),
-        error = painterResource(R.drawable.icon_music),
-        fallback = painterResource(R.drawable.icon_music)
-    )
-}
-
-@Composable
 fun SongInfo(title: String, artist: String) {
     Column(modifier = Modifier.padding(start = 10.dp)) {
         Text(
             text = title,
             modifier = Modifier
-                .width(170.dp)
+                .width(190.dp)
                 .basicMarquee(),
             style = MaterialTheme.typography.titleSmall,
             fontSize = 16.sp,
@@ -460,7 +401,8 @@ fun SongInfo(title: String, artist: String) {
         )
         Text(
             text = artist,
-            modifier = Modifier.width(170.dp)
+            modifier = Modifier
+                .width(190.dp)
                 .basicMarquee(),
             color = Color.White.copy(alpha = 0.7f),
             fontSize = 14.sp
@@ -496,8 +438,5 @@ fun CustomDropDownMenu(
             text = "Share",
             onClick = onShareClick
         )
-
     }
-
 }
-

@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.User
 import com.example.learnjetpackcompose.data.model.UserManager
 import com.example.learnjetpackcompose.Utils.ValidationUtils
-import com.example.learnjetpackcompose.data.repository.IUserRepository
+import com.example.learnjetpackcompose.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
-    private val userRepository: IUserRepository
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SignUpState())
@@ -94,7 +94,8 @@ class SignUpViewModel @Inject constructor(
                 val newUser = User(
                     username = currentState.username,
                     email = currentState.email,
-                    password = currentState.password
+                    password = currentState.password,
+                    displayName = currentState.username
                 )
                 val success = UserManager.addUser(newUser)
 

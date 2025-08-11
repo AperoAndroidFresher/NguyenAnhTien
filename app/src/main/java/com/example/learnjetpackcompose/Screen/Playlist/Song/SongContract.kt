@@ -14,8 +14,10 @@ sealed interface SongIntent {
     data object ToggleView : SongIntent
     data class RemoveSong(val song: Song) : SongIntent
     data class ReorderSongs(val fromIndex: Int, val toIndex: Int) : SongIntent
+    data class ShareSong(val song: Song) : SongIntent
 }
 
 sealed interface SongEffect {
     data class ShowMessage(val message: String) : SongEffect
+    data class ShareSongFile(val song: Song) : SongEffect
 }

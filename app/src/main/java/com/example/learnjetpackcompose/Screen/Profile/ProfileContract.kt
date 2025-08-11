@@ -28,6 +28,7 @@ sealed interface ProfileIntent{
     data object Submit: ProfileIntent
     data object ResetForm: ProfileIntent
     data object LoadUserData: ProfileIntent
+    data object Logout : ProfileIntent
 }
 
 sealed interface ProfileEffect{

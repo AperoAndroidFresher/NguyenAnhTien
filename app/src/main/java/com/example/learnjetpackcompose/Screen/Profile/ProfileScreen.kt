@@ -84,8 +84,6 @@ fun ProfileNoEdit(
     onToggleTheme: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
-
-    // Effect handler for showing messages
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
@@ -99,7 +97,6 @@ fun ProfileNoEdit(
         }
     }
 
-    // Load user data when the screen is first displayed
     LaunchedEffect(Unit) {
         viewModel.processIntent(ProfileIntent.LoadUserData)
     }
@@ -315,7 +312,6 @@ fun ProfileEditing(
     var showSuccessPopup by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // Load user data when the screen is first displayed
     LaunchedEffect(Unit) {
         viewModel.processIntent(ProfileIntent.LoadUserData)
     }
@@ -340,7 +336,6 @@ fun ProfileEditing(
         }
     }
 
-    // Launcher để chọn ảnh từ device
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
