@@ -38,7 +38,6 @@ object PlaybackManager {
     val isShuffle: StateFlow<Boolean> = _isShuffle.asStateFlow()
     val repeatMode: StateFlow<RepeatMode> = _repeatMode.asStateFlow()
 
-    // Shuffle helpers
     private val playedSet: MutableSet<Int> = LinkedHashSet()
     private val historyStack: ArrayDeque<Int> = ArrayDeque()
 

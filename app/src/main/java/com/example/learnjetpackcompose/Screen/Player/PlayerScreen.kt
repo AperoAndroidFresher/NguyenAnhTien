@@ -124,17 +124,7 @@ private fun Header(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ){
-        IconButton(
-            onClick = onBackClick,
-            modifier = Modifier.size(36.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.icon_back),
-                contentDescription = "Icon back",
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-        }
+        IconButtonCustom(onBackClick,R.drawable.icon_back, "Back", Modifier.size(36.dp))
 
         Text(
             text = "Now Playing",
@@ -143,17 +133,7 @@ private fun Header(
             color = Color.White
         )
 
-        IconButton(
-            onClick = onExitClick,
-            modifier = Modifier.size(36.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.icon_no),
-                contentDescription = "Stop Player",
-                tint = Color.White,
-            )
-        }
-
+        IconButtonCustom(onExitClick, R.drawable.icon_no, "Exit", Modifier.size(36.dp))
     }
 }
 
@@ -167,24 +147,18 @@ fun Content(
         modifier = Modifier.fillMaxWidth().padding(20.dp),
         verticalArrangement = Arrangement.Center
     ){
-        if (albumArtUrl != null && albumArtUrl.isNotEmpty()) {
-            AsyncImage(
-                model = albumArtUrl,
-                contentDescription = "Album Art",
-                modifier = Modifier.size(420.dp)
-                    .clip(RoundedCornerShape(10.dp)),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(R.drawable.rose)
-            )
-        } else {
-            Image(
-                painter = painterResource(R.drawable.rose),
-                contentDescription = "Default Album Art",
-                modifier = Modifier.size(420.dp)
-                    .clip(RoundedCornerShape(10.dp)),
-                contentScale = ContentScale.Crop
-            )
-        }
+
+        AsyncImage(
+            model = albumArtUrl,
+            contentDescription = "Album Art",
+            modifier = Modifier
+                .size(400.dp)
+                .clip(RoundedCornerShape(12.dp)),
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(R.drawable.icon_music),
+            error = painterResource(R.drawable.icon_music),
+            fallback = painterResource(R.drawable.icon_music)
+        )
 
         Spacer(modifier = Modifier.height(10.dp))
         Text(
@@ -205,44 +179,25 @@ fun Content(
 fun ButtonControls(
     onShuffleClick: () -> Unit,
     onPreviousClick: () -> Unit,
-    onPlayClick: () -> Unit,
+    onPlayPauseClick: () -> Unit,
     onNextClick: () -> Unit,
     onRepeatClick: () -> Unit,
-    isPlaying: Boolean = false
+    isPlaying: Boolean = false,
+    modifier: Modifier = Modifier
 ){
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ){
-        ButtonControl(onShuffleClick, "Shuffle", painterResource(R.drawable.icon_shuffle))
-        ButtonControl(onPreviousClick, "Previous", painterResource(R.drawable.icon_previous))
-        ButtonControl(
-            onClick = onPlayClick,
-            title = if (isPlaying) "Pause" else "Play",
-            painter = painterResource(if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play)
-        )
-        ButtonControl(onNextClick, "Next", painterResource(R.drawable.icon_next))
-        ButtonControl(onRepeatClick, "Repeat", painterResource(R.drawable.icon_repeat))
-    }
-}
-
-@Composable
-fun ButtonControl(
-    onClick: () -> Unit,
-    title: String,
-    painter: Painter
-){
-    IconButton(
-        onClick = onClick,
-        modifier = Modifier.size(48.dp)
-    ) {
-        Icon(
-            painter = painter,
-            contentDescription = title,
-            tint = Color.White,
-            modifier = Modifier.size(24.dp)
-        )
+        IconButtonCustom(onShuffleClick, R.drawable.icon_shuffle,"Shuffle", Modifier.size(36.dp))
+        IconButtonCustom(onPreviousClick, R.drawable.icon_previous,"Previous", Modifier.size(36.dp))
+        IconButtonCustom(onPlayPauseClick,
+            if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play,
+            if (isPlaying) "Pause" else "Play",
+            Modifier.size(36.dp))
+        IconButtonCustom(onNextClick, R.drawable.icon_next,"Next", Modifier.size(36.dp))
+        IconButtonCustom(onRepeatClick, R.drawable.icon_repeat,"Repeat", Modifier.size(36.dp))
     }
 }
 
@@ -264,19 +219,12 @@ fun PlayerBar(
                 .offset(x = 1.dp, y = (-24).dp)
                 .background(Color.Transparent, shape = CircleShape)
         ){
-            IconButton(
-                onClick = {viewModel.stopPlayback()},
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    painter = painterResource( R.drawable.icon_no),
-                    contentDescription = "Stop",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            IconButtonCustom({viewModel.stopPlayback()},
+                R.drawable.icon_no, "Stop",
+                Modifier.size(36.dp))
         }
-        PlayBarInfo(isPlaying, title, duration, onPlayPauseClick, onPlayerBarClick, modifier)
+        PlayBarInfo(isPlaying, title, duration,
+            onPlayPauseClick, onPlayerBarClick, modifier)
     }
 }
 
@@ -307,7 +255,7 @@ fun PlayBarInfo(
             fontSize = 16.sp,
             style = MaterialTheme.typography.titleSmall,
             color = Color.White,
-            modifier = Modifier.weight(2f).basicMarquee()
+            modifier = Modifier.weight(2f).padding(10.dp).basicMarquee()
         )
 
         Text(
