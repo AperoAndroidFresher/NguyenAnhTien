@@ -57,6 +57,8 @@ class ProfileViewModel @Inject constructor(
                 ProfileIntent.LoadUserData -> {
                     loadUserData()
                 }
+
+                ProfileIntent.Logout -> {}
             }
         }
     }

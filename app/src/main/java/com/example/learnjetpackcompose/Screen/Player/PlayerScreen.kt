@@ -44,10 +44,6 @@ import com.example.learnjetpackcompose.Component.IconButtonCustom
 
 @Composable
 fun PlayerScreen(
-    songTitle: String = "Unknown Title",
-    songArtist: String = "Unknown Artist",
-    songDuration: String = "0:00",
-    albumArtUrl: String? = null,
     onBackClick: () -> Unit = {},
     onExitClick: () -> Unit = {},
     onShuffleClick: () -> Unit = {},
@@ -61,6 +57,7 @@ fun PlayerScreen(
     val isPlaying = viewModel.isPlaying.collectAsState().value
     val isShuffle = viewModel.isShuffle.collectAsState().value
     val repeatMode = viewModel.repeatMode.collectAsState().value
+    val currentSong = viewModel.currentSong.collectAsState().value
 
     val handlePlayClick = {
         viewModel.togglePlayPause()
@@ -71,7 +68,6 @@ fun PlayerScreen(
         onExitClick()
     }
 
-    // Previous/Next functions
     val handlePreviousClick = {
         viewModel.skipToPrevious()
         onPreviousClick()
@@ -81,28 +77,31 @@ fun PlayerScreen(
         viewModel.skipToNext()
         onNextClick()
     }
+    val handleShuffleClick = {
+        viewModel.toggleShuffle()
+        onShuffleClick()
+    }
+    val handleRepeatClick = {
+        viewModel.cycleRepeatMode()
+        onRepeatClick()
+    }
 
     Column(
         modifier = modifier.fillMaxSize().background(Color.Black)
     ) {
         Header(onBackClick, handleExitClick, modifier)
         Spacer(modifier = modifier.height(10.dp))
-        Content(songTitle, songArtist, albumArtUrl)
+        Content(currentSong?.title, currentSong?.artist, currentSong?.albumArt)
         Spacer(modifier = modifier.height(10.dp))
-        val handleShuffleClick = {
-            viewModel.toggleShuffle()
-            onShuffleClick()
-        }
-        val handleRepeatClick = {
-            viewModel.cycleRepeatMode()
-            onRepeatClick()
-        }
         ButtonControls(handleShuffleClick,
             handlePreviousClick,
             handlePlayClick,
             handleNextClick,
             handleRepeatClick,
-            isPlaying)
+            isPlaying,
+            isShuffle,
+            repeatMode,
+            modifier)
     }
 }
 
@@ -139,8 +138,8 @@ private fun Header(
 
 @Composable
 fun Content(
-    songTitle: String = "Unknown Title",
-    songArtist: String = "Unknown Artist",
+    songTitle: String? = "Unknown Title",
+    songArtist: String? = "Unknown Artist",
     albumArtUrl: String? = null
 ){
     Column(
@@ -162,13 +161,13 @@ fun Content(
 
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = songTitle,
+            text = songTitle.toString(),
             fontSize = 18.sp,
             color = Color.White,
         )
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = songArtist,
+            text = songArtist.toString(),
             fontSize = 16.sp,
             color = Color.White.copy(0.7f),
         )
@@ -183,6 +182,8 @@ fun ButtonControls(
     onNextClick: () -> Unit,
     onRepeatClick: () -> Unit,
     isPlaying: Boolean = false,
+    isShuffled: Boolean = false,
+    isRepeated: RepeatMode = RepeatMode.REPEAT_ONE,
     modifier: Modifier = Modifier
 ){
     Row(
@@ -190,7 +191,8 @@ fun ButtonControls(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ){
-        IconButtonCustom(onShuffleClick, R.drawable.icon_shuffle,"Shuffle", Modifier.size(36.dp))
+        IconButtonCustom(onShuffleClick, R.drawable.icon_shuffle,"Shuffle",
+            if (isShuffled) Modifier.size(36.dp).background(Color.White.copy(0.5f)) else Modifier.size(36.dp))
         IconButtonCustom(onPreviousClick, R.drawable.icon_previous,"Previous", Modifier.size(36.dp))
         IconButtonCustom(onPlayPauseClick,
             if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play,

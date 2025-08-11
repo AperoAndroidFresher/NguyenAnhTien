@@ -191,7 +191,6 @@ class LibraryViewModel @Inject constructor(
                     currentPlayingSong = song
                 )
             }
-            // Thiết lập queue theo nguồn hiện tại trước khi phát
             val currentSource = _state.value.selectedSource
             val visibleList = _state.value.filteredSongs
             val queueSongs = if (visibleList.isNotEmpty()) visibleList else listOf(song)

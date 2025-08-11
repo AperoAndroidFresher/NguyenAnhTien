@@ -189,12 +189,7 @@ fun NavigationApp() {
 
             entry<PlayerNavKey> { key ->
                 val playerViewModel: PlayerViewModel = hiltViewModel()
-
                 PlayerScreen(
-                    songTitle = key.title,
-                    songArtist = key.artist,
-                    songDuration = key.duration,
-                    albumArtUrl = key.albumArt,
                     onBackClick = { backStack.removeLastOrNull() },
                     onExitClick = {
                         backStack.add(HomeNavKey)

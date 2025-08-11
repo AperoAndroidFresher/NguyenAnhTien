@@ -117,10 +117,6 @@ fun LibraryScreen(
             if (state.isLoading) {
                 LoadingWithLottie()
             } else if (state.filteredSongs.isEmpty()) {
-//                LaunchedEffect(state.selectedSource, state.songs.size) {
-//                    state.songs.forEach { song ->
-//                    }
-//                }
                 ContentLoadFailure()
             } else {
                 LazyColumn(

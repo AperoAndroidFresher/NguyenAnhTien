@@ -6,16 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -29,12 +21,10 @@ import androidx.compose.ui.unit.dp
 import com.example.learnjetpackcompose.R
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
+import com.example.learnjetpackcompose.Component.ImageContent
+import com.example.learnjetpackcompose.Component.InputTextField
+import com.example.learnjetpackcompose.Component.PasswordTextField
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
@@ -46,8 +36,6 @@ fun LoginScreen(
 ) {
 
     val state by viewModel.state.collectAsState()
-    val keyboardController = LocalSoftwareKeyboardController.current
-    // Sử dụng LaunchedEffect để xử lý các sự kiện một lần
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
@@ -68,86 +56,26 @@ fun LoginScreen(
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        ImageContent()
+        ImageContent(painterResource(R.drawable.aperologo), "Log in")
 
         Spacer(modifier = Modifier.height(16.dp))
 
-//      UserName Textfield
-        OutlinedTextField(
+        InputTextField(
             value = state.username,
-            onValueChange = { viewModel.processIntent(LoginIntent.UsernameChanged(it)) },
-            label = { Text(text = "Username", color = Color.White.copy(0.7f)) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-            ),
-
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    keyboardController?.hide()
-                }
-            ),
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "User Icon",
-                    tint = Color.White.copy(alpha = 0.5f)
-
-                )
-            }
+            onValueChange = {viewModel.processIntent(LoginIntent.UsernameChanged(it))},
+            label = "UserName",
+            leadingIcon = painterResource(R.drawable.icon_user),
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
+        Spacer(modifier = Modifier.height(10.dp))
+        PasswordTextField(
             value = state.password,
-            onValueChange = { viewModel.processIntent(LoginIntent.PasswordChanged(it)) },
-            label = { Text(text = "Password", color = Color.White.copy(0.7f)) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
-            ),
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Done // Yêu cầu nút "Done" trên bàn phím
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    keyboardController?.hide() // Ẩn bàn phím
-                    viewModel.processIntent(LoginIntent.LoginClick) // Tùy chọn: thực hiện đăng nhập luôn
-                }
-            ),
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = "Password Icon",
-                    tint = Color.White.copy(alpha = 0.5f)
-
-                )
-            },
-            trailingIcon = {
-                IconButton(onClick = {
-                    viewModel.processIntent(LoginIntent.ShowPasswordVisibility)
-                }
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.icon_visible),
-                        modifier = Modifier.size(24.dp),
-                        contentDescription = "Show password",
-                        tint = Color.White
-                    )
-                }
-            },
-            visualTransformation = if (state.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-
-            )
+            onValueChange = {viewModel.processIntent(LoginIntent.PasswordChanged(it))},
+            isPasswordVisible = state.isPasswordVisible,
+            onShowPassword = {viewModel.processIntent(LoginIntent.ShowPasswordVisibility)},
+            label = "Password",
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Row(
             modifier = Modifier
@@ -221,29 +149,6 @@ fun SplashScreen(onTimeout: () -> Unit) {
     }
 }
 
-@Composable
-fun ImageContent(
-){
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ){
-        Image(
-            painter = painterResource(id = R.drawable.aperologo),
-            contentDescription = "Logo Apero",
-            modifier = Modifier
-                .size(350.dp)
-                .align(Alignment.CenterHorizontally)
-        )
-        Text(
-            text = "Login to your account",
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.White,
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
 
 @Composable
 fun BottomText(
@@ -254,20 +159,18 @@ fun BottomText(
             .fillMaxSize()
             .padding(16.dp),
         horizontalArrangement = Arrangement.Center,
-//        verticalAlignment = Alignment.Bottom
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = "Don't have an account?",
             color = Color.White.copy(alpha = 0.8f),
             fontSize = 20.sp,
-            modifier = Modifier.align(Alignment.Bottom)
         )
         TextButton(
             onClick = onSignUpClick,
             colors = ButtonDefaults.textButtonColors(
                 contentColor = Color(0xFF06A0B5)
             ),
-            modifier = Modifier.align(Alignment.Bottom)
         ) {
             Text(
                 text = "Sign Up",
@@ -281,5 +184,4 @@ fun BottomText(
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-
 }
