@@ -1,5 +1,6 @@
 package com.example.learnjetpackcompose.Screen.Home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,12 +22,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,11 +35,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.learnjetpackcompose.Component.AlbumArt
+import com.example.learnjetpackcompose.Component.IconButtonCustom
 import com.example.learnjetpackcompose.R
 
 @Composable
@@ -73,14 +73,14 @@ fun HomeScreen(
 
         item { SectionTitle(text = "Rankings") }
 
-//        // Top Albums
+        // Top Albums
 //        item { SectionHeader(title = "Top Albums", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllAlbums) }) }
 //        item { AlbumsGrid(albums = state.topAlbums) }
 //
 //        // Top Tracks
 //        item { SectionHeader(title = "Top Tracks", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllTracks) }) }
 //        item {
-//            LazyRow(contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+//            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
 //                items(state.topTracks) { song ->
 //                    TrackCard(title = song.title, artist = song.artist, cover = song.albumArt)
 //                }
@@ -90,13 +90,12 @@ fun HomeScreen(
 //        // Top Artist
 //        item { SectionHeader(title = "Top Artist", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllArtists) }) }
 //        item {
-//            LazyRow(contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+//            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
 //                items(state.topArtists) { artist ->
 //                    ArtistCard(name = artist.name, avatar = artist.avatarUri)
 //                }
 //            }
 //        }
-//
 //        item { Spacer(modifier = Modifier.height(24.dp)) }
     }
 }
@@ -122,37 +121,40 @@ private fun HeaderHome(
                     .size(36.dp)
                     .clip(RoundedCornerShape(18.dp))
                     .clickable { onMyProfileClick() },
-                placeholder = androidx.compose.ui.res.painterResource(R.drawable.default_avatar),
-                error = androidx.compose.ui.res.painterResource(R.drawable.default_avatar)
+                placeholder = painterResource(R.drawable.default_avatar),
+                error = painterResource(R.drawable.default_avatar)
             )
             Spacer(modifier = Modifier.width(10.dp))
             Column {
-                Text(text = "Welcome back !", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                Text(text = "Welcome back !", color = Color.White,
+                    fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                 Text(text = displayName, color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp)
             }
         }
-        IconButton(
-            modifier = Modifier.size(40.dp),
-            onClick = onMyProfileClick
-        ) {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = "Settings",
-                tint = Color.White
-            )
-        }
+        IconButtonCustom(onClick = onMyProfileClick, icon = R.drawable.icon_settings,"Settings",
+            modifier = Modifier.size(40.dp))
     }
 }
 
 @Composable
 private fun SectionTitle(text: String) {
-    Text(
-        text = text,
-        modifier = Modifier.padding(start = 16.dp),
-        color = Color(0xFF39D3F5),
-        fontSize = 22.sp,
-        fontWeight = FontWeight.Bold
-    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ){
+        Image(
+            painter = painterResource(R.drawable.ranking),
+            contentDescription = null,
+            modifier = Modifier.padding(start = 16.dp),
+        )
+        Text(
+            text = text,
+            modifier = Modifier.padding(start = 16.dp),
+            color = Color(0xFF39D3F5),
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
 }
 
 @Composable
@@ -184,16 +186,9 @@ private fun AlbumCard(title: String, artist: String, cover: String?) {
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-            AsyncImage(
-                model = cover,
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(10.dp)),
-                placeholder = androidx.compose.ui.res.painterResource(R.drawable.icon_music),
-                error = androidx.compose.ui.res.painterResource(R.drawable.icon_music)
-            )
+            AlbumArt(cover,
+                modifier = Modifier.padding(8.dp).size(56.dp)
+                    .clip(RoundedCornerShape(10.dp)))
             Column(modifier = Modifier.padding(end = 8.dp)) {
                 Text(text = title, color = Color.White, fontSize = 14.sp, maxLines = 1)
                 Text(text = artist, color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp, maxLines = 1)
@@ -238,8 +233,8 @@ private fun TrackCard(title: String, artist: String, cover: String?) {
                 model = cover,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
-                placeholder = androidx.compose.ui.res.painterResource(R.drawable.icon_music),
-                error = androidx.compose.ui.res.painterResource(R.drawable.icon_music)
+                placeholder = painterResource(R.drawable.icon_music),
+                error = painterResource(R.drawable.icon_music)
             )
             Box(
                 modifier = Modifier
@@ -274,8 +269,8 @@ private fun ArtistCard(name: String, avatar: String?) {
                 model = avatar,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
-                placeholder = androidx.compose.ui.res.painterResource(R.drawable.icon_user),
-                error = androidx.compose.ui.res.painterResource(R.drawable.icon_user)
+                placeholder = painterResource(R.drawable.icon_user),
+                error = painterResource(R.drawable.icon_user)
             )
         }
         Spacer(modifier = Modifier.height(6.dp))

@@ -46,13 +46,11 @@ class HomeViewModel @Inject constructor(
             try {
                 _state.update { it.copy(isLoading = true, error = null) }
 
-                // Fetch remote songs as a data source for Top Tracks; reuse to derive albums/artists
                 val remoteSongs: List<Song> = songRepository.getRemoteSongs()
 
                 val topTracksAll = remoteSongs
                 val topTracks = topTracksAll.take(5)
 
-                // Build simple derived data for albums (by title/artist) and artists
                 val albumsAll = remoteSongs.map { song ->
                     HomeAlbum(
                         title = song.title,

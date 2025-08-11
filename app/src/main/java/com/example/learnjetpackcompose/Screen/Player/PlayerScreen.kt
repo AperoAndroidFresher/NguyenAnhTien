@@ -87,7 +87,9 @@ fun PlayerScreen(
     }
 
     Column(
-        modifier = modifier.fillMaxSize().background(Color.Black)
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Black)
     ) {
         Header(onBackClick, handleExitClick, modifier)
         Spacer(modifier = modifier.height(10.dp))
@@ -118,7 +120,8 @@ private fun Header(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -143,7 +146,9 @@ fun Content(
     albumArtUrl: String? = null
 ){
     Column(
-        modifier = Modifier.fillMaxWidth().padding(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp),
         verticalArrangement = Arrangement.Center
     ){
 
@@ -191,15 +196,35 @@ fun ButtonControls(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ){
-        IconButtonCustom(onShuffleClick, R.drawable.icon_shuffle,"Shuffle",
-            if (isShuffled) Modifier.size(36.dp).background(Color.White.copy(0.5f)) else Modifier.size(36.dp))
-        IconButtonCustom(onPreviousClick, R.drawable.icon_previous,"Previous", Modifier.size(36.dp))
-        IconButtonCustom(onPlayPauseClick,
+        IconButtonCustom(
+            onShuffleClick, R.drawable.icon_shuffle, "Shuffle",
+            if (isShuffled) Modifier
+                .size(36.dp)
+                .background(Color(0xFF00C2CB).copy(0.5f))
+            else Modifier.size(36.dp)
+        )
+        IconButtonCustom(
+            onPreviousClick,
+            R.drawable.icon_previous,
+            "Previous",
+            Modifier.size(36.dp)
+        )
+        IconButtonCustom(
+            onPlayPauseClick,
             if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play,
             if (isPlaying) "Pause" else "Play",
-            Modifier.size(36.dp))
-        IconButtonCustom(onNextClick, R.drawable.icon_next,"Next", Modifier.size(36.dp))
-        IconButtonCustom(onRepeatClick, R.drawable.icon_repeat,"Repeat", Modifier.size(36.dp))
+            Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF00C2CB))
+        )
+        IconButtonCustom(onNextClick, R.drawable.icon_next, "Next", Modifier.size(36.dp))
+        IconButtonCustom(
+            onRepeatClick, R.drawable.icon_repeat, "Repeat",
+            Modifier
+                .size(36.dp)
+                .background(Color(0xFF00C2CB).copy(0.5f))
+        )
     }
 }
 
@@ -216,7 +241,8 @@ fun PlayerBar(
     Box(
     ){
         Box(
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier
+                .size(24.dp)
                 .align(Alignment.TopEnd)
                 .offset(x = 1.dp, y = (-24).dp)
                 .background(Color.Transparent, shape = CircleShape)
@@ -251,13 +277,19 @@ fun PlayBarInfo(
         IconButtonCustom(onPlayPauseClick,
             if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play,
             if (isPlaying) "Pause" else "Play",
-            Modifier.size(36.dp))
+            Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF00C2CB)))
         Text(
             text = title,
             fontSize = 16.sp,
             style = MaterialTheme.typography.titleSmall,
             color = Color.White,
-            modifier = Modifier.weight(2f).padding(10.dp).basicMarquee()
+            modifier = Modifier
+                .weight(2f)
+                .padding(10.dp)
+                .basicMarquee()
         )
 
         Text(

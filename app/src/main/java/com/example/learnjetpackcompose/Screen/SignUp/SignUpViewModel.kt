@@ -94,7 +94,8 @@ class SignUpViewModel @Inject constructor(
                 val newUser = User(
                     username = currentState.username,
                     email = currentState.email,
-                    password = currentState.password
+                    password = currentState.password,
+                    displayName = currentState.username
                 )
                 val success = UserManager.addUser(newUser)
 
