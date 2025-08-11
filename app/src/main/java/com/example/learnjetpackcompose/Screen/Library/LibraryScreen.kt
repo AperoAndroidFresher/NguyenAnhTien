@@ -1,5 +1,7 @@
 package com.example.learnjetpackcompose.Screen.Library
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
@@ -37,9 +39,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -53,6 +57,7 @@ import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Playlist.Component.ChoosePlaylistDialog
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
+import java.io.File
 
 @Composable
 fun LibraryScreen(
@@ -65,6 +70,7 @@ fun LibraryScreen(
     val state by libraryViewModel.state.collectAsState()
     val playlistState by playlistViewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     var selectedSongId by remember { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(playlistState.playlists) {
@@ -86,6 +92,9 @@ fun LibraryScreen(
             when (effect) {
                 is LibraryEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.message)
                 is LibraryEffect.ShowDialogChoosePlaylist -> {}
+                is LibraryEffect.ShareSongFile -> {
+                    shareAudioFile(context, effect.song)
+                }
                 LibraryEffect.NavigateToPlayer -> Unit
             }
         }
@@ -137,7 +146,10 @@ fun LibraryScreen(
                                 selectedSongId = it.songId
                                 libraryViewModel.processIntent(LibraryIntent.PlaySong(it))
                             },
-                            onSelectSong = { selectedSongId = it.songId }
+                            onSelectSong = { selectedSongId = it.songId },
+                            onShareSong = {
+                                libraryViewModel.processIntent(LibraryIntent.ShareSong(it))
+                            }
                         )
                     }
                 }
@@ -165,6 +177,38 @@ fun LibraryScreen(
                 }
             )
         }
+    }
+}
+
+private fun shareAudioFile(context: Context, song: Song) {
+    try {
+        val file = File(song.data)
+        if (!file.exists()) {
+            // Show error message
+            return
+        }
+
+        val uri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file
+        )
+
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "audio/*"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_SUBJECT, "Sharing: ${song.title}")
+            putExtra(Intent.EXTRA_TEXT, "Check out this song: ${song.title} by ${song.artist}")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        val chooserIntent = Intent.createChooser(shareIntent, "Share ${song.title}")
+        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(chooserIntent)
+
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 }
 
@@ -288,6 +332,7 @@ private fun LibrarySongCardList(
     onAddToPlaylist: (Song) -> Unit,
     onPlaySong: (Song) -> Unit,
     onSelectSong: (Song) -> Unit,
+    onShareSong: (Song) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showDropdownMenu by remember { mutableStateOf(false) }
@@ -334,6 +379,7 @@ private fun LibrarySongCardList(
                         onAddToPlaylist(song)
                         showDropdownMenu = false},
                     onShareClick = {
+                        onShareSong(song)
                         showDropdownMenu = false
                     }
                 )
@@ -393,8 +439,5 @@ fun CustomDropDownMenu(
             text = "Share",
             onClick = onShareClick
         )
-
     }
-
 }
-

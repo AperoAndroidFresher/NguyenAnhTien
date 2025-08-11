@@ -46,9 +46,7 @@ class LibraryViewModel @Inject constructor(
 
             is LibraryIntent.LoadRemoteSongs -> loadRemoteSongs()
 
-            is LibraryIntent.ShareSong -> {
-                // Handle share song intent
-            }
+            is LibraryIntent.ShareSong -> shareSong(intent.song)
 
             is LibraryIntent.DismissDialog -> dismissDialog()
             is LibraryIntent.PauseMusic -> pauseMusic()
@@ -94,6 +92,16 @@ class LibraryViewModel @Inject constructor(
                 showDialog = false,
                 selectedSong = null
             )
+        }
+    }
+
+    private fun shareSong(song: Song) {
+        viewModelScope.launch {
+            try {
+                _effect.send(LibraryEffect.ShareSongFile(song))
+            } catch (e: Exception) {
+                _effect.send(LibraryEffect.ShowMessage("Failed to share song"))
+            }
         }
     }
 

@@ -13,7 +13,8 @@ import coil.compose.AsyncImage
 import com.example.learnjetpackcompose.R
 
 @Composable
-fun AlbumArt(albumArtUri: String?) {
+fun AlbumArt(albumArtUri: String?,
+             modifier: Modifier = Modifier) {
     val uri = if (albumArtUri.isNullOrEmpty() || albumArtUri == Uri.EMPTY.toString()) {
         null
     } else {
@@ -23,7 +24,7 @@ fun AlbumArt(albumArtUri: String?) {
     AsyncImage(
         model = uri,
         contentDescription = "Album Art",
-        modifier = Modifier
+        modifier = modifier
             .size(48.dp)
             .clip(RoundedCornerShape(8.dp)),
         contentScale = ContentScale.Crop,

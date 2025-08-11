@@ -41,6 +41,7 @@ import com.example.learnjetpackcompose.Component.AlbumArt
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
+import com.example.learnjetpackcompose.Component.IconButtonCustom
 import com.example.learnjetpackcompose.Component.SongInfo
 import com.example.learnjetpackcompose.Screen.Library.LibraryViewModel
 import com.example.learnjetpackcompose.Screen.Playlist.Component.DialogCreatePlaylist
@@ -108,17 +109,8 @@ fun PlaylistCardList(
             Box(
                 modifier = Modifier.align(Alignment.CenterVertically)
             ) {
-                IconButton(
-                    onClick = {
-                        showDropdownMenu = true
-                    },
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.icon_morevert),
-                        contentDescription = "Mở menu tùy chọn",
-                        tint = Color.White
-                    )
-                }
+                IconButtonCustom(onClick = {showDropdownMenu = true},
+                    R.drawable.icon_morevert, "More options")
                 CustomDropDownMenu(
                     expanded = showDropdownMenu,
                     onDismissRequest = {showDropdownMenu = false},
@@ -141,7 +133,6 @@ fun PlaylistScreen(
     modifier: Modifier = Modifier,
     viewModel: PlaylistViewModel,
     onNavigateToSongs: (Playlist) -> Unit = {},
-    libraryViewModel: LibraryViewModel? = null
 ) {
     val state by viewModel.state.collectAsState()
     val listState = rememberLazyListState()
@@ -165,24 +156,9 @@ fun PlaylistScreen(
                 modifier = Modifier.padding(10.dp),
                 color = Color.White
             )
-
-            IconButton(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .align(Alignment.CenterVertically)
-                    .size(40.dp),
-                onClick = {
-                    showCreateDialog = true
-                },
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.icon_add),
-                    contentDescription = "Add playlist",
-                    tint = Color.White
-                )
-            }
+            IconButtonCustom(onClick = {showCreateDialog = true}, R.drawable.icon_add, "Add playlist",
+                modifier = Modifier.size(40.dp))
         }
-
         if (state.playlists.isEmpty()) {
             NoPlaylistScreen(onAddPlaylistClicked = {
                 showCreateDialog = true
@@ -203,7 +179,6 @@ fun PlaylistScreen(
         }
     }
 
-    // Dialog tạo playlist mới
     if (showCreateDialog) {
         DialogCreatePlaylist(
             onDismissRequest = { showCreateDialog = false },
@@ -215,7 +190,6 @@ fun PlaylistScreen(
         )
     }
 
-    // Dialog đổi tên playlist
     val renameTarget = showRenameDialog
     if (renameTarget != null) {
         DialogRenamePlaylist(
@@ -232,7 +206,6 @@ fun PlaylistScreen(
         )
     }
 }
-
 
 @Composable
 fun CustomDropDownMenu(
