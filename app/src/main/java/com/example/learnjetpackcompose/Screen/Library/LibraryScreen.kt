@@ -58,6 +58,7 @@ import com.example.learnjetpackcompose.Screen.Playlist.Component.ChoosePlaylistD
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 import java.io.File
+import com.example.learnjetpackcompose.Utils.ShareUtils
 
 @Composable
 fun LibraryScreen(
@@ -92,9 +93,7 @@ fun LibraryScreen(
             when (effect) {
                 is LibraryEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.message)
                 is LibraryEffect.ShowDialogChoosePlaylist -> {}
-                is LibraryEffect.ShareSongFile -> {
-                    shareAudioFile(context, effect.song)
-                }
+                is LibraryEffect.ShareSongFile -> ShareUtils.shareAudioFile(context, effect.song)
                 LibraryEffect.NavigateToPlayer -> Unit
             }
         }

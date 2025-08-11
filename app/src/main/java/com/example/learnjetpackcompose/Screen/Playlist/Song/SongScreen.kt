@@ -56,6 +56,9 @@ import com.example.learnjetpackcompose.Component.IconButtonCustom
 import com.example.learnjetpackcompose.Component.SongInfo
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 import com.example.learnjetpackcompose.Screen.Player.PlayerViewModel
+import com.example.learnjetpackcompose.Utils.ShareUtils
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 
 @Composable
@@ -65,6 +68,7 @@ fun SongCardList(
     onRemoveSong: (Song) -> Unit,
     onPlaySong: (Song) -> Unit,
     onSelectSong: (Song) -> Unit,
+    onShareSong: (Song) -> Unit,
     modifier: Modifier = Modifier
 ){
     var showDropdownMenu by remember { mutableStateOf(false) }
@@ -124,7 +128,7 @@ fun SongCardList(
                         iconId = R.drawable.icon_share,
                         contentDescription = "Remove",
                         text = "Share",
-                        onClick = { showDropdownMenu = false }
+                        onClick = { onShareSong(song); showDropdownMenu = false }
                     )
                 }
             }
@@ -138,7 +142,8 @@ fun SongCardGrid(
     isSelected: Boolean,
     onRemoveSong: (Song) -> Unit,
     onPlaySong: (Song) -> Unit,
-    onSelectSong: (Song) -> Unit
+    onSelectSong: (Song) -> Unit,
+    onShareSong: (Song) -> Unit
 ){
     var showDropdownMenu by remember { mutableStateOf(false) }
 
@@ -190,7 +195,7 @@ fun SongCardGrid(
                             iconId = R.drawable.icon_share,
                             contentDescription = "Remove",
                             text = "Share",
-                            onClick = { showDropdownMenu = false }
+                            onClick = { onShareSong(song); showDropdownMenu = false }
                         )
                     }
                 }
@@ -210,6 +215,7 @@ fun SongLinear(
     onReorder: (Int, Int) -> Unit,
     onPlaySong: (Song) -> Unit,
     onSelectSong: (Song) -> Unit,
+    onShareSong: (Song) -> Unit,
     modifier: Modifier
 ){
 
@@ -259,7 +265,8 @@ fun SongLinear(
                     isSelected = selectedSongId == playlist.songId,
                     onRemoveSong = onRemoveSong,
                     onPlaySong = onPlaySong,
-                    onSelectSong = onSelectSong
+                    onSelectSong = onSelectSong,
+                    onShareSong = onShareSong
                 )
             }
         }
@@ -299,6 +306,7 @@ fun SongGrid(
     onRemoveSong: (Song) -> Unit,
     onPlaySong: (Song) -> Unit,
     onSelectSong: (Song) -> Unit,
+    onShareSong: (Song) -> Unit,
     modifier: Modifier
 ){
     Column(
@@ -342,7 +350,8 @@ fun SongGrid(
                     isSelected = selectedSongId == song.songId,
                     onRemoveSong = onRemoveSong,
                     onPlaySong = onPlaySong,
-                    onSelectSong = onSelectSong
+                    onSelectSong = onSelectSong,
+                    onShareSong = onShareSong
                 )
             }
         }
@@ -358,6 +367,7 @@ fun SongScreen(
 ) {
     val playlistViewModel: PlaylistViewModel = hiltViewModel()
     val playerViewModel: PlayerViewModel = hiltViewModel()
+    val songViewModel: SongViewModel = viewModel()
     val playlistState by playlistViewModel.state.collectAsState()
     val songs = playlistState.playlists.find { it.playlistId == playlistId }?.songs ?: emptyList()
     val appContext = LocalContext.current.applicationContext
@@ -376,6 +386,15 @@ fun SongScreen(
     val reorder: (Int, Int) -> Unit = { from, to ->
         // Sẽ implement sau nếu cần
         println("Reorder from $from to $to")
+    }
+
+    LaunchedEffect(Unit) {
+        songViewModel.effect.collect { effect ->
+            when (effect) {
+                is SongEffect.ShowMessage -> Unit
+                is SongEffect.ShareSongFile -> ShareUtils.shareAudioFile(appContext, effect.song)
+            }
+        }
     }
 
     Column(
@@ -409,7 +428,8 @@ fun SongScreen(
                         playerViewModel.setQueueFromPlaylist(playlistId.toString(), songs, startIndex)
                         playerViewModel.playSong(song)
                     },
-                    onSelectSong = { selectedSongId = it.songId }
+                    onSelectSong = { selectedSongId = it.songId },
+                    onShareSong = { song -> songViewModel.processIntent(SongIntent.ShareSong(song)) }
                 )
             } else {
                 SongLinear(
@@ -427,7 +447,8 @@ fun SongScreen(
                         playerViewModel.setQueueFromPlaylist(playlistId.toString(), songs, startIndex)
                         playerViewModel.playSong(song)
                     },
-                    onSelectSong = { selectedSongId = it.songId }
+                    onSelectSong = { selectedSongId = it.songId },
+                    onShareSong = { song -> songViewModel.processIntent(SongIntent.ShareSong(song)) }
                 )
             }
         }
