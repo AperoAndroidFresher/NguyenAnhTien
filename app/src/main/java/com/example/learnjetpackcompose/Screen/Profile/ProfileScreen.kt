@@ -1,22 +1,13 @@
 package com.example.learnjetpackcompose.Screen.Profile
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,13 +15,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.ui.theme.LearnJetPackComposeTheme
 import kotlinx.coroutines.delay
@@ -56,17 +43,19 @@ import java.io.FileOutputStream
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
-fun MainProfileScreen() {
+fun MainProfileScreen(
+    viewModel: ProfileViewModel,
+    onLogout: () -> Unit,
+    navigateToLogin: () -> Unit
+) {
     var isEditing by remember { mutableStateOf(false) }
     var isDark by remember { mutableStateOf(false) }
-    val viewModel: ProfileViewModel = hiltViewModel()
-
     Surface(color = MaterialTheme.colorScheme.background) {
         if (isEditing) {
             LearnJetPackComposeTheme(darkTheme = isDark) {
                 ProfileEditing(
                     viewModel = viewModel,
-                    onBackToView = { isEditing = false }
+                    onBackToView = { isEditing = false },
                 )
             }
         } else {
@@ -74,7 +63,9 @@ fun MainProfileScreen() {
                 ProfileNoEdit(
                     viewModel = viewModel,
                     onEditClick = { isEditing = true },
-                    isDark  = isDark, onToggleTheme = {isDark = !isDark}
+                    isDark  = isDark, onToggleTheme = {isDark = !isDark},
+                    logout = onLogout,
+                    navigateToLogin = navigateToLogin
                 )
             }
         }
@@ -86,7 +77,9 @@ fun ProfileNoEdit(
     viewModel: ProfileViewModel,
     onEditClick: () -> Unit,
     isDark: Boolean,
-    onToggleTheme: () -> Unit
+    onToggleTheme: () -> Unit,
+    logout: () -> Unit = {},
+    navigateToLogin: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     LaunchedEffect(Unit) {
@@ -95,8 +88,12 @@ fun ProfileNoEdit(
                 is ProfileEffect.ShowError -> {
                     Log.e("ProfileScreen", "Error: ${effect.message}")
                 }
-
-                else -> {}
+                is ProfileEffect.NavigateToLogin -> {
+                    navigateToLogin()
+                }
+                else -> {
+                    // Handle other effects if needed
+                }
             }
         }
     }
@@ -171,7 +168,7 @@ fun ProfileNoEdit(
                 "Describe yourself...", null,
                 isReadOnly =true, false, 5, Modifier.fillMaxWidth())
 
-            MyButton(onClick ={},
+            MyButton(onClick = logout,
                 label = "Log out")
         }
     }
@@ -205,6 +202,8 @@ fun ProfileEditing(
                 }
                 is ProfileEffect.ShowError -> {
                 }
+
+                ProfileEffect.NavigateToLogin -> {}
             }
         }
     }

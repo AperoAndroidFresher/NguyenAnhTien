@@ -43,6 +43,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.graphics.Color
 import com.example.learnjetpackcompose.Component.AppNavigationBottomBar
 import com.example.learnjetpackcompose.Screen.Player.PlayerViewModel
+import com.example.learnjetpackcompose.Screen.Profile.ProfileIntent
+import com.example.learnjetpackcompose.Screen.Profile.ProfileViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
@@ -53,6 +56,7 @@ fun NavigationApp() {
     val songViewModel = SongViewModel(context.applicationContext as Application)
     val songs = songViewModel.songs
     val playerVM: PlayerViewModel = hiltViewModel()
+    val profileVM : ProfileViewModel = hiltViewModel()
 
     NavDisplay(
         backStack = backStack,
@@ -112,7 +116,16 @@ fun NavigationApp() {
             }
 
             entry<ProfileNavKey> { key ->
-                MainProfileScreen()
+                MainProfileScreen(
+                    viewModel = hiltViewModel(),
+                    onLogout = {
+                        profileVM.processIntent(ProfileIntent.Logout)
+                    },
+                    navigateToLogin = {
+                        backStack.clear()
+                        backStack.add(LoginNavKey())
+                    }
+                )
             }
 
             entry<PlaylistNavKey> { key ->

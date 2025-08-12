@@ -35,4 +35,5 @@ sealed interface ProfileEffect{
     data object NavigateBack: ProfileEffect
     data object ProfileSaved: ProfileEffect
     data class ShowError(val message: String): ProfileEffect
+    data object NavigateToLogin: ProfileEffect
 }

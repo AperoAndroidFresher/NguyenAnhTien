@@ -1,11 +1,13 @@
 package com.example.learnjetpackcompose.Screen.Profile
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.Utils.ValidationUtils
 import com.example.learnjetpackcompose.data.model.UserManager
 import com.example.learnjetpackcompose.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileState())
@@ -26,6 +29,7 @@ class ProfileViewModel @Inject constructor(
     private val _effect = Channel<ProfileEffect>()
     val effect = _effect.receiveAsFlow()
 
+    private val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
     init {
         loadUserData()
     }
@@ -57,12 +61,22 @@ class ProfileViewModel @Inject constructor(
                 ProfileIntent.LoadUserData -> {
                     loadUserData()
                 }
-
-                ProfileIntent.Logout -> {}
+                ProfileIntent.Logout -> logout()
             }
         }
     }
 
+    private fun logout(){
+        viewModelScope.launch(Dispatchers.IO){
+            UserManager.clearCurrentUserId()
+            with(sharedPreferences.edit()) {
+                remove("is_logged_in")
+                remove("user_id")
+                apply()
+            }
+            _effect.send(ProfileEffect.NavigateToLogin)
+        }
+    }
     private fun loadUserData() {
         viewModelScope.launch(Dispatchers.IO){
             try {
