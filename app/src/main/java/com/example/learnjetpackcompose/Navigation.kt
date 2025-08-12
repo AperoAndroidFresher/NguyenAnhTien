@@ -1,7 +1,6 @@
 package com.example.learnjetpackcompose
 
 import android.annotation.SuppressLint
-import android.app.Application
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -10,9 +9,10 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.runtime.entry
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
-import com.example.learnjetpackcompose.RoomDB.Entity.SongViewModel
 import com.example.learnjetpackcompose.Screen.Home.HomeScreen
 import com.example.learnjetpackcompose.Screen.Library.LibraryScreen
+import com.example.learnjetpackcompose.Screen.Library.LibraryIntent
+import com.example.learnjetpackcompose.Screen.Library.LibraryViewModel
 import com.example.learnjetpackcompose.Screen.Login.LoginScreen
 import com.example.learnjetpackcompose.Screen.Login.LoginViewModel
 import com.example.learnjetpackcompose.Screen.Login.SplashScreen
@@ -31,7 +31,6 @@ import com.example.learnjetpackcompose.data.model.UserManager
 import com.example.learnjetpackcompose.data.model.PlaybackManager
 import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.layout.Column
-import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import com.example.learnjetpackcompose.Component.AppNavigationBottomBar
 import com.example.learnjetpackcompose.Screen.Home.Setting.SettingScreen
@@ -45,9 +44,6 @@ import com.example.learnjetpackcompose.Screen.Profile.ProfileViewModel
 fun NavigationApp() {
     val context = LocalContext.current
     val backStack = rememberNavBackStack(SplashNavKey)
-
-    val songViewModel = SongViewModel(context.applicationContext as Application)
-    val songs = songViewModel.songs
     val playerVM: PlayerViewModel = hiltViewModel()
     val profileVM : ProfileViewModel = hiltViewModel()
 
@@ -161,12 +157,19 @@ fun NavigationApp() {
                     },
                     backStack = backStack
                 ) { innerPadding ->
+                    val activity = context as MainActivity
+                    val libraryViewModel = hiltViewModel<LibraryViewModel>()
                     LibraryScreen(
-                        libraryViewModel = hiltViewModel(),
+                        libraryViewModel = libraryViewModel,
                         playlistViewModel = hiltViewModel(),
-                        songs = songs,
                         onNavigateToPlaylist = {
                             backStack.add(PlaylistNavKey)
+                        },
+                        onRequestPermission = {
+                            activity.requestPermission {
+                                libraryViewModel.refreshLocalSongs()
+                                libraryViewModel.processIntent(LibraryIntent.OnPermissionGranted)
+                            }
                         },
                         modifier = Modifier.padding(innerPadding)
                     )

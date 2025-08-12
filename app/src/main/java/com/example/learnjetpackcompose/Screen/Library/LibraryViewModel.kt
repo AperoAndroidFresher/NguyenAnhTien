@@ -1,16 +1,18 @@
 package com.example.learnjetpackcompose.Screen.Library
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.RoomDB.Entity.Playlist
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
-import com.example.learnjetpackcompose.data.repository.SongRepositoryImpl
+import com.example.learnjetpackcompose.Utils.hasStoragePermission
+import com.example.learnjetpackcompose.data.repository.SongDataRepository
 import com.example.learnjetpackcompose.domain.repository.PlayerRepository
 import com.example.learnjetpackcompose.domain.playback.PlaybackCoordinator
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -21,9 +23,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    private val songRepository: SongRepositoryImpl,
+    private val songDataRepository: SongDataRepository,
     private val playerRepository: PlayerRepository,
-    private val playbackCoordinator: PlaybackCoordinator
+    private val playbackCoordinator: PlaybackCoordinator,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LibraryState())
@@ -43,10 +46,26 @@ class LibraryViewModel @Inject constructor(
                 _state.update { it.copy(isPlaying = playing) }
             }
         }
+        processIntent(LibraryIntent.CheckStoragePermission)
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _state.update { it.copy(isLoading = true) }
+                songDataRepository.initialize()
+                viewModelScope.launch(Dispatchers.IO) { processIntent(LibraryIntent.LoadLocalSongs) }
+            } catch (e: Exception) {
+                _state.update { it.copy(isLoading = false, error = "Failed to initialize songs") }
+            }
+        }
     }
 
     fun updatePlaylists(playlists: List<Playlist>) {
         _state.update { it.copy(playlists = playlists) }
+    }
+
+    fun checkPermissionOnEntry() {
+        if (!context.hasStoragePermission()) {
+            _state.update { it.copy(showPermissionDialog = true) }
+        }
     }
 
     fun processIntent(intent: LibraryIntent) {
@@ -60,6 +79,7 @@ class LibraryViewModel @Inject constructor(
             is LibraryIntent.LoadLocalSongs -> loadLocalSongs()
 
             is LibraryIntent.LoadRemoteSongs -> loadRemoteSongs()
+            is LibraryIntent.RefreshAllSongs -> refreshAllSongs()
 
             is LibraryIntent.ShareSong -> shareSong(intent.song)
 
@@ -72,6 +92,10 @@ class LibraryViewModel @Inject constructor(
                 intent.isPlaying,
                 intent.currentSong
             )
+            is LibraryIntent.CheckStoragePermission -> checkStoragePermission()
+            is LibraryIntent.RequestStoragePermission -> requestStoragePermission()
+            is LibraryIntent.DismissPermissionDialog -> dismissPermissionDialog()
+            is LibraryIntent.OnPermissionGranted -> onPermissionGranted()
         }
     }
 
@@ -79,7 +103,10 @@ class LibraryViewModel @Inject constructor(
         _state.update { currentState ->
             currentState.copy(
                 songs = songs,
-                filteredSongs = filterSongsBySource(songs, currentState.selectedSource),
+                filteredSongs = when (currentState.selectedSource) {
+                    LibrarySource.LOCAL -> songDataRepository.getLocalSongs()
+                    LibrarySource.REMOTE -> songDataRepository.getRemoteSongs()
+                },
                 error = null
             )
         }
@@ -121,66 +148,52 @@ class LibraryViewModel @Inject constructor(
     }
 
     private fun loadLocalSongs() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                _state.update {
-                    it.copy(
-                        isLoading = true,
-                        selectedSource = LibrarySource.LOCAL,
-                        showDialog = false,
-                        selectedSong = null
-                    )
-                }
-                delay(500)
-
-                val allSongs = _state.value.songs
-                val localSongs = filterSongsBySource(allSongs, LibrarySource.LOCAL)
-
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        filteredSongs = localSongs,
-                        error = null
-                    )
-                }
-                _effect.send(LibraryEffect.ShowMessage("Local songs loaded"))
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        error = "Failed to load local songs"
-                    )
-                }
-            }
+        _state.update {
+            it.copy(
+                selectedSource = LibrarySource.LOCAL,
+                isLoading = false,
+                filteredSongs = songDataRepository.getLocalSongs(),
+                error = null,
+                showDialog = false,
+                selectedSong = null
+            )
         }
     }
 
     private fun loadRemoteSongs() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
+                val cachedRemoteSongs = songDataRepository.getRemoteSongs()
+                if (cachedRemoteSongs.isNotEmpty()) {
+                    _state.update {
+                        it.copy(
+                            selectedSource = LibrarySource.REMOTE,
+                            isLoading = false,
+                            filteredSongs = cachedRemoteSongs,
+                            error = null,
+                            showDialog = false,
+                            selectedSong = null
+                        )
+                    }
+                    return@launch
+                }
                 _state.update {
                     it.copy(
-                        isLoading = true,
                         selectedSource = LibrarySource.REMOTE,
+                        isLoading = true,
                         showDialog = false,
                         selectedSong = null
                     )
                 }
-                delay(500)
-
-                val remoteSongs = songRepository.getRemoteSongs()
-                val currentLocalSongs = filterSongsBySource(_state.value.songs, LibrarySource.LOCAL)
-                val allSongs = currentLocalSongs + remoteSongs
+                songDataRepository.refreshRemoteSongs()
 
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        songs = allSongs,
-                        filteredSongs = remoteSongs,
+                        filteredSongs = songDataRepository.getRemoteSongs(),
                         error = null
                     )
                 }
-                _effect.send(LibraryEffect.ShowMessage("Remote songs loaded"))
             } catch (e: Exception) {
                 _state.update {
                     it.copy(
@@ -190,19 +203,6 @@ class LibraryViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    private fun filterSongsBySource(songs: List<Song>, source: LibrarySource): List<Song> {
-        val result = when (source) {
-            LibrarySource.LOCAL -> {
-                songs.filter { !it.data.contains("/data/user/") && !it.data.contains("/files/songs") }
-            }
-
-            LibrarySource.REMOTE -> {
-                songs.filter { it.data.contains("/files/songs") }
-            }
-        }
-        return result
     }
 
     private fun playSong(song: Song) {
@@ -238,6 +238,63 @@ class LibraryViewModel @Inject constructor(
                     showPlayerBar = false,
                     currentPlayingSong = null
                 )
+            }
+        }
+    }
+
+    private fun checkStoragePermission() {
+        if (!context.hasStoragePermission()) {
+            _state.update { it.copy(showPermissionDialog = true) }
+        }
+    }
+
+    private fun requestStoragePermission() {
+        viewModelScope.launch {
+            _effect.send(LibraryEffect.RequestStoragePermission)
+            _state.update { it.copy(showPermissionDialog = false) }
+        }
+    }
+
+    private fun dismissPermissionDialog() {
+        _state.update { it.copy(showPermissionDialog = false) }
+    }
+
+    private fun refreshAllSongs() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                songDataRepository.refreshAllSongs()
+                // After refresh, update filtered list based on selected source
+                viewModelScope.launch {
+                    when (_state.value.selectedSource) {
+                        LibrarySource.LOCAL -> loadLocalSongs()
+                        LibrarySource.REMOTE -> loadRemoteSongs()
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update { it.copy(error = "Failed to refresh songs") }
+            }
+        }
+    }
+
+    fun refreshLocalSongs() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                songDataRepository.refreshLocalSongs()
+                if (_state.value.selectedSource == LibrarySource.LOCAL) {
+                    viewModelScope.launch { loadLocalSongs() }
+                }
+            } catch (_: Exception) { }
+        }
+    }
+
+    private fun onPermissionGranted() {
+        if (context.hasStoragePermission()) {
+            viewModelScope.launch(Dispatchers.IO) {
+                songDataRepository.refreshLocalSongs()
+                viewModelScope.launch {
+                    _state.update { it.copy(selectedSource = LibrarySource.LOCAL) }
+                    loadLocalSongs()
+                }
             }
         }
     }

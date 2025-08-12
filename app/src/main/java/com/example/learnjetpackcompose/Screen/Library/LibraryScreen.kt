@@ -61,8 +61,8 @@ import com.example.learnjetpackcompose.Utils.ShareUtils
 fun LibraryScreen(
     libraryViewModel: LibraryViewModel,
     playlistViewModel: PlaylistViewModel,
-    songs: List<Song>,
     onNavigateToPlaylist: () -> Unit,
+    onRequestPermission: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state by libraryViewModel.state.collectAsState()
@@ -75,9 +75,6 @@ fun LibraryScreen(
         libraryViewModel.updatePlaylists(playlistState.playlists)
     }
 
-    LaunchedEffect(songs) {
-        libraryViewModel.processIntent(LibraryIntent.LoadSongs(songs))
-    }
     LaunchedEffect(state.selectedSource) {
         when (state.selectedSource) {
             LibrarySource.LOCAL -> Unit
@@ -85,13 +82,16 @@ fun LibraryScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(key1 = Unit) {
+        libraryViewModel.checkPermissionOnEntry()
+
         libraryViewModel.effect.collect { effect ->
             when (effect) {
                 is LibraryEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.message)
                 is LibraryEffect.ShowDialogChoosePlaylist -> {}
                 is LibraryEffect.ShareSongFile -> ShareUtils.shareAudioFile(context, effect.song)
                 LibraryEffect.NavigateToPlayer -> Unit
+                LibraryEffect.RequestStoragePermission -> onRequestPermission()
             }
         }
     }
@@ -123,7 +123,7 @@ fun LibraryScreen(
                 LoadingWithLottie()
             } else if (state.filteredSongs.isEmpty()) {
                 ContentLoadFailure(
-                    onClick = {libraryViewModel.processIntent(LibraryIntent.LoadSongs(songs))}
+                    onClick = {libraryViewModel.processIntent(LibraryIntent.RefreshAllSongs)}
                 )
             } else {
                 LazyColumn(
@@ -175,6 +175,17 @@ fun LibraryScreen(
                 }
             )
         }
+
+        if (state.showPermissionDialog) {
+            StoragePermissionDialog(
+                onDismiss = {
+                    libraryViewModel.processIntent(LibraryIntent.DismissPermissionDialog)
+                },
+                onConfirm = {
+                    libraryViewModel.processIntent(LibraryIntent.RequestStoragePermission)
+                }
+            )
+        }
     }
 }
 
@@ -219,7 +230,6 @@ private fun GroupButton(
         )
     }
 }
-
 
 @Composable
 private fun SourceButton(
