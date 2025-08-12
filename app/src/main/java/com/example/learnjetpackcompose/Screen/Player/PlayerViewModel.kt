@@ -19,6 +19,18 @@ class PlayerViewModel @Inject constructor(
     val isShuffle: StateFlow<Boolean> = playerRepository.isShuffle
     val repeatMode: StateFlow<RepeatMode> = playerRepository.repeatMode
 
+    fun processIntent(intent: PlayerIntent){
+        when(intent){
+            is PlayerIntent.Next -> skipToNext()
+            PlayerIntent.Pause -> togglePlayPause()
+            PlayerIntent.Play -> TODO()
+            is PlayerIntent.Previous -> skipToPrevious()
+            PlayerIntent.Repeat -> cycleRepeatMode()
+            PlayerIntent.Shuffle -> toggleShuffle()
+            PlayerIntent.Stop -> stopPlayback()
+        }
+    }
+
     fun togglePlayPause() = playerRepository.togglePlayPause()
 
     fun stopPlayback() = playerRepository.stopPlayback()

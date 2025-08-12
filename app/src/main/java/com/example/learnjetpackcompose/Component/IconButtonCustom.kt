@@ -14,6 +14,7 @@ fun IconButtonCustom(
     onClick:() -> Unit,
     icon: Int,
     title: String,
+    tint: Color = Color.White,
     modifier: Modifier = Modifier
 ){
     IconButton(
@@ -23,7 +24,7 @@ fun IconButtonCustom(
         Icon(
             painter = painterResource(icon),
             contentDescription = title,
-            tint = Color.White,
+            tint = tint,
             modifier = Modifier.size(24.dp)
         )
     }

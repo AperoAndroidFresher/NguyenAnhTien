@@ -126,7 +126,8 @@ private fun Header(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ){
-        IconButtonCustom(onBackClick,R.drawable.icon_back, "Back", Modifier.size(36.dp))
+        IconButtonCustom(onBackClick,R.drawable.icon_back, "Back",
+            tint = Color.White,Modifier.size(36.dp))
 
         Text(
             text = "Now Playing",
@@ -135,7 +136,8 @@ private fun Header(
             color = Color.White
         )
 
-        IconButtonCustom(onExitClick, R.drawable.icon_no, "Exit", Modifier.size(36.dp))
+        IconButtonCustom(onExitClick, R.drawable.icon_no, "Exit",
+            tint = Color.White,Modifier.size(36.dp))
     }
 }
 
@@ -197,7 +199,7 @@ fun ButtonControls(
         verticalAlignment = Alignment.CenterVertically
     ){
         IconButtonCustom(
-            onShuffleClick, R.drawable.icon_shuffle, "Shuffle",
+            onShuffleClick, R.drawable.icon_shuffle, "Shuffle", tint = Color.White,
             if (isShuffled) Modifier
                 .size(36.dp)
                 .background(Color(0xFF00C2CB).copy(0.5f))
@@ -206,21 +208,23 @@ fun ButtonControls(
         IconButtonCustom(
             onPreviousClick,
             R.drawable.icon_previous,
-            "Previous",
+            "Previous",tint = Color.White,
             Modifier.size(36.dp)
         )
         IconButtonCustom(
             onPlayPauseClick,
             if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play,
             if (isPlaying) "Pause" else "Play",
+            tint = Color.White,
             Modifier
                 .size(48.dp)
                 .clip(CircleShape)
                 .background(Color(0xFF00C2CB))
         )
-        IconButtonCustom(onNextClick, R.drawable.icon_next, "Next", Modifier.size(36.dp))
+        IconButtonCustom(onNextClick, R.drawable.icon_next, "Next",
+            tint = Color.White, Modifier.size(36.dp))
         IconButtonCustom(
-            onRepeatClick, R.drawable.icon_repeat, "Repeat",
+            onRepeatClick, R.drawable.icon_repeat, "Repeat",tint = Color.White,
             Modifier
                 .size(36.dp)
                 .background(Color(0xFF00C2CB).copy(0.5f))
@@ -248,7 +252,7 @@ fun PlayerBar(
                 .background(Color.Transparent, shape = CircleShape)
         ){
             IconButtonCustom({viewModel.stopPlayback()},
-                R.drawable.icon_no, "Stop",
+                R.drawable.icon_no, "Stop", tint = Color.White,
                 Modifier.size(36.dp))
         }
         PlayBarInfo(isPlaying, title, duration,
@@ -276,11 +280,10 @@ fun PlayBarInfo(
     ){
         IconButtonCustom(onPlayPauseClick,
             if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play,
-            if (isPlaying) "Pause" else "Play",
+            if (isPlaying) "Pause" else "Play",tint = Color.White,
             Modifier
                 .size(36.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF00C2CB)))
+                .clip(CircleShape))
         Text(
             text = title,
             fontSize = 16.sp,

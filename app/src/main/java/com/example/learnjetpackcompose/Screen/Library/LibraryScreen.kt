@@ -50,8 +50,10 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.learnjetpackcompose.Component.AlbumArt
+import com.example.learnjetpackcompose.Component.ContentLoadFailure
 import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
 import com.example.learnjetpackcompose.Component.IconButtonCustom
+import com.example.learnjetpackcompose.Component.MyButton
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Playlist.Component.ChoosePlaylistDialog
@@ -179,38 +181,6 @@ fun LibraryScreen(
     }
 }
 
-private fun shareAudioFile(context: Context, song: Song) {
-    try {
-        val file = File(song.data)
-        if (!file.exists()) {
-            // Show error message
-            return
-        }
-
-        val uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            file
-        )
-
-        val shareIntent = Intent().apply {
-            action = Intent.ACTION_SEND
-            type = "audio/*"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            putExtra(Intent.EXTRA_SUBJECT, "Sharing: ${song.title}")
-            putExtra(Intent.EXTRA_TEXT, "Check out this song: ${song.title} by ${song.artist}")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-
-        val chooserIntent = Intent.createChooser(shareIntent, "Share ${song.title}")
-        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(chooserIntent)
-
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-}
-
 @Composable
 private fun Header() {
     Box(
@@ -253,34 +223,6 @@ private fun GroupButton(
     }
 }
 
-@Composable
-private fun ContentLoadFailure(
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "No internet connection,\nplease check your \nconnection again",
-            color = Color.White,
-            style = MaterialTheme.typography.titleSmall,
-            fontSize = 18.sp
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = {},
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF00C2CB),
-                contentColor = Color.White,
-            ),
-            shape = RoundedCornerShape(10.dp),
-            modifier = Modifier.width(150.dp)
-        ) {
-            Text(text = "Try Again")
-        }
-    }
-}
 
 @Composable
 private fun SourceButton(
@@ -370,7 +312,7 @@ private fun LibrarySongCardList(
                     color = Color.White, fontSize = 14.sp
                 )
                 IconButtonCustom({showDropdownMenu = true}, R.drawable.icon_morevert,
-                    "Mở menu tùy chọn", Modifier.size(36.dp))
+                    "Mở menu tùy chọn", tint = Color.White, modifier = Modifier.size(36.dp))
                 CustomDropDownMenu(
                     expanded = showDropdownMenu,
                     onDismissRequest = { showDropdownMenu = false },

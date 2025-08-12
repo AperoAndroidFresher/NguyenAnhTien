@@ -49,7 +49,7 @@ object ShareUtils {
         val targetFile: File = if (isAppPrivate) {
             sourceFile
         } else {
-            // Copy to cache/share to ensure accessibility across apps
+
             val shareDir = File(context.cacheDir, "share").apply { mkdirs() }
             val sanitizedName = sanitizeFileName(sourceFile.name)
             val destFile = File(shareDir, sanitizedName)
