@@ -18,34 +18,26 @@ import com.example.learnjetpackcompose.Screen.Login.LoginViewModel
 import com.example.learnjetpackcompose.Screen.Login.SplashScreen
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistScreen
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.res.painterResource
 import com.example.learnjetpackcompose.Screen.Playlist.Song.SongScreen
 import com.example.learnjetpackcompose.Screen.SignUp.SignUpScreen
 import com.example.learnjetpackcompose.Screen.Profile.MainProfileScreen
 import com.example.learnjetpackcompose.Screen.Player.PlayerScreen
 import com.example.learnjetpackcompose.data.model.UserManager
 import com.example.learnjetpackcompose.data.model.PlaybackManager
-import com.example.learnjetpackcompose.Screen.Player.PlayerBar
 import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.layout.Column
 import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.ui.graphics.Color
 import com.example.learnjetpackcompose.Component.AppNavigationBottomBar
+import com.example.learnjetpackcompose.Screen.Player.Component.PlayerBar
 import com.example.learnjetpackcompose.Screen.Player.PlayerViewModel
 import com.example.learnjetpackcompose.Screen.Profile.ProfileIntent
 import com.example.learnjetpackcompose.Screen.Profile.ProfileViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
@@ -184,7 +176,6 @@ fun NavigationApp() {
                     currentIndex = 2,
                     onNavigate = { idx ->
                         when (idx) {
-//                            0 -> { backStack.clear(); backStack.add(HomeNavKey) }
                             0 -> { backStack.add(HomeNavKey) }
                             1 -> { backStack.add(LibraryNavKey) }
                             2 -> { backStack.add(PlaylistNavKey) }
@@ -232,7 +223,6 @@ private fun AppShell(
         bottomBar = {
             Column {
                 if (currentSong != null) {
-                    Log.d("PlayerBar", "Displaying: '${currentSong!!.title}', Duration: '${currentSong!!.duration}'")
                     PlayerBar(
                         title = currentSong!!.title,
                         duration = currentSong!!.duration,
@@ -241,7 +231,6 @@ private fun AppShell(
                             playerViewModel.togglePlayPause()
                         },
                         onPlayerBarClick = {
-                            // Navigate to PlayerScreen với thông tin bài hát hiện tại
                             val playerNavKey = PlayerNavKey(
                                 songId = currentSong!!.songId,
                                 title = currentSong!!.title,

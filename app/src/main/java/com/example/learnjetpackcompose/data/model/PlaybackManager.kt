@@ -41,6 +41,24 @@ object PlaybackManager {
     private val playedSet: MutableSet<Int> = LinkedHashSet()
     private val historyStack: ArrayDeque<Int> = ArrayDeque()
 
+    private val _currentPosition = MutableStateFlow(0L)
+    val currentPosition: StateFlow<Long> = _currentPosition.asStateFlow()
+
+    private val _duration = MutableStateFlow(0L)
+    val duration: StateFlow<Long> = _duration.asStateFlow()
+
+    fun setCurrentPosition(position: Long) {
+        _currentPosition.value = position
+    }
+
+    fun setDuration(duration: Long) {
+        _duration.value = duration
+    }
+
+    fun getCurrentPositionValue(): Long = _currentPosition.value
+
+    fun getDurationValue(): Long = _duration.value
+
     fun setNowPlaying(song: Song?) {
         _currentSong.value = song
     }

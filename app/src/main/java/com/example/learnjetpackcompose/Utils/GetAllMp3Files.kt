@@ -32,7 +32,7 @@ fun getAllMp3Files(context: Context): List<Song> {
             val artist = it.getString(artistIndex)
             val data = it.getString(dataIndex)
             val durationInSec = it.getLong(durationIndex)
-            val duration = formatDuration(durationInSec.toString())
+            val duration = formatTime(durationInSec)
 
             val albumArtUri = extractAlbumArtAsUri(context, data, id)
             val finalAlbumArtUri = albumArtUri ?: Uri.EMPTY
@@ -88,7 +88,7 @@ private fun createSongFromFile(context: Context, file: File): Song? {
             ?: "Unknown Artist"
         val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
 
-        val duration = formatDuration(durationStr.toString())
+        val duration = formatTime(durationStr!!.toLong())
 
         val songId = file.absolutePath.hashCode().toLong()
 
@@ -157,13 +157,8 @@ private fun getQueryProjection(): Array<String> {
         MediaStore.Audio.Media.DURATION
     )
 }
-private fun formatDuration(durationMs: String): String {
-    return try {
-        val millis = durationMs.toLong()
-        val minutes = (millis / 1000) / 60
-        val seconds = (millis / 1000) % 60
-        String.format("%d:%02d", minutes, seconds)
-    } catch (e: Exception) {
-        "0:00"
-    }
+fun formatTime(milliseconds: Long): String {
+    val seconds = (milliseconds / 1000) % 60
+    val minutes = (milliseconds / 1000) / 60
+    return String.format("%d:%02d", minutes, seconds)
 }
