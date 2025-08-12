@@ -1,7 +1,5 @@
 package com.example.learnjetpackcompose.Screen.Library
 
-import android.content.Context
-import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
@@ -43,7 +41,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -53,13 +50,11 @@ import com.example.learnjetpackcompose.Component.AlbumArt
 import com.example.learnjetpackcompose.Component.ContentLoadFailure
 import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
 import com.example.learnjetpackcompose.Component.IconButtonCustom
-import com.example.learnjetpackcompose.Component.MyButton
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Playlist.Component.ChoosePlaylistDialog
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
-import java.io.File
 import com.example.learnjetpackcompose.Utils.ShareUtils
 
 @Composable
@@ -127,7 +122,9 @@ fun LibraryScreen(
             if (state.isLoading) {
                 LoadingWithLottie()
             } else if (state.filteredSongs.isEmpty()) {
-                ContentLoadFailure()
+                ContentLoadFailure(
+                    onClick = {libraryViewModel.processIntent(LibraryIntent.LoadSongs(songs))}
+                )
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(8.dp),

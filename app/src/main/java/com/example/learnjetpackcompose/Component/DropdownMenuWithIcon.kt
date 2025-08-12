@@ -18,8 +18,8 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun DropdownMenuItemWithIcon(
-    iconId: Int,
-    contentDescription: String,
+    iconId: Int? = null,
+    contentDescription: String? = null,
     text: String,
     onClick: () -> Unit
 ) {
@@ -29,13 +29,16 @@ fun DropdownMenuItemWithIcon(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(8.dp)
             ) {
-                Icon(
-                    painter = painterResource(id = iconId),
-                    contentDescription = contentDescription,
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
+                if (iconId != null) {
+                    Icon(
+                        painter = painterResource(id = iconId),
+                        contentDescription = contentDescription,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                }
+
                 Text(
                     text = text,
                     color = Color.White,

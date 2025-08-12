@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.Column
 import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import com.example.learnjetpackcompose.Component.AppNavigationBottomBar
+import com.example.learnjetpackcompose.Screen.Home.Setting.SettingScreen
 import com.example.learnjetpackcompose.Screen.Player.Component.PlayerBar
 import com.example.learnjetpackcompose.Screen.Player.PlayerViewModel
 import com.example.learnjetpackcompose.Screen.Profile.ProfileIntent
@@ -102,6 +103,7 @@ fun NavigationApp() {
                 ) { innerPadding ->
                     HomeScreen(
                         modifier = Modifier.padding(innerPadding),
+                        onSettingClick = {playerVM.stopPreview(); backStack.add(SettingNavKey)},
                         onMyProfileClick = { playerVM.stopPreview();backStack.add(ProfileNavKey) },
                     )
                 }
@@ -200,6 +202,12 @@ fun NavigationApp() {
                         backStack.add(HomeNavKey)
                     },
                     viewModel = playerViewModel
+                )
+            }
+            entry<SettingNavKey>{key ->
+                SettingScreen(
+                    onBack = {backStack.removeLastOrNull()},
+                    onSave = {backStack.add(HomeNavKey)}
                 )
             }
         }

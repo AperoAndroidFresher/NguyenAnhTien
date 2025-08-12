@@ -49,7 +49,7 @@ fun MainProfileScreen(
     navigateToLogin: () -> Unit
 ) {
     var isEditing by remember { mutableStateOf(false) }
-    var isDark by remember { mutableStateOf(false) }
+    var isDark by remember { mutableStateOf(true) }
     Surface(color = MaterialTheme.colorScheme.background) {
         if (isEditing) {
             LearnJetPackComposeTheme(darkTheme = isDark) {

@@ -47,6 +47,7 @@ import com.example.learnjetpackcompose.R
 
 @Composable
 fun HomeScreen(
+    onSettingClick: () -> Unit,
     onMyProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
@@ -65,6 +66,7 @@ fun HomeScreen(
     ) {
         item {
             HeaderHome(
+                onSettingClick = onSettingClick,
                 onMyProfileClick = onMyProfileClick,
                 avatar = state.userAvatar,
                 displayName = state.displayName
@@ -73,35 +75,36 @@ fun HomeScreen(
 
         item { SectionTitle(text = "Rankings") }
 
-        // Top Albums
-//        item { SectionHeader(title = "Top Albums", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllAlbums) }) }
-//        item { AlbumsGrid(albums = state.topAlbums) }
-//
-//        // Top Tracks
-//        item { SectionHeader(title = "Top Tracks", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllTracks) }) }
-//        item {
-//            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-//                items(state.topTracks) { song ->
-//                    TrackCard(title = song.title, artist = song.artist, cover = song.albumArt)
-//                }
-//            }
-//        }
-//
-//        // Top Artist
-//        item { SectionHeader(title = "Top Artist", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllArtists) }) }
-//        item {
-//            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-//                items(state.topArtists) { artist ->
-//                    ArtistCard(name = artist.name, avatar = artist.avatarUri)
-//                }
-//            }
-//        }
-//        item { Spacer(modifier = Modifier.height(24.dp)) }
+//         Top Albums
+        item { SectionHeader(title = "Top Albums", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllAlbums) }) }
+        item { AlbumsGrid(albums = state.topAlbums) }
+
+        // Top Tracks
+        item { SectionHeader(title = "Top Tracks", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllTracks) }) }
+        item {
+            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(state.topTracks) { song ->
+                    TrackCard(title = song.title, artist = song.artist, cover = song.albumArt)
+                }
+            }
+        }
+
+        // Top Artist
+        item { SectionHeader(title = "Top Artist", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllArtists) }) }
+        item {
+            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(state.topArtists) { artist ->
+                    ArtistCard(name = artist.name, avatar = artist.avatarUri)
+                }
+            }
+        }
+        item { Spacer(modifier = Modifier.height(24.dp)) }
     }
 }
 
 @Composable
 private fun HeaderHome(
+    onSettingClick: () -> Unit = {},
     onMyProfileClick: () -> Unit,
     avatar: String?,
     displayName: String
@@ -131,7 +134,7 @@ private fun HeaderHome(
                 Text(text = displayName, color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp)
             }
         }
-        IconButtonCustom(onClick = onMyProfileClick, icon = R.drawable.icon_settings,"Settings",
+        IconButtonCustom(onClick = onSettingClick, icon = R.drawable.icon_settings,"Settings",
             modifier = Modifier.size(40.dp))
     }
 }
@@ -169,7 +172,7 @@ private fun SectionHeader(title: String, onSeeAll: () -> Unit) {
         Text(text = title, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         Text(
             text = "See all",
-            color = Color.White.copy(alpha = 0.6f),
+            color = Color(0xFF00C2CB),
             fontSize = 12.sp,
             modifier = Modifier.clickable { onSeeAll() }
         )
@@ -179,17 +182,17 @@ private fun SectionHeader(title: String, onSeeAll: () -> Unit) {
 @Composable
 private fun AlbumCard(title: String, artist: String, cover: String?) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF202329)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xD21F3A3A)),
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp),
+            .height(60.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
             AlbumArt(cover,
-                modifier = Modifier.padding(8.dp).size(56.dp)
+                modifier = Modifier.size(56.dp)
                     .clip(RoundedCornerShape(10.dp)))
-            Column(modifier = Modifier.padding(end = 8.dp)) {
+            Column(modifier = Modifier.padding(start = 12.dp, end = 8.dp)) {
                 Text(text = title, color = Color.White, fontSize = 14.sp, maxLines = 1)
                 Text(text = artist, color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp, maxLines = 1)
             }
@@ -226,7 +229,7 @@ private fun TrackCard(title: String, artist: String, cover: String?) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier.size(width = 220.dp, height = 140.dp),
-        shape = RoundedCornerShape(14.dp)
+        shape = RoundedCornerShape(12.dp)
     ) {
         Box {
             AsyncImage(
@@ -263,7 +266,7 @@ private fun ArtistCard(name: String, avatar: String?) {
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)),
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.size(160.dp, 120.dp)
+            modifier = Modifier.size(180.dp, 140.dp)
         ) {
             AsyncImage(
                 model = avatar,
