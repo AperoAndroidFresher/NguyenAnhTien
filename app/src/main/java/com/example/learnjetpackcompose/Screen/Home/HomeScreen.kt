@@ -21,9 +21,11 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,8 +37,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -45,11 +51,17 @@ import com.example.learnjetpackcompose.Component.AlbumArt
 import com.example.learnjetpackcompose.Component.IconButtonCustom
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.data.api.Album
+import com.example.learnjetpackcompose.Screen.Home.Component.AlbumCard
+import com.example.learnjetpackcompose.Screen.Home.Component.ArtistCard
+import com.example.learnjetpackcompose.Screen.Home.Component.TrackCard
 
 @Composable
 fun HomeScreen(
     onSettingClick: () -> Unit,
     onMyProfileClick: () -> Unit,
+    onAlbumClick: () -> Unit = {},
+    onTrackClick: () -> Unit = {},
+    onArtistClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -76,26 +88,28 @@ fun HomeScreen(
 
         item { SectionTitle(text = "Rankings") }
 
-//         Top Albums
-        item { SectionHeader(title = "Top Albums", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllAlbums) }) }
+        item { SectionHeader(title = "Top Albums", onSeeAll = {onAlbumClick(); viewModel.processIntent(HomeIntent.ShowAllAlbums) }) }
         item { AlbumsGrid(albums = state.topAlbums) }
 
-        // Top Tracks
-        item { SectionHeader(title = "Top Tracks", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllTracks) }) }
+        item { SectionHeader(title = "Top Tracks", onSeeAll = { onTrackClick(); viewModel.processIntent(HomeIntent.ShowAllTracks) }) }
         item {
             LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(state.topTracks) { track ->
-                    TrackCard(title = track.name, artist = track.artist.name,
-                        cover = track.image.firstOrNull { it.size == "medium" }?.text ?: "")
+                itemsIndexed(state.topTracks) { index, track ->
+                    TrackCard(
+                        name = track.name,
+                        playcount = track.playcount,
+                        artist = track.artist.name,
+                        cover = track.image.firstOrNull()?.text ?: "",
+                        bottomBarColor = state.trackCardColors[index % state.trackCardColors.size]
+                    )
                 }
             }
         }
-        // Top Artist
-        item { SectionHeader(title = "Top Artist", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllArtists) }) }
+        item { SectionHeader(title = "Top Artist", onSeeAll = { onArtistClick(); viewModel.processIntent(HomeIntent.ShowAllArtists) }) }
         item {
             LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(state.topArtists) { artist ->
-                    ArtistCard(name = artist.name, avatar = artist.image.firstOrNull { it.size == "medium" }?.text ?: "")
+                    ArtistCard(name = artist.name, image = artist.image.firstOrNull { it.size == "extralarge"  }?.text ?: "")
                 }
             }
         }
@@ -180,32 +194,12 @@ private fun SectionHeader(title: String, onSeeAll: () -> Unit) {
     }
 }
 
-@Composable
-private fun AlbumCard(title: String, artist: String, cover: String?) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xD21F3A3A)),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(60.dp),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-            AlbumArt(cover,
-                modifier = Modifier.size(56.dp)
-                    .clip(RoundedCornerShape(10.dp)))
-            Column(modifier = Modifier.padding(start = 12.dp, end = 8.dp)) {
-                Text(text = title, color = Color.White, fontSize = 14.sp, maxLines = 1)
-                Text(text = artist, color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp, maxLines = 1)
-            }
-        }
-    }
-}
 
 @Composable
 private fun AlbumsGrid(albums: List<Album>) {
     val limited = albums.take(6)
     val rows = (limited.size + 1) / 2
-    val cardHeight = 80.dp
+    val cardHeight = 60.dp
     val verticalSpacing = 12.dp
     val gridHeight = cardHeight * rows + verticalSpacing * (rows - 1) + 8.dp
 
@@ -220,65 +214,10 @@ private fun AlbumsGrid(albums: List<Album>) {
         contentPadding = PaddingValues(0.dp)
     ) {
         items(limited) { album ->
-            AlbumCard(title = album.name, artist = album.artist.name, cover = album.image[2].toString())
+            AlbumCard(title = album.name, artist = album.artist.name, cover = album.image.firstOrNull { it.size == "extralarge" }?.text ?: "")
         }
     }
 }
 
-@Composable
-private fun TrackCard(title: String, artist: String, cover: String?) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        modifier = Modifier.size(width = 220.dp, height = 140.dp),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Box {
-            AsyncImage(
-                model = cover,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                placeholder = painterResource(R.drawable.icon_music),
-                error = painterResource(R.drawable.icon_music)
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color(0xAA000000))
-                        )
-                    )
-            )
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(12.dp)
-            ) {
-                Text(text = title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                Text(text = artist, color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp)
-            }
-        }
-    }
-}
 
-@Composable
-private fun ArtistCard(name: String, avatar: String?) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)),
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.size(180.dp, 140.dp)
-        ) {
-            AsyncImage(
-                model = avatar,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                placeholder = painterResource(R.drawable.icon_user),
-                error = painterResource(R.drawable.icon_user)
-            )
-        }
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(text = name, color = Color.White, fontSize = 14.sp)
-    }
-}
 

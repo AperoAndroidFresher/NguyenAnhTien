@@ -33,6 +33,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import com.example.learnjetpackcompose.Component.AppNavigationBottomBar
+import com.example.learnjetpackcompose.Screen.Home.Component.TopAlbumsScreen
+import com.example.learnjetpackcompose.Screen.Home.Component.TopArtistScreen
+import com.example.learnjetpackcompose.Screen.Home.Component.TopTracksScreen
 import com.example.learnjetpackcompose.Screen.Home.Setting.SettingScreen
 import com.example.learnjetpackcompose.Screen.Player.Component.PlayerBar
 import com.example.learnjetpackcompose.Screen.Player.PlayerViewModel
@@ -101,6 +104,9 @@ fun NavigationApp() {
                         modifier = Modifier.padding(innerPadding),
                         onSettingClick = {playerVM.stopPreview(); backStack.add(SettingNavKey)},
                         onMyProfileClick = { playerVM.stopPreview();backStack.add(ProfileNavKey) },
+                        onAlbumClick = {backStack.add(TopAlbumsNavKey)},
+                        onTrackClick = {backStack.add(TopTracksNavKey)},
+                        onArtistClick = {backStack.add(TopArtistNavKey)}
                     )
                 }
             }
@@ -211,6 +217,22 @@ fun NavigationApp() {
                 SettingScreen(
                     onBack = {backStack.removeLastOrNull()},
                     onSave = {backStack.add(HomeNavKey)}
+                )
+            }
+
+            entry(TopAlbumsNavKey){key ->
+                TopAlbumsScreen(
+                    onBack = {backStack.removeLastOrNull()}
+                )
+            }
+            entry(TopTracksNavKey){key ->
+                TopTracksScreen(
+                    onBack = {backStack.removeLastOrNull()}
+                )
+            }
+            entry(TopArtistNavKey){key ->
+                TopArtistScreen(
+                    onBack = {backStack.removeLastOrNull()}
                 )
             }
         }

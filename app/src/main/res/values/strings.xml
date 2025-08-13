@@ -1,8 +1,9 @@
 <resources>
-    <string name="app_name">LearnJetPackCompose</string>
+    <string name="app_name">Apero Music</string>
     <string name="play">Play</string>
     <string name="pause">Pause</string>
     <string name="stop">Stop</string>
     <string name="previous">Pause</string>
     <string name="Next">Stop</string>
+    <string name="settings">Settings</string>
 </resources>
