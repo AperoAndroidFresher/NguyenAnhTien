@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Apero nghe nhạc</string>
+    <string name="play">Tiếp tục</string>
+    <string name="pause">Tạm ngưng</string>
+    <string name="stop">Dừng</string>
+    <string name="previous">Trước</string>
+    <string name="Next">Tiếp theo</string>
+    <string name="settings">Cài đặt</string>
+</resources>

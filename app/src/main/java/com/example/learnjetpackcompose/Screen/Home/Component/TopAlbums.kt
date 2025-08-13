@@ -58,7 +58,7 @@ fun TopAlbumsScreen(
 @Composable
 fun AlbumCard(title: String, artist: String, cover: String?) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xD21F3A3A)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xD2243636)),
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp),

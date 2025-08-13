@@ -47,8 +47,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.learnjetpackcompose.Component.AlbumArt
+import com.example.learnjetpackcompose.Component.ContentLoadFailure
 import com.example.learnjetpackcompose.Component.IconButtonCustom
+import com.example.learnjetpackcompose.Component.LoadingWithLottie
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.data.api.Album
 import com.example.learnjetpackcompose.Screen.Home.Component.AlbumCard
@@ -71,49 +78,105 @@ fun HomeScreen(
         viewModel.processIntent(HomeIntent.LoadData)
     }
 
-    LazyColumn(
+    Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0F0F0F)),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .background(Color(0xFF0F0F0F))
     ) {
-        item {
-            HeaderHome(
-                onSettingClick = onSettingClick,
-                onMyProfileClick = onMyProfileClick,
-                avatar = state.userAvatar,
-                displayName = state.displayName
-            )
-        }
+        // 1. Header luôn hiển thị
+        HeaderHome(
+            onSettingClick = onSettingClick,
+            onMyProfileClick = onMyProfileClick,
+            avatar = state.userAvatar,
+            displayName = state.displayName
+        )
 
-        item { SectionTitle(text = "Rankings") }
+        // Cờ để xác định đây có phải là lần tải dữ liệu đầu tiên không.
+        // Màn hình loading và lỗi chỉ hiển thị khi chưa có dữ liệu nào.
+        val isInitialLoad = state.topAlbums.isEmpty()
 
-        item { SectionHeader(title = "Top Albums", onSeeAll = {onAlbumClick(); viewModel.processIntent(HomeIntent.ShowAllAlbums) }) }
-        item { AlbumsGrid(albums = state.topAlbums) }
+        // 2. Vùng nội dung có điều kiện, được đặt trong Box để dễ dàng căn chỉnh
+        Box(modifier = Modifier.fillMaxSize()) {
+            when {
+                // Trạng thái Loading: Chỉ hiển thị animation khi tải lần đầu.
+                state.isLoading && isInitialLoad -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val composition by rememberLottieComposition(
+                            LottieCompositionSpec.RawRes(R.raw.lottie_remote_item_loading)
+                        )
+                        val progress by animateLottieCompositionAsState(
+                            composition,
+                            iterations = LottieConstants.IterateForever
+                        )
+                        LottieAnimation(
+                            composition = composition,
+                            progress = { progress },
+                            modifier = Modifier.size(150.dp)
+                        )
+                    }
+                }
 
-        item { SectionHeader(title = "Top Tracks", onSeeAll = { onTrackClick(); viewModel.processIntent(HomeIntent.ShowAllTracks) }) }
-        item {
-            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                itemsIndexed(state.topTracks) { index, track ->
-                    TrackCard(
-                        name = track.name,
-                        playcount = track.playcount,
-                        artist = track.artist.name,
-                        cover = track.image.firstOrNull()?.text ?: "",
-                        bottomBarColor = state.trackCardColors[index % state.trackCardColors.size]
+                // Trạng thái Lỗi: Chỉ hiển thị màn hình lỗi khi tải lần đầu.
+                state.error != null && isInitialLoad -> {
+                    ContentLoadFailure(
+                        onClick = { viewModel.processIntent(HomeIntent.LoadData) }
                     )
                 }
-            }
-        }
-        item { SectionHeader(title = "Top Artist", onSeeAll = { onArtistClick(); viewModel.processIntent(HomeIntent.ShowAllArtists) }) }
-        item {
-            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(state.topArtists) { artist ->
-                    ArtistCard(name = artist.name, image = artist.image.firstOrNull { it.size == "extralarge"  }?.text ?: "")
+
+                // Trạng thái Thành công (hoặc có lỗi khi làm mới ở nền)
+                else -> {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(top = 16.dp)
+                    ) {
+                        item {
+                            SectionTitle(text = "Rankings")
+                        }
+
+                        item {
+                            SectionHeader(title = "Top Albums", onSeeAll = { onAlbumClick(); viewModel.processIntent(HomeIntent.ShowAllAlbums) })
+                        }
+                        item {
+                            AlbumsGrid(albums = state.topAlbums)
+                        }
+
+                        item {
+                            SectionHeader(title = "Top Tracks", onSeeAll = { onTrackClick(); viewModel.processIntent(HomeIntent.ShowAllTracks) })
+                        }
+                        item {
+                            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                itemsIndexed(state.topTracks) { index, track ->
+                                    TrackCard(
+                                        name = track.name,
+                                        playcount = track.playcount,
+                                        artist = track.artist.name,
+                                        cover = track.image.firstOrNull()?.text ?: "",
+                                        bottomBarColor = state.trackCardColors[index % state.trackCardColors.size]
+                                    )
+                                }
+                            }
+                        }
+
+                        item {
+                            SectionHeader(title = "Top Artist", onSeeAll = { onArtistClick(); viewModel.processIntent(HomeIntent.ShowAllArtists) })
+                        }
+                        item {
+                            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                items(state.topArtists) { artist ->
+                                    ArtistCard(name = artist.name, image = artist.image.firstOrNull { it.size == "extralarge" }?.text ?: "")
+                                }
+                            }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(24.dp))
+                        }
+                    }
                 }
             }
         }
-        item { Spacer(modifier = Modifier.height(24.dp)) }
     }
 }
 

@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Surface
 import com.example.learnjetpackcompose.ui.theme.LearnJetPackComposeTheme
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import dagger.hilt.android.AndroidEntryPoint
 import com.example.learnjetpackcompose.Utils.requestStoragePermission
 
@@ -31,6 +32,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // Đảm bảo Activity xử lý thay đổi cấu hình (ngôn ngữ) đúng cách
     }
 
     override fun onRequestPermissionsResult(

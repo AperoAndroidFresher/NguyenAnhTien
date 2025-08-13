@@ -83,7 +83,7 @@ fun TrackCard(
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier.size(width = 140.dp, height = 140.dp),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(2.dp)
     ) {
         Box {
             AsyncImage(

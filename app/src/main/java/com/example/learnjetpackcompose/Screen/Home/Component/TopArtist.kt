@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -77,6 +78,15 @@ fun ArtistCard(name: String ="Taylor Swift", image: String? = "") {
                 contentScale = ContentScale.Crop,
                 placeholder = painterResource(R.drawable.rose),
                 error = painterResource(R.drawable.rose)
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, Color(0xAA000000))
+                        )
+                    )
             )
             Box(
                 modifier = Modifier.padding(16.dp)

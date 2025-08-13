@@ -54,6 +54,9 @@ android {
             java.srcDir("build/generated/ksp/release/kotlin")
         }
     }
+    androidResources {
+        generateLocaleConfig = true
+    }
 }
 
 ksp {

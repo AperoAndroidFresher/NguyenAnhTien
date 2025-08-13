@@ -2,46 +2,35 @@ package com.example.learnjetpackcompose.Screen.Home.Setting
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
 import com.example.learnjetpackcompose.Component.IconButtonCustom
 import com.example.learnjetpackcompose.R
+import com.example.learnjetpackcompose.Utils.LanguagePreferences
+import com.example.learnjetpackcompose.Utils.updateLocale
 
-@Preview
-@Preview
+
 @Composable
 fun SettingScreen(
     onBack: () -> Unit = {},
     onSave: () -> Unit = {},
     onLanguageSelected: (String) -> Unit = {}
 ) {
-    var currentLanguage by remember { mutableStateOf("English") }
+    val context = LocalContext.current
+    val languagePreferences = remember { LanguagePreferences(context) }
+    var currentLanguage by remember { mutableStateOf(languagePreferences.getLanguage()) }
     var selectedLanguage by remember { mutableStateOf(currentLanguage) }
 
     Column(
@@ -51,9 +40,13 @@ fun SettingScreen(
             .padding(12.dp)
     ) {
         HeaderSetting(
-            onBack,
-            onSave,
-            showSaveIcon = selectedLanguage != currentLanguage // chỉ hiện khi khác
+            onBack = onBack,
+            onSave = {
+                languagePreferences.saveLanguage(selectedLanguage)
+                updateLocale(context, selectedLanguage)
+                onSave() // Gọi để làm mới Activity
+            },
+            showSaveIcon = selectedLanguage != currentLanguage
         )
         SelectLanguage(
             selectedLanguage = selectedLanguage,
@@ -64,7 +57,6 @@ fun SettingScreen(
         )
     }
 }
-
 
 @Composable
 fun HeaderSetting(
@@ -82,12 +74,13 @@ fun HeaderSetting(
     ) {
         IconButtonCustom(onBack, R.drawable.icon_back, "Back")
         Text(
-            text = "Settings", style = MaterialTheme.typography.titleLarge,
+            text = stringResource(R.string.settings),
+            style = MaterialTheme.typography.titleLarge,
             color = Color.White
         )
         if (showSaveIcon) {
             IconButtonCustom(onSave, R.drawable.icon_yes, "Save")
-        }else{
+        } else {
             Spacer(modifier = Modifier.height(24.dp).width(24.dp))
         }
     }
@@ -114,7 +107,7 @@ fun SelectLanguage(
                 tint = Color.White
             )
             Text(
-                "Language",
+                text = "Language",
                 color = Color.White,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(start = 12.dp)
@@ -123,7 +116,7 @@ fun SelectLanguage(
 
         Box {
             Text(
-                selectedLanguage,
+                text = selectedLanguage,
                 color = Color.White,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.clickable { expanded = true }
@@ -153,7 +146,6 @@ fun SelectLanguage(
     }
 }
 
-
 @Composable
 fun ShowDropDownMenu(
     expanded: Boolean,
@@ -176,4 +168,10 @@ fun ShowDropDownMenu(
         DropdownMenuItemWithIcon(null, "French language", "French", onFrenchClick)
         DropdownMenuItemWithIcon(null, "Vietnamese language", "Vietnamese", onVietnameseClick)
     }
+}
+
+@Preview
+@Composable
+fun SettingScreenPreview() {
+    SettingScreen()
 }
