@@ -54,6 +54,9 @@ android {
             java.srcDir("build/generated/ksp/release/kotlin")
         }
     }
+    androidResources {
+        generateLocaleConfig = true
+    }
 }
 
 ksp {
@@ -109,4 +112,9 @@ dependencies {
     implementation("com.airbnb.android:lottie-compose:6.1.0")
 
     implementation("androidx.media:media:1.7.0")
+
+    // Drag & drop reorder for Jetpack Compose
+    implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
+
+    implementation("androidx.compose.foundation:foundation")
 }

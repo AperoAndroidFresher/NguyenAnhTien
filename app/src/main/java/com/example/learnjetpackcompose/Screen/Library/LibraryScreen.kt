@@ -41,15 +41,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.learnjetpackcompose.Component.AlbumArt
 import com.example.learnjetpackcompose.Component.ContentLoadFailure
 import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
 import com.example.learnjetpackcompose.Component.IconButtonCustom
+import com.example.learnjetpackcompose.Component.LoadingWithLottie
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Playlist.Component.ChoosePlaylistDialog
@@ -82,7 +78,7 @@ fun LibraryScreen(
         }
     }
 
-    LaunchedEffect(key1 = Unit) {
+    LaunchedEffect(Unit) {
         libraryViewModel.checkPermissionOnEntry()
 
         libraryViewModel.effect.collect { effect ->
@@ -248,28 +244,6 @@ private fun SourceButton(
         modifier = Modifier.width(150.dp),
     ) {
         Text(text = label, fontSize = 20.sp)
-    }
-}
-
-@Composable
-fun LoadingWithLottie() {
-    val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.lottie_remote_item_loading)
-    )
-    val progress by animateLottieCompositionAsState(
-        composition,
-        iterations = LottieConstants.IterateForever
-    )
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        LottieAnimation(
-            composition = composition,
-            progress = { progress },
-            modifier = Modifier.size(150.dp)
-        )
     }
 }
 

@@ -24,12 +24,15 @@ import kotlinx.coroutines.delay
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.Icon
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.ui.platform.LocalContext
-import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.learnjetpackcompose.Component.IconButtonCustom
 import com.example.learnjetpackcompose.Component.MyButton
@@ -168,8 +171,23 @@ fun ProfileNoEdit(
                 "Describe yourself...", null,
                 isReadOnly =true, false, 5, Modifier.fillMaxWidth())
 
-            MyButton(onClick = logout,
-                label = "Log out")
+            Button(
+                onClick = logout,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF00C2CB)
+                )
+            ){
+                Row(){
+                    Icon(
+                        painter = painterResource(R.drawable.icon_logout),
+                        contentDescription = "Logout",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.Red
+                    )
+                    Text(text = "Logout", color = Color.Red, fontSize = 16.sp,
+                        modifier = Modifier.padding(start = 8.dp))
+                }
+            }
         }
     }
 }

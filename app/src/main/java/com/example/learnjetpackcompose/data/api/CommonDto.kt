@@ -1,5 +1,6 @@
 package com.example.learnjetpackcompose.data.api
 
+import com.google.gson.annotations.SerializedName
 data class Artist(
     val name: String,
     val mbid: String,
@@ -7,6 +8,7 @@ data class Artist(
 )
 
 data class Image(
+    @SerializedName("#text")
     val text: String, // Using 'text' instead of '#text'
     val size: String
 )

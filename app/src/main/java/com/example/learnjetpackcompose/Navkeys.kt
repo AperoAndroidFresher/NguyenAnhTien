@@ -50,3 +50,17 @@ data class PlayerNavKey(
 
 @Serializable
 object SettingNavKey: NavKey
+
+@Serializable
+object TopAlbumsNavKey: NavKey
+
+@Serializable
+object TopTracksNavKey: NavKey
+
+@Serializable
+object TopArtistNavKey: NavKey
+
+@Serializable
+data class SongSortedNavKey(
+    val playlistId: Int,
+): NavKey

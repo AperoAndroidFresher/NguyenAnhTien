@@ -7,8 +7,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Surface
 import com.example.learnjetpackcompose.ui.theme.LearnJetPackComposeTheme
 import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.content.Context
 import dagger.hilt.android.AndroidEntryPoint
 import com.example.learnjetpackcompose.Utils.requestStoragePermission
+import com.example.learnjetpackcompose.Utils.LanguagePreferences
+import com.example.learnjetpackcompose.Utils.updateLocale
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -18,6 +22,12 @@ class MainActivity : ComponentActivity() {
     fun requestPermission(onPermissionGranted: (() -> Unit)? = null) {
         onPermissionGrantedCallback = onPermissionGranted
         requestStoragePermission(this)
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        val langPref = LanguagePreferences(newBase).getLanguage()
+        val updated = updateLocale(newBase, langPref)
+        super.attachBaseContext(updated)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,6 +41,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
     }
 
     override fun onRequestPermissionsResult(

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">아페로 음악</string>
+    <string name="play">재생</string>
+    <string name="pause">일시정지</string>
+    <string name="stop">정지</string>
+    <string name="previous">이전</string>
+    <string name="Next">다음</string>
+    <string name="settings">설정</string>
+    <string name="language">언어</string>
+    <string name="english">영어</string>
+    <string name="korean">한국어</string>
+    <string name="french">프랑스어</string>
+    <string name="vietnamese">베트남어</string>
+    <string name="welcome">돌아가신 콘텐츠</string>
+    <string name="rankings">순위</string>
+    <string name="home">집</string>
+    <string name="library">도서관</string>
+    <string name="playlist">재생목록</string>
+    <string name="top_albums">인기 앨범</string>
+    <string name="top_track">인기 트랙</string>
+    <string name="top_artist">톱 아티스트</string>
+</resources>
+

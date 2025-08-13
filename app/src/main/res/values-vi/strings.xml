@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Apero nghe nhạc</string>
+    <string name="play">Tiếp tục</string>
+    <string name="pause">Tạm ngưng</string>
+    <string name="stop">Dừng</string>
+    <string name="previous">Trước</string>
+    <string name="Next">Tiếp theo</string>
+    <string name="settings">Cài đặt</string>
+    <string name="language">Ngôn ngữ</string>
+    <string name="english">Tiếng Anh</string>
+    <string name="korean">Tiếng Hàn</string>
+    <string name="french">Tiếng Pháp</string>
+    <string name="vietnamese">Tiếng Việt</string>
+    <string name="welcome">Chào mừng trở lại</string>
+    <string name="rankings">Xếp hạng</string>
+    <string name="home">Trang chủ</string>
+    <string name="library">Thư viện</string>
+    <string name="playlist">Danh sách phát</string>
+    <string name="top_albums">Album hàng đầu</string>
+    <string name="top_track">Bài hát hàng đầu</string>
+    <string name="top_artist">Nghệ sĩ hàng đầu</string>
+</resources>

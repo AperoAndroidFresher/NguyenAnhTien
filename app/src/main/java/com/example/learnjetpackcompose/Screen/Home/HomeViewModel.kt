@@ -57,7 +57,6 @@ class HomeViewModel @Inject constructor(
                 val displayName = user?.displayName ?: user?.username ?: ""
                 val avatar = user?.avatarPath
 
-                // Load API data with timeout and parallel requests
                 withTimeout(API_TIMEOUT) {
 
                     val topAlbumsDeferred = async {

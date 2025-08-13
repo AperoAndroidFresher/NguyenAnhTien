@@ -33,9 +33,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import com.example.learnjetpackcompose.Component.AppNavigationBottomBar
+import com.example.learnjetpackcompose.Screen.Home.Component.TopAlbumsScreen
+import com.example.learnjetpackcompose.Screen.Home.Component.TopArtistScreen
+import com.example.learnjetpackcompose.Screen.Home.Component.TopTracksScreen
 import com.example.learnjetpackcompose.Screen.Home.Setting.SettingScreen
 import com.example.learnjetpackcompose.Screen.Player.Component.PlayerBar
 import com.example.learnjetpackcompose.Screen.Player.PlayerViewModel
+import com.example.learnjetpackcompose.Screen.Playlist.Song.Component.SongSorted
 import com.example.learnjetpackcompose.Screen.Profile.ProfileIntent
 import com.example.learnjetpackcompose.Screen.Profile.ProfileViewModel
 
@@ -101,6 +105,9 @@ fun NavigationApp() {
                         modifier = Modifier.padding(innerPadding),
                         onSettingClick = {playerVM.stopPreview(); backStack.add(SettingNavKey)},
                         onMyProfileClick = { playerVM.stopPreview();backStack.add(ProfileNavKey) },
+                        onAlbumClick = {backStack.add(TopAlbumsNavKey)},
+                        onTrackClick = {backStack.add(TopTracksNavKey)},
+                        onArtistClick = {backStack.add(TopArtistNavKey)}
                     )
                 }
             }
@@ -192,6 +199,13 @@ fun NavigationApp() {
                         playlistId = key.playlistId,
                         playlistTitle = key.playlistTitle,
                         onBackClick = { backStack.removeLastOrNull() },
+                        onSortClick = {
+                            backStack.add(
+                                SongSortedNavKey(
+                                    playlistId = key.playlistId,
+                                )
+                            )
+                        },
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -211,6 +225,31 @@ fun NavigationApp() {
                 SettingScreen(
                     onBack = {backStack.removeLastOrNull()},
                     onSave = {backStack.add(HomeNavKey)}
+                )
+            }
+
+            entry(TopAlbumsNavKey){key ->
+                TopAlbumsScreen(
+                    onBack = {backStack.removeLastOrNull()}
+                )
+            }
+            entry(TopTracksNavKey){key ->
+                TopTracksScreen(
+                    onBack = {backStack.removeLastOrNull()}
+                )
+            }
+            entry(TopArtistNavKey){key ->
+                TopArtistScreen(
+                    onBack = {backStack.removeLastOrNull()}
+                )
+            }
+            entry<SongSortedNavKey>{ key ->
+                SongSorted(
+                    playlistId = key.playlistId,
+                    songs = hiltViewModel<com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel>().state.value.playlists
+                        .find { it.playlistId == key.playlistId }?.songs ?: emptyList(),
+                    onBackClick = { backStack.removeLastOrNull() },
+                    onSaved = { backStack.removeLastOrNull() }
                 )
             }
         }
