@@ -47,6 +47,8 @@ class PlaylistViewModel @Inject constructor(
             is PlaylistIntent.AddSongToPlaylist -> addSongToPlaylist(intent.playlistId, intent.song)
 
             is PlaylistIntent.RemoveSongFromPlaylist -> removeSongFromPlaylist(intent.playlistId, intent.song)
+
+            is PlaylistIntent.ReorderSongsInPlaylist -> reorderSongsInPlaylist(intent.playlistId, intent.songs)
         }
     }
 
@@ -139,6 +141,17 @@ class PlaylistViewModel @Inject constructor(
             updatePlaylist(updatedPlaylist)
             viewModelScope.launch {
                 _effect.send(PlaylistEffect.ShowMessage("Removed song from '${playlist.title}'"))
+            }
+        }
+    }
+
+    private fun reorderSongsInPlaylist(playlistId: Int, songs: List<Song>) {
+        val playlist = _state.value.playlists.find { it.playlistId == playlistId }
+        if (playlist != null) {
+            val updatedPlaylist = playlist.copy(songs = songs)
+            updatePlaylist(updatedPlaylist)
+            viewModelScope.launch {
+                _effect.send(PlaylistEffect.ShowMessage("Playlist '${playlist.title}' reordered"))
             }
         }
     }

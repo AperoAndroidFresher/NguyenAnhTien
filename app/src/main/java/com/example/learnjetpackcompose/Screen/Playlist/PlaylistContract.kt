@@ -17,6 +17,7 @@ sealed interface PlaylistIntent {
     data class RenamePlaylist(val playlist: Playlist) : PlaylistIntent
     data class AddSongToPlaylist(val playlistId: Int, val song: Song) : PlaylistIntent
     data class RemoveSongFromPlaylist(val playlistId: Int, val song: Song): PlaylistIntent
+    data class ReorderSongsInPlaylist(val playlistId: Int, val songs: List<Song>) : PlaylistIntent
 }
 
 sealed interface PlaylistEffect {

@@ -52,6 +52,7 @@ fun SongScreen(
     playlistId: Int,
     playlistTitle: String,
     onBackClick: () -> Unit,
+    onSortClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val playlistViewModel: PlaylistViewModel = hiltViewModel()
@@ -131,6 +132,7 @@ fun SongScreen(
                     selectedSongId = selectedSongId,
                     onToggleView = { isGridView = true },
                     onRemoveSong = removeSong,
+                    onSortClick = onSortClick,
                     onReorder = reorder,
                     onPlaySong = { song ->
                         selectedSongId = song.songId
@@ -158,6 +160,7 @@ fun SongLinear(
     selectedSongId: Long?,
     onToggleView: () -> Unit,
     onRemoveSong: (Song) -> Unit,
+    onSortClick: () -> Unit,
     onReorder: (Int, Int) -> Unit,
     onPlaySong: (Song) -> Unit,
     onSelectSong: (Song) -> Unit,
@@ -187,7 +190,7 @@ fun SongLinear(
                     modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)
                 )
                 IconButtonCustom(
-                    onClick = {},
+                    onClick = onSortClick,
                     icon = R.drawable.right_alignment,
                     title = "Sort",
                     modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)
