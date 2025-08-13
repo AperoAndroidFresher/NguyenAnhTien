@@ -23,10 +23,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,14 +31,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -52,10 +44,8 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.example.learnjetpackcompose.Component.AlbumArt
 import com.example.learnjetpackcompose.Component.ContentLoadFailure
 import com.example.learnjetpackcompose.Component.IconButtonCustom
-import com.example.learnjetpackcompose.Component.LoadingWithLottie
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.data.api.Album
 import com.example.learnjetpackcompose.Screen.Home.Component.AlbumCard
@@ -83,22 +73,15 @@ fun HomeScreen(
             .fillMaxSize()
             .background(Color(0xFF0F0F0F))
     ) {
-        // 1. Header luôn hiển thị
         HeaderHome(
             onSettingClick = onSettingClick,
             onMyProfileClick = onMyProfileClick,
             avatar = state.userAvatar,
             displayName = state.displayName
         )
-
-        // Cờ để xác định đây có phải là lần tải dữ liệu đầu tiên không.
-        // Màn hình loading và lỗi chỉ hiển thị khi chưa có dữ liệu nào.
         val isInitialLoad = state.topAlbums.isEmpty()
-
-        // 2. Vùng nội dung có điều kiện, được đặt trong Box để dễ dàng căn chỉnh
         Box(modifier = Modifier.fillMaxSize()) {
             when {
-                // Trạng thái Loading: Chỉ hiển thị animation khi tải lần đầu.
                 state.isLoading && isInitialLoad -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -119,32 +102,29 @@ fun HomeScreen(
                     }
                 }
 
-                // Trạng thái Lỗi: Chỉ hiển thị màn hình lỗi khi tải lần đầu.
                 state.error != null && isInitialLoad -> {
                     ContentLoadFailure(
                         onClick = { viewModel.processIntent(HomeIntent.LoadData) }
                     )
                 }
-
-                // Trạng thái Thành công (hoặc có lỗi khi làm mới ở nền)
                 else -> {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(top = 16.dp)
                     ) {
                         item {
-                            SectionTitle(text = "Rankings")
+                            SectionTitle(text = stringResource(R.string.rankings))
                         }
 
                         item {
-                            SectionHeader(title = "Top Albums", onSeeAll = { onAlbumClick(); viewModel.processIntent(HomeIntent.ShowAllAlbums) })
+                            SectionHeader(title = stringResource(R.string.top_albums), onSeeAll = { onAlbumClick(); viewModel.processIntent(HomeIntent.ShowAllAlbums) })
                         }
                         item {
                             AlbumsGrid(albums = state.topAlbums)
                         }
 
                         item {
-                            SectionHeader(title = "Top Tracks", onSeeAll = { onTrackClick(); viewModel.processIntent(HomeIntent.ShowAllTracks) })
+                            SectionHeader(title = stringResource(R.string.top_track), onSeeAll = { onTrackClick(); viewModel.processIntent(HomeIntent.ShowAllTracks) })
                         }
                         item {
                             LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -161,7 +141,7 @@ fun HomeScreen(
                         }
 
                         item {
-                            SectionHeader(title = "Top Artist", onSeeAll = { onArtistClick(); viewModel.processIntent(HomeIntent.ShowAllArtists) })
+                            SectionHeader(title = stringResource(R.string.top_artist), onSeeAll = { onArtistClick(); viewModel.processIntent(HomeIntent.ShowAllArtists) })
                         }
                         item {
                             LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -207,7 +187,7 @@ private fun HeaderHome(
             )
             Spacer(modifier = Modifier.width(10.dp))
             Column {
-                Text(text = "Welcome back !", color = Color.White,
+                Text(text = stringResource(R.string.welcome), color = Color.White,
                     fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                 Text(text = displayName, color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp)
             }

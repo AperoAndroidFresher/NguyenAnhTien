@@ -44,7 +44,9 @@ fun SettingScreen(
             onSave = {
                 languagePreferences.saveLanguage(selectedLanguage)
                 updateLocale(context, selectedLanguage)
-                onSave() // Gọi để làm mới Activity
+                // Recreate activity to apply new resources across the app
+                (context as? android.app.Activity)?.recreate()
+                onSave()
             },
             showSaveIcon = selectedLanguage != currentLanguage
         )
@@ -107,7 +109,7 @@ fun SelectLanguage(
                 tint = Color.White
             )
             Text(
-                text = "Language",
+                text = stringResource(R.string.language),
                 color = Color.White,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(start = 12.dp)
@@ -163,10 +165,10 @@ fun ShowDropDownMenu(
             .clip(RoundedCornerShape(10.dp))
             .background(Color.DarkGray)
     ) {
-        DropdownMenuItemWithIcon(null, "English language", "English", onEnglishClick)
-        DropdownMenuItemWithIcon(null, "Korean language", "Korean", onKoreanClick)
-        DropdownMenuItemWithIcon(null, "French language", "French", onFrenchClick)
-        DropdownMenuItemWithIcon(null, "Vietnamese language", "Vietnamese", onVietnameseClick)
+        DropdownMenuItemWithIcon(null, stringResource(R.string.english), stringResource(R.string.english), onEnglishClick)
+        DropdownMenuItemWithIcon(null, stringResource(R.string.korean), stringResource(R.string.korean), onKoreanClick)
+        DropdownMenuItemWithIcon(null, stringResource(R.string.french), stringResource(R.string.french), onFrenchClick)
+        DropdownMenuItemWithIcon(null, stringResource(R.string.vietnamese), stringResource(R.string.vietnamese), onVietnameseClick)
     }
 }
 

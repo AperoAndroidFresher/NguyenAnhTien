@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Apero Musique</string>
+    <string name="play">Lecture</string>
+    <string name="pause">Pause</string>
+    <string name="stop">Arrêter</string>
+    <string name="previous">Précédent</string>
+    <string name="Next">Suivant</string>
+    <string name="settings">Paramètres</string>
+    <string name="language">Langue</string>
+    <string name="english">Anglais</string>
+    <string name="korean">Coréen</string>
+    <string name="french">Français</string>
+    <string name="vietnamese">Vietnamien</string>
+    <string name="welcome">Content de te revoir</string>
+    <string name="rankings">Classements</string>
+    <string name="home">Maison</string>
+    <string name="library">Bibliothèque</string>
+    <string name="playlist">Liste de lecture</string>
+    <string name="top_albums">Meilleurs albums</string>
+    <string name="top_track">Meilleurs morceaux</string>
+    <string name="top_artist">Meilleur artiste</string>
+</resources>
+
