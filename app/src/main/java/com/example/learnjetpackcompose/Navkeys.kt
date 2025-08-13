@@ -47,3 +47,6 @@ data class PlayerNavKey(
     val data: String,
     val albumArt: String?
 ) : NavKey
+
+@Serializable
+object SettingNavKey: NavKey

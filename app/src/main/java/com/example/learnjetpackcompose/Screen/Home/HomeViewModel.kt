@@ -2,25 +2,31 @@ package com.example.learnjetpackcompose.Screen.Home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.data.model.UserManager
-import com.example.learnjetpackcompose.data.repository.SongRepositoryImpl
+import com.example.learnjetpackcompose.di.qualifiers.HomeApi
+import com.example.learnjetpackcompose.domain.repository.TopMusicRepository
 import com.example.learnjetpackcompose.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val songRepository: SongRepositoryImpl,
+    @HomeApi private val topMusic: TopMusicRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
+
+    companion object {
+        private const val API_TIMEOUT = 15000L
+    }
 
     private val _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
@@ -46,65 +52,75 @@ class HomeViewModel @Inject constructor(
             try {
                 _state.update { it.copy(isLoading = true, error = null) }
 
-                val remoteSongs: List<Song> = songRepository.getRemoteSongs()
-
-                val topTracksAll = remoteSongs
-                val topTracks = topTracksAll.take(5)
-
-                val albumsAll = remoteSongs.map { song ->
-                    HomeAlbum(
-                        title = song.title,
-                        artist = song.artist,
-                        coverUri = song.albumArt
-                    )
-                }
-                val albums = albumsAll.take(6)
-
-                val artistsAll = remoteSongs
-                    .map { it.artist to it.albumArt }
-                    .distinctBy { it.first }
-                    .map { (name, avatar) -> HomeArtist(name = name, avatarUri = avatar) }
-                val artists = artistsAll.take(5)
-
                 val userId = UserManager.getCurrentUserId()
                 val user = userRepository.getUserById(userId)
                 val displayName = user?.displayName ?: user?.username ?: ""
                 val avatar = user?.avatarPath
 
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        displayName = displayName,
-                        userAvatar = avatar,
-                        topAlbums = albums,
-                        topTracks = topTracks,
-                        topArtists = artists,
-                        allAlbums = albumsAll,
-                        allTracks = topTracksAll,
-                        allArtists = artistsAll
-                    )
+                // Load API data with timeout and parallel requests
+                withTimeout(API_TIMEOUT) {
+
+                    val topAlbumsDeferred = async {
+                        topMusic.getTopAlbums(
+                            "e65449d181214f936368984d4f4d4ae8",
+                            "f9b593e6-4503-414c-99a0-46595ecd2e23"
+                        )
+                    }
+
+                    val topTracksDeferred = async {
+                        topMusic.getTopTracks(
+                            "e65449d181214f936368984d4f4d4ae8",
+                            "f9b593e6-4503-414c-99a0-46595ecd2e23"
+                        )
+                    }
+
+                    val topArtistsDeferred = async {
+                        topMusic.getTopArtists("e65449d181214f936368984d4f4d4ae8")
+                    }
+
+                    val topAlbumsAll = topAlbumsDeferred.await()
+
+                    val topTracksAll = topTracksDeferred.await()
+
+                    val topArtistAll = topArtistsDeferred.await()
+
+                    val topAlbums = topAlbumsAll.topalbums.album.take(6)
+                    val topTracks = topTracksAll.toptracks.track.take(5)
+                    val topArtists = topArtistAll.artists.artist.take(5)
+
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            displayName = displayName,
+                            userAvatar = avatar,
+                            topAlbums = topAlbums,
+                            topTracks = topTracks,
+                            topArtists = topArtists,
+                            allAlbums = topAlbumsAll.topalbums,
+                            allTracks = topTracksAll.toptracks,
+                            allArtists = topArtistAll.artists
+                        )
+                    }
                 }
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                _state.update { it.copy(isLoading = false, error = "Request timeout") }
+                _effect.send(HomeEffect.ShowMessage("Request timeout. Please check your internet connection."))
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false, error = e.message ?: "Unknown error") }
-                _effect.send(HomeEffect.ShowMessage("Failed to load home data"))
+                _effect.send(HomeEffect.ShowMessage("Failed to load home data: ${e.message}"))
             }
         }
     }
 
     private fun showAllAlbums() {
-        val albums = _state.value.allAlbums
-        _state.update { it.copy(topAlbums = albums) }
+        _state.update { it.copy(topAlbums = it.allAlbums.album) }
     }
 
     private fun showAllTracks() {
-        val tracks = _state.value.allTracks
-        _state.update { it.copy(topTracks = tracks) }
+        _state.update { it.copy(topTracks = it.allTracks.track) }
     }
 
     private fun showAllArtists() {
-        val artists = _state.value.allArtists
-        _state.update { it.copy(topArtists = artists) }
+        _state.update { it.copy(topArtists = it.allArtists.artist) }
     }
 }
-
-

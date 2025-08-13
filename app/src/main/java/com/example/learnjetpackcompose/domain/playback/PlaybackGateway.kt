@@ -10,6 +10,8 @@ interface PlaybackGateway {
     val isPlaying: StateFlow<Boolean>
     val isShuffle: StateFlow<Boolean>
     val repeatMode: StateFlow<RepeatMode>
+    val currentPosition: StateFlow<Long>
+    val duration: StateFlow<Long>
 
     fun setQueue(
         songs: List<Song>,
@@ -23,8 +25,7 @@ interface PlaybackGateway {
     fun stop()
     fun next()
     fun previous()
+    fun seekTo(position: Long)
     fun toggleShuffle()
     fun cycleRepeatMode()
 }
-
-

@@ -17,6 +17,7 @@ sealed interface PlayerIntent{
     data class Previous(val position: Long) : PlayerIntent
     data object Shuffle : PlayerIntent
     data object Repeat : PlayerIntent
+    data class Seek(val position: Long) : PlayerIntent
 }
 
 enum class RepeatMode{
@@ -24,3 +25,4 @@ enum class RepeatMode{
     REPEAT_ALL,
     REPEAT_ONE
 }
+

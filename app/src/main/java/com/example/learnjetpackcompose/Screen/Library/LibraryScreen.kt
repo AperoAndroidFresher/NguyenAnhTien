@@ -1,7 +1,5 @@
 package com.example.learnjetpackcompose.Screen.Library
 
-import android.content.Context
-import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
@@ -43,13 +41,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.learnjetpackcompose.Component.AlbumArt
+import com.example.learnjetpackcompose.Component.ContentLoadFailure
 import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
 import com.example.learnjetpackcompose.Component.IconButtonCustom
 import com.example.learnjetpackcompose.R
@@ -57,15 +55,14 @@ import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Playlist.Component.ChoosePlaylistDialog
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistIntent
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
-import java.io.File
 import com.example.learnjetpackcompose.Utils.ShareUtils
 
 @Composable
 fun LibraryScreen(
     libraryViewModel: LibraryViewModel,
     playlistViewModel: PlaylistViewModel,
-    songs: List<Song>,
     onNavigateToPlaylist: () -> Unit,
+    onRequestPermission: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state by libraryViewModel.state.collectAsState()
@@ -78,9 +75,6 @@ fun LibraryScreen(
         libraryViewModel.updatePlaylists(playlistState.playlists)
     }
 
-    LaunchedEffect(songs) {
-        libraryViewModel.processIntent(LibraryIntent.LoadSongs(songs))
-    }
     LaunchedEffect(state.selectedSource) {
         when (state.selectedSource) {
             LibrarySource.LOCAL -> Unit
@@ -88,13 +82,16 @@ fun LibraryScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(key1 = Unit) {
+        libraryViewModel.checkPermissionOnEntry()
+
         libraryViewModel.effect.collect { effect ->
             when (effect) {
                 is LibraryEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.message)
                 is LibraryEffect.ShowDialogChoosePlaylist -> {}
                 is LibraryEffect.ShareSongFile -> ShareUtils.shareAudioFile(context, effect.song)
                 LibraryEffect.NavigateToPlayer -> Unit
+                LibraryEffect.RequestStoragePermission -> onRequestPermission()
             }
         }
     }
@@ -125,7 +122,9 @@ fun LibraryScreen(
             if (state.isLoading) {
                 LoadingWithLottie()
             } else if (state.filteredSongs.isEmpty()) {
-                ContentLoadFailure()
+                ContentLoadFailure(
+                    onClick = {libraryViewModel.processIntent(LibraryIntent.RefreshAllSongs)}
+                )
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(8.dp),
@@ -176,38 +175,17 @@ fun LibraryScreen(
                 }
             )
         }
-    }
-}
 
-private fun shareAudioFile(context: Context, song: Song) {
-    try {
-        val file = File(song.data)
-        if (!file.exists()) {
-            // Show error message
-            return
+        if (state.showPermissionDialog) {
+            StoragePermissionDialog(
+                onDismiss = {
+                    libraryViewModel.processIntent(LibraryIntent.DismissPermissionDialog)
+                },
+                onConfirm = {
+                    libraryViewModel.processIntent(LibraryIntent.RequestStoragePermission)
+                }
+            )
         }
-
-        val uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            file
-        )
-
-        val shareIntent = Intent().apply {
-            action = Intent.ACTION_SEND
-            type = "audio/*"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            putExtra(Intent.EXTRA_SUBJECT, "Sharing: ${song.title}")
-            putExtra(Intent.EXTRA_TEXT, "Check out this song: ${song.title} by ${song.artist}")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-
-        val chooserIntent = Intent.createChooser(shareIntent, "Share ${song.title}")
-        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(chooserIntent)
-
-    } catch (e: Exception) {
-        e.printStackTrace()
     }
 }
 
@@ -250,35 +228,6 @@ private fun GroupButton(
             selectedSource = state.selectedSource,
             onClick = loadRemoteSongs
         )
-    }
-}
-
-@Composable
-private fun ContentLoadFailure(
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "No internet connection,\nplease check your \nconnection again",
-            color = Color.White,
-            style = MaterialTheme.typography.titleSmall,
-            fontSize = 18.sp
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = {},
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF00C2CB),
-                contentColor = Color.White,
-            ),
-            shape = RoundedCornerShape(10.dp),
-            modifier = Modifier.width(150.dp)
-        ) {
-            Text(text = "Try Again")
-        }
     }
 }
 
@@ -370,7 +319,7 @@ private fun LibrarySongCardList(
                     color = Color.White, fontSize = 14.sp
                 )
                 IconButtonCustom({showDropdownMenu = true}, R.drawable.icon_morevert,
-                    "Mở menu tùy chọn", Modifier.size(36.dp))
+                    "Mở menu tùy chọn", tint = Color.White, modifier = Modifier.size(36.dp))
                 CustomDropDownMenu(
                     expanded = showDropdownMenu,
                     onDismissRequest = { showDropdownMenu = false },

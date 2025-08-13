@@ -44,10 +44,88 @@ import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
 import com.example.learnjetpackcompose.Component.IconButtonCustom
 import com.example.learnjetpackcompose.Component.SongInfo
 import com.example.learnjetpackcompose.Screen.Library.LibraryViewModel
+import com.example.learnjetpackcompose.Screen.Playlist.Component.CustomDropDownMenu
 import com.example.learnjetpackcompose.Screen.Playlist.Component.DialogCreatePlaylist
 import com.example.learnjetpackcompose.Screen.Playlist.Component.DialogRenamePlaylist
 
+@Composable
+fun PlaylistScreen(
+    modifier: Modifier = Modifier,
+    viewModel: PlaylistViewModel,
+    onNavigateToSongs: (Playlist) -> Unit = {},
+) {
+    val state by viewModel.state.collectAsState()
+    val listState = rememberLazyListState()
+    var showCreateDialog by remember { mutableStateOf(false) }
+    var showRenameDialog by remember { mutableStateOf<Playlist?>(null) }
 
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(color = Color.Black)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Spacer(modifier = Modifier.width(26.dp))
+            Text(
+                text = "MY PLAYLIST",
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.padding(10.dp),
+                color = Color.White
+            )
+            IconButtonCustom(onClick = {showCreateDialog = true}, R.drawable.icon_add, "Add playlist",
+                modifier = Modifier.size(40.dp))
+        }
+        if (state.playlists.isEmpty()) {
+            NoPlaylistScreen(onAddPlaylistClicked = {
+                showCreateDialog = true
+            })
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(8.dp),
+            ) {
+                items(state.playlists) { playlist ->
+                    PlaylistCardList(
+                        playlist = playlist,
+                        onRemovePlaylist = { viewModel.processIntent(PlaylistIntent.RemovePlaylist(it)) },
+                        onRenamePlaylist = { showRenameDialog = it },
+                        onPlaylistClick = { onNavigateToSongs(it) }
+                    )
+                }
+            }
+        }
+    }
+
+    if (showCreateDialog) {
+        DialogCreatePlaylist(
+            onDismissRequest = { showCreateDialog = false },
+            onCreatePlaylist = { playlistTitle ->
+
+                viewModel.processIntent(PlaylistIntent.AddPlaylist(playlistTitle))
+                showCreateDialog = false
+            }
+        )
+    }
+
+    val renameTarget = showRenameDialog
+    if (renameTarget != null) {
+        DialogRenamePlaylist(
+            playlist = renameTarget,
+            onDismissRequest = { showRenameDialog = null },
+            onConfirmRename = { newTitle ->
+                viewModel.processIntent(
+                    PlaylistIntent.RenamePlaylist(
+                        renameTarget.copy(title = newTitle)
+                    )
+                )
+                showRenameDialog = null
+            }
+        )
+    }
+}
 @Composable
 fun NoPlaylistScreen(
     onAddPlaylistClicked: () -> Unit,
@@ -128,115 +206,6 @@ fun PlaylistCardList(
     }
 }
 
-@Composable
-fun PlaylistScreen(
-    modifier: Modifier = Modifier,
-    viewModel: PlaylistViewModel,
-    onNavigateToSongs: (Playlist) -> Unit = {},
-) {
-    val state by viewModel.state.collectAsState()
-    val listState = rememberLazyListState()
-    var showCreateDialog by remember { mutableStateOf(false) }
-    var showRenameDialog by remember { mutableStateOf<Playlist?>(null) }
-
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(color = Color.Black)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Spacer(modifier = Modifier.width(26.dp))
-            Text(
-                text = "MY PLAYLIST",
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(10.dp),
-                color = Color.White
-            )
-            IconButtonCustom(onClick = {showCreateDialog = true}, R.drawable.icon_add, "Add playlist",
-                modifier = Modifier.size(40.dp))
-        }
-        if (state.playlists.isEmpty()) {
-            NoPlaylistScreen(onAddPlaylistClicked = {
-                showCreateDialog = true
-            })
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(8.dp),
-            ) {
-                items(state.playlists) { playlist ->
-                    PlaylistCardList(
-                        playlist = playlist,
-                        onRemovePlaylist = { viewModel.processIntent(PlaylistIntent.RemovePlaylist(it)) },
-                        onRenamePlaylist = { showRenameDialog = it },
-                        onPlaylistClick = { onNavigateToSongs(it) }
-                    )
-                }
-            }
-        }
-    }
-
-    if (showCreateDialog) {
-        DialogCreatePlaylist(
-            onDismissRequest = { showCreateDialog = false },
-            onCreatePlaylist = { playlistTitle ->
-
-                viewModel.processIntent(PlaylistIntent.AddPlaylist(playlistTitle))
-                showCreateDialog = false
-            }
-        )
-    }
-
-    val renameTarget = showRenameDialog
-    if (renameTarget != null) {
-        DialogRenamePlaylist(
-            playlist = renameTarget,
-            onDismissRequest = { showRenameDialog = null },
-            onConfirmRename = { newTitle ->
-                viewModel.processIntent(
-                    PlaylistIntent.RenamePlaylist(
-                        renameTarget.copy(title = newTitle)
-                    )
-                )
-                showRenameDialog = null
-            }
-        )
-    }
-}
-
-@Composable
-fun CustomDropDownMenu(
-    expanded: Boolean,
-    onDismissRequest: () -> Unit,
-    onRemovePlaylistClick: () -> Unit,
-    onRenamePlaylistClick: () -> Unit
-){
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = onDismissRequest,
-        shape = RoundedCornerShape(14.dp),
-        modifier = Modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(Color.DarkGray)
-    ){
-        DropdownMenuItemWithIcon(
-            iconId = R.drawable.icon_remove,
-            contentDescription = "Remove playlist",
-            text = "Remove playlist",
-            onClick = onRemovePlaylistClick
-        )
-
-        DropdownMenuItemWithIcon(
-            iconId = R.drawable.icon_rename,
-            contentDescription = "Rename",
-            text = "Rename",
-            onClick = onRenamePlaylistClick
-        )
-    }
-}
 
 
 

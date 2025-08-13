@@ -18,6 +18,8 @@ class PlayerRepositoryImpl @Inject constructor(
     override val isPlaying: StateFlow<Boolean> = playbackGateway.isPlaying
     override val isShuffle: StateFlow<Boolean> = playbackGateway.isShuffle
     override val repeatMode: StateFlow<RepeatMode> = playbackGateway.repeatMode
+    override val currentPosition: StateFlow<Long> = playbackGateway.currentPosition
+    override val duration: StateFlow<Long> = playbackGateway.duration
 
     override fun playSong(song: Song) = playbackGateway.play(song)
 
@@ -28,6 +30,8 @@ class PlayerRepositoryImpl @Inject constructor(
     override fun skipToNext() = playbackGateway.next()
 
     override fun skipToPrevious() = playbackGateway.previous()
+
+    override fun seekTo(position: Long) = playbackGateway.seekTo(position)
 
     override fun setQueueFromLocal(songs: List<Song>, startIndex: Int) {
         playbackGateway.setQueue(songs, startIndex, PlaybackManager.QueueSource.LOCAL, id = null)
@@ -45,5 +49,3 @@ class PlayerRepositoryImpl @Inject constructor(
 
     override fun cycleRepeatMode() = playbackGateway.cycleRepeatMode()
 }
-
-

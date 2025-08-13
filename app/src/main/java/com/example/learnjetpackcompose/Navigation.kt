@@ -1,7 +1,6 @@
 package com.example.learnjetpackcompose
 
 import android.annotation.SuppressLint
-import android.app.Application
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -10,49 +9,43 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.runtime.entry
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
-import com.example.learnjetpackcompose.RoomDB.Entity.SongViewModel
 import com.example.learnjetpackcompose.Screen.Home.HomeScreen
 import com.example.learnjetpackcompose.Screen.Library.LibraryScreen
+import com.example.learnjetpackcompose.Screen.Library.LibraryIntent
+import com.example.learnjetpackcompose.Screen.Library.LibraryViewModel
 import com.example.learnjetpackcompose.Screen.Login.LoginScreen
 import com.example.learnjetpackcompose.Screen.Login.LoginViewModel
 import com.example.learnjetpackcompose.Screen.Login.SplashScreen
 import com.example.learnjetpackcompose.Screen.Playlist.PlaylistScreen
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.res.painterResource
 import com.example.learnjetpackcompose.Screen.Playlist.Song.SongScreen
 import com.example.learnjetpackcompose.Screen.SignUp.SignUpScreen
 import com.example.learnjetpackcompose.Screen.Profile.MainProfileScreen
 import com.example.learnjetpackcompose.Screen.Player.PlayerScreen
 import com.example.learnjetpackcompose.data.model.UserManager
 import com.example.learnjetpackcompose.data.model.PlaybackManager
-import com.example.learnjetpackcompose.Screen.Player.PlayerBar
 import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.layout.Column
-import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.ui.graphics.Color
 import com.example.learnjetpackcompose.Component.AppNavigationBottomBar
+import com.example.learnjetpackcompose.Screen.Home.Setting.SettingScreen
+import com.example.learnjetpackcompose.Screen.Player.Component.PlayerBar
 import com.example.learnjetpackcompose.Screen.Player.PlayerViewModel
+import com.example.learnjetpackcompose.Screen.Profile.ProfileIntent
+import com.example.learnjetpackcompose.Screen.Profile.ProfileViewModel
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun NavigationApp() {
     val context = LocalContext.current
     val backStack = rememberNavBackStack(SplashNavKey)
-
-    val songViewModel = SongViewModel(context.applicationContext as Application)
-    val songs = songViewModel.songs
     val playerVM: PlayerViewModel = hiltViewModel()
+    val profileVM : ProfileViewModel = hiltViewModel()
 
     NavDisplay(
         backStack = backStack,
@@ -106,13 +99,23 @@ fun NavigationApp() {
                 ) { innerPadding ->
                     HomeScreen(
                         modifier = Modifier.padding(innerPadding),
+                        onSettingClick = {playerVM.stopPreview(); backStack.add(SettingNavKey)},
                         onMyProfileClick = { playerVM.stopPreview();backStack.add(ProfileNavKey) },
                     )
                 }
             }
 
             entry<ProfileNavKey> { key ->
-                MainProfileScreen()
+                MainProfileScreen(
+                    viewModel = hiltViewModel(),
+                    onLogout = {
+                        profileVM.processIntent(ProfileIntent.Logout)
+                    },
+                    navigateToLogin = {
+                        backStack.clear()
+                        backStack.add(LoginNavKey())
+                    }
+                )
             }
 
             entry<PlaylistNavKey> { key ->
@@ -154,12 +157,19 @@ fun NavigationApp() {
                     },
                     backStack = backStack
                 ) { innerPadding ->
+                    val activity = context as MainActivity
+                    val libraryViewModel = hiltViewModel<LibraryViewModel>()
                     LibraryScreen(
-                        libraryViewModel = hiltViewModel(),
+                        libraryViewModel = libraryViewModel,
                         playlistViewModel = hiltViewModel(),
-                        songs = songs,
                         onNavigateToPlaylist = {
                             backStack.add(PlaylistNavKey)
+                        },
+                        onRequestPermission = {
+                            activity.requestPermission {
+                                libraryViewModel.refreshLocalSongs()
+                                libraryViewModel.processIntent(LibraryIntent.OnPermissionGranted)
+                            }
                         },
                         modifier = Modifier.padding(innerPadding)
                     )
@@ -171,7 +181,6 @@ fun NavigationApp() {
                     currentIndex = 2,
                     onNavigate = { idx ->
                         when (idx) {
-//                            0 -> { backStack.clear(); backStack.add(HomeNavKey) }
                             0 -> { backStack.add(HomeNavKey) }
                             1 -> { backStack.add(LibraryNavKey) }
                             2 -> { backStack.add(PlaylistNavKey) }
@@ -198,6 +207,12 @@ fun NavigationApp() {
                     viewModel = playerViewModel
                 )
             }
+            entry<SettingNavKey>{key ->
+                SettingScreen(
+                    onBack = {backStack.removeLastOrNull()},
+                    onSave = {backStack.add(HomeNavKey)}
+                )
+            }
         }
     )
 }
@@ -219,7 +234,6 @@ private fun AppShell(
         bottomBar = {
             Column {
                 if (currentSong != null) {
-                    Log.d("PlayerBar", "Displaying: '${currentSong!!.title}', Duration: '${currentSong!!.duration}'")
                     PlayerBar(
                         title = currentSong!!.title,
                         duration = currentSong!!.duration,
@@ -228,7 +242,6 @@ private fun AppShell(
                             playerViewModel.togglePlayPause()
                         },
                         onPlayerBarClick = {
-                            // Navigate to PlayerScreen với thông tin bài hát hiện tại
                             val playerNavKey = PlayerNavKey(
                                 songId = currentSong!!.songId,
                                 title = currentSong!!.title,

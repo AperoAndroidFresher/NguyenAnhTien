@@ -9,8 +9,11 @@ import android.content.Intent
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Binder
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.TaskStackBuilder
@@ -20,6 +23,13 @@ import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.data.model.PlaybackManager
 import android.util.Log
 
+data class PlaybackState(
+    val isPlaying: Boolean = false,
+    val currentPosition: Long = 0,
+    val duration: Long = 0,
+    val currentSong: Song? = null
+)
+
 class MusicService : Service() {
 
     companion object{
@@ -28,6 +38,7 @@ class MusicService : Service() {
         const val ACTION_STOP = "ACTION_STOP"
         const val ACTION_NEXT = "ACTION_NEXT"
         const val ACTION_PREVIOUS = "ACTION_PREVIOUS"
+        const val ACTION_SEEK = "ACTION_SEEK"
 
         const val EXTRA_SONG_ID = "EXTRA_SONG_ID"
         const val EXTRA_SONG_TITLE = "EXTRA_SONG_TITLE"
@@ -35,13 +46,20 @@ class MusicService : Service() {
         const val EXTRA_SONG_DATA = "EXTRA_SONG_DATA"
         const val EXTRA_SONG_DURATION = "EXTRA_SONG_DURATION"
         const val EXTRA_SONG_ALBUM_ART = "EXTRA_SONG_ALBUM_ART"
+        const val EXTRA_SEEK_POSITION = "EXTRA_SEEK_POSITION"
 
         private const val NOTIFICATION_CHANNEL_ID = "music_playback_channel"
         private const val NOTIFICATION_CHANNEL_NAME = "Music Playback"
         private const val NOTIFICATION_ID = 1001
+
+        private const val POSITION_UPDATE_INTERVAL = 1000L // 1 second
     }
 
-    override fun onBind(p0: Intent?): IBinder? {
+    inner class MusicBinder : Binder() {
+        fun getService(): MusicService = this@MusicService
+    }
+
+    override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 
@@ -50,6 +68,10 @@ class MusicService : Service() {
     private var currentArtist: String = ""
     private var currentData: String = ""
     private var currentAlbumArt: String? = null
+
+    // Position tracking
+    private val positionHandler = Handler(Looper.getMainLooper())
+    private var positionRunnable: Runnable? = null
 
     override fun onCreate(){
         super.onCreate()
@@ -80,17 +102,22 @@ class MusicService : Service() {
                 stopPlayback()
             }
 
+            ACTION_SEEK -> {
+                val position = intent.getLongExtra(EXTRA_SEEK_POSITION, 0L)
+                seekToPosition(position)
+            }
+
             ACTION_NEXT -> {
                 val next = PlaybackManager.nextManual()
                 if (next != null) {
                     startPlayback(next.songId, next.title, next.artist, next.data, next.duration, next.albumArt)
                 } else {
-                    // No next based on repeat/queue state -> stop
                     updateNotification(isPlaying = false)
                     PlaybackManager.setIsPlaying(false)
                     stopSelf()
                 }
             }
+
             ACTION_PREVIOUS -> {
                 val prev = PlaybackManager.previousManual()
                 if (prev != null) {
@@ -106,7 +133,6 @@ class MusicService : Service() {
     }
 
     private fun startPlayback(id: Long, title: String, artist: String, data: String, duration: String, albumArt: String?) {
-
         currentTitle = title
         currentArtist = artist
         currentData = data
@@ -139,11 +165,17 @@ class MusicService : Service() {
                 it.start()
                 updateNotification(isPlaying = true)
                 PlaybackManager.setIsPlaying(true)
+
+                // Update duration and start position tracking
+                val totalDuration = it.duration.toLong()
+                PlaybackManager.setDuration(totalDuration)
+                startPositionUpdates()
             }
+
             setOnCompletionListener {
+                stopPositionUpdates()
                 val next = PlaybackManager.onSongCompleted()
                 if (next != null) {
-                    // Continue with the next decided by manager
                     startPlayback(next.songId, next.title, next.artist, next.data, next.duration, next.albumArt)
                 } else {
                     updateNotification(isPlaying = false)
@@ -151,7 +183,9 @@ class MusicService : Service() {
                     stopSelf()
                 }
             }
+
             setOnErrorListener { _, _, _ ->
+                stopPositionUpdates()
                 updateNotification(isPlaying = false)
                 PlaybackManager.setIsPlaying(false)
                 stopSelf()
@@ -161,7 +195,6 @@ class MusicService : Service() {
             prepareAsync()
         }
 
-        // Start foreground immediately to comply with Android requirements
         val notification = buildNotification(title, artist, isPlaying = false)
         startForeground(NOTIFICATION_ID, notification)
     }
@@ -172,11 +205,13 @@ class MusicService : Service() {
                 it.pause()
                 updateNotification(isPlaying = false)
                 PlaybackManager.setIsPlaying(false)
+                stopPositionUpdates()
             }
         }
     }
 
     private fun stopPlayback() {
+        stopPositionUpdates()
         mediaPlayer?.stop()
         mediaPlayer?.reset()
         mediaPlayer?.release()
@@ -184,6 +219,8 @@ class MusicService : Service() {
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
         PlaybackManager.setIsPlaying(false)
+        PlaybackManager.setCurrentPosition(0)
+        PlaybackManager.setDuration(0)
     }
 
     private fun resumePlayback() {
@@ -192,7 +229,42 @@ class MusicService : Service() {
                 it.start()
                 updateNotification(isPlaying = true)
                 PlaybackManager.setIsPlaying(true)
+                startPositionUpdates()
             }
+        }
+    }
+
+    private fun seekToPosition(position: Long) {
+        mediaPlayer?.let {
+            try {
+                it.seekTo(position.toInt())
+                PlaybackManager.setCurrentPosition(position)
+            } catch (e: Exception) {
+                Log.e("MusicService", "Error seeking to position: ${e.message}")
+            }
+        }
+    }
+
+    private fun startPositionUpdates() {
+        stopPositionUpdates() // Stop any existing updates
+        positionRunnable = object : Runnable {
+            override fun run() {
+                mediaPlayer?.let { player ->
+                    if (player.isPlaying) {
+                        val currentPos = player.currentPosition.toLong()
+                        PlaybackManager.setCurrentPosition(currentPos)
+                    }
+                }
+                positionHandler.postDelayed(this, POSITION_UPDATE_INTERVAL)
+            }
+        }
+        positionHandler.post(positionRunnable!!)
+    }
+
+    private fun stopPositionUpdates() {
+        positionRunnable?.let {
+            positionHandler.removeCallbacks(it)
+            positionRunnable = null
         }
     }
 
@@ -296,6 +368,7 @@ class MusicService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        stopPositionUpdates()
         mediaPlayer?.release()
         mediaPlayer = null
     }

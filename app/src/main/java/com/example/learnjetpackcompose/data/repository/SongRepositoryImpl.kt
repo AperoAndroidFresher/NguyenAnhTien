@@ -9,6 +9,7 @@ import com.example.learnjetpackcompose.Utils.Mp3Downloader
 import getOfflineRemoteSongs
 import com.example.learnjetpackcompose.data.api.ApiService
 import com.example.learnjetpackcompose.data.api.RemoteSongDto
+import com.example.learnjetpackcompose.di.qualifiers.SongApi
 import com.example.learnjetpackcompose.domain.repository.SongRepository
 import java.io.File
 import javax.inject.Inject
@@ -18,7 +19,7 @@ import kotlin.math.absoluteValue
 @Singleton
 class SongRepositoryImpl @Inject constructor(
     private val songDao: SongDao,
-    private val apiService: ApiService,
+    @SongApi private val apiService: ApiService,
     private val downloader: Mp3Downloader
 ) : SongRepository {
 

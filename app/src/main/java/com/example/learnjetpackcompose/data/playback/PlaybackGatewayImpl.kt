@@ -20,6 +20,8 @@ class PlaybackGatewayImpl @Inject constructor(
     override val isPlaying = PlaybackManager.isPlaying
     override val isShuffle = PlaybackManager.isShuffle
     override val repeatMode = PlaybackManager.repeatMode
+    override val currentPosition = PlaybackManager.currentPosition
+    override val duration = PlaybackManager.duration
 
     override fun setQueue(
         songs: List<Song>,
@@ -59,7 +61,6 @@ class PlaybackGatewayImpl @Inject constructor(
 
     override fun stop() {
         val intent = Intent(appContext, MusicService::class.java).apply { action = MusicService.ACTION_STOP }
-        // Use normal startService for STOP to avoid foreground requirement crash
         appContext.startService(intent)
         PlaybackManager.setNowPlaying(null)
         PlaybackManager.setIsPlaying(false)
@@ -75,6 +76,14 @@ class PlaybackGatewayImpl @Inject constructor(
         ContextCompat.startForegroundService(appContext, intent)
     }
 
+    override fun seekTo(position: Long) {
+        val intent = Intent(appContext, MusicService::class.java).apply {
+            action = MusicService.ACTION_SEEK
+            putExtra(MusicService.EXTRA_SEEK_POSITION, position)
+        }
+        appContext.startService(intent)
+    }
+
     override fun toggleShuffle() {
         PlaybackManager.toggleShuffle()
     }
@@ -83,5 +92,3 @@ class PlaybackGatewayImpl @Inject constructor(
         PlaybackManager.cycleRepeatMode()
     }
 }
-
-

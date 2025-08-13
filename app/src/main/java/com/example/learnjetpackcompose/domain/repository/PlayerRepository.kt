@@ -9,12 +9,15 @@ interface PlayerRepository {
     val isPlaying: StateFlow<Boolean>
     val isShuffle: StateFlow<Boolean>
     val repeatMode: StateFlow<RepeatMode>
+    val currentPosition: StateFlow<Long>
+    val duration: StateFlow<Long>
 
     fun playSong(song: Song)
     fun togglePlayPause()
     fun stopPlayback()
     fun skipToNext()
     fun skipToPrevious()
+    fun seekTo(position: Long)
 
     fun setQueueFromLocal(songs: List<Song>, startIndex: Int)
     fun setQueueFromRemote(songs: List<Song>, startIndex: Int, queryId: String? = null)

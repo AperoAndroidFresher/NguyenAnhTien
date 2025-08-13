@@ -14,7 +14,8 @@ data class LibraryState(
     val selectedSong: Song? = null,
     val isPlaying: Boolean = false,
     val showPlayerBar: Boolean = false,
-    val currentPlayingSong: Song? = null
+    val currentPlayingSong: Song? = null,
+    val showPermissionDialog: Boolean = false
 )
 
 sealed interface LibraryIntent {
@@ -24,12 +25,17 @@ sealed interface LibraryIntent {
     data class PlaySong(val song: Song) : LibraryIntent
     data object LoadLocalSongs : LibraryIntent
     data object LoadRemoteSongs : LibraryIntent
+    data object RefreshAllSongs : LibraryIntent
     data class ShareSong(val song: Song): LibraryIntent
     data object DismissDialog : LibraryIntent
     data object PauseMusic : LibraryIntent
     data object ResumeMusic : LibraryIntent
     data object StopMusic : LibraryIntent
     data class UpdatePlaybackState(val isPlaying: Boolean, val currentSong: Song?) : LibraryIntent
+    data object CheckStoragePermission : LibraryIntent
+    data object RequestStoragePermission : LibraryIntent
+    data object DismissPermissionDialog : LibraryIntent
+    data object OnPermissionGranted : LibraryIntent
 }
 
 sealed interface LibraryEffect {
@@ -37,6 +43,7 @@ sealed interface LibraryEffect {
     data class ShowDialogChoosePlaylist(val song: Song, val playlists: List<Playlist>) : LibraryEffect
     data class ShareSongFile(val song: Song) : LibraryEffect
     data object NavigateToPlayer : LibraryEffect
+    data object RequestStoragePermission : LibraryEffect
 }
 
 enum class LibrarySource {

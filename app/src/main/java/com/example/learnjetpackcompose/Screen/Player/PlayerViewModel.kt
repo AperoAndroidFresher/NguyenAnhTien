@@ -18,6 +18,21 @@ class PlayerViewModel @Inject constructor(
     val isPlaying: StateFlow<Boolean> = playerRepository.isPlaying
     val isShuffle: StateFlow<Boolean> = playerRepository.isShuffle
     val repeatMode: StateFlow<RepeatMode> = playerRepository.repeatMode
+    val currentPosition: StateFlow<Long> = playerRepository.currentPosition
+    val duration: StateFlow<Long> = playerRepository.duration
+
+    fun processIntent(intent: PlayerIntent){
+        when(intent){
+            is PlayerIntent.Next -> skipToNext()
+            is PlayerIntent.Pause -> togglePlayPause()
+            is PlayerIntent.Play -> togglePlayPause()
+            is PlayerIntent.Previous -> skipToPrevious()
+            is PlayerIntent.Repeat -> cycleRepeatMode()
+            is PlayerIntent.Shuffle -> toggleShuffle()
+            is PlayerIntent.Stop -> stopPlayback()
+            is PlayerIntent.Seek -> seekTo(intent.position)
+        }
+    }
 
     fun togglePlayPause() = playerRepository.togglePlayPause()
 
@@ -27,8 +42,7 @@ class PlayerViewModel @Inject constructor(
 
     fun skipToPrevious() = playerRepository.skipToPrevious()
 
-    fun setQueueFromPlaylist(playlistId: String, songs: List<Song>, startIndex: Int) =
-        playerRepository.setQueueFromPlaylist(playlistId, songs, startIndex)
+    fun seekTo(position: Long) = playerRepository.seekTo(position)
 
     fun toggleShuffle() = playerRepository.toggleShuffle()
 
