@@ -144,7 +144,7 @@ fun formatTime(milliseconds: Long): String {
 
 fun getAllMp3FilesOptimized(context: Context): List<Song> {
     val songList = mutableListOf<Song>()
-    val projection = getOptimizedQueryProjection()
+    val projection = getQueryProjection()
     val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
     val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
@@ -162,7 +162,6 @@ fun getAllMp3FilesOptimized(context: Context): List<Song> {
         val artistIndex = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
         val dataIndex = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
         val durationIndex = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-        val albumIdIndex = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
 
         while (it.moveToNext()) {
             val id = it.getLong(idIndex)
@@ -170,10 +169,9 @@ fun getAllMp3FilesOptimized(context: Context): List<Song> {
             val artist = it.getString(artistIndex)
             val data = it.getString(dataIndex)
             val durationInSec = it.getLong(durationIndex)
-            val albumId = it.getLong(albumIdIndex)
             val duration = formatTime(durationInSec)
 
-            val albumArtUri = getAlbumArtUri(albumId)
+            val albumArtUri = extractAlbumArtFromFile(context, data) ?: Uri.EMPTY
 
             if (data.endsWith(".mp3", ignoreCase = true)) {
                 songList.add(Song(id, title, artist, albumArtUri.toString(), duration, data))
@@ -184,7 +182,7 @@ fun getAllMp3FilesOptimized(context: Context): List<Song> {
     return songList
 }
 
-private fun getOptimizedQueryProjection(): Array<String> {
+private fun getQueryProjection(): Array<String> {
     return arrayOf(
         MediaStore.Audio.Media._ID,
         MediaStore.Audio.Media.TITLE,

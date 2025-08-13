@@ -3,6 +3,8 @@ package com.example.learnjetpackcompose.di
 import android.content.Context
 import com.example.learnjetpackcompose.Utils.Mp3Downloader
 import com.example.learnjetpackcompose.data.api.ApiService
+import com.example.learnjetpackcompose.di.qualifiers.HomeApi
+import com.example.learnjetpackcompose.di.qualifiers.SongApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,6 +18,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
+    @SongApi
     @Provides
     @Singleton
     fun provideRetrofit(): Retrofit {
@@ -25,9 +28,27 @@ object NetworkModule {
             .build()
     }
 
+    @HomeApi
     @Provides
     @Singleton
-    fun provideSongApiService(retrofit: Retrofit): ApiService {
+    fun provideHomeRetrofit(): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("https://ws.audioscrobbler.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @HomeApi
+    @Provides
+    @Singleton
+    fun provideHomeApiService(@HomeApi retrofit: Retrofit): ApiService {
+        return retrofit.create(ApiService::class.java)
+    }
+
+    @SongApi
+    @Provides
+    @Singleton
+    fun provideSongApiService(@SongApi retrofit: Retrofit): ApiService {
         return retrofit.create(ApiService::class.java)
     }
 

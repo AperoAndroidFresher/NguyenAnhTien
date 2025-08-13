@@ -44,6 +44,7 @@ import coil.compose.AsyncImage
 import com.example.learnjetpackcompose.Component.AlbumArt
 import com.example.learnjetpackcompose.Component.IconButtonCustom
 import com.example.learnjetpackcompose.R
+import com.example.learnjetpackcompose.data.api.Album
 
 @Composable
 fun HomeScreen(
@@ -83,18 +84,18 @@ fun HomeScreen(
         item { SectionHeader(title = "Top Tracks", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllTracks) }) }
         item {
             LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(state.topTracks) { song ->
-                    TrackCard(title = song.title, artist = song.artist, cover = song.albumArt)
+                items(state.topTracks) { track ->
+                    TrackCard(title = track.name, artist = track.artist.name,
+                        cover = track.image.firstOrNull { it.size == "medium" }?.text ?: "")
                 }
             }
         }
-
         // Top Artist
         item { SectionHeader(title = "Top Artist", onSeeAll = { viewModel.processIntent(HomeIntent.ShowAllArtists) }) }
         item {
             LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(state.topArtists) { artist ->
-                    ArtistCard(name = artist.name, avatar = artist.avatarUri)
+                    ArtistCard(name = artist.name, avatar = artist.image.firstOrNull { it.size == "medium" }?.text ?: "")
                 }
             }
         }
@@ -201,7 +202,7 @@ private fun AlbumCard(title: String, artist: String, cover: String?) {
 }
 
 @Composable
-private fun AlbumsGrid(albums: List<HomeAlbum>) {
+private fun AlbumsGrid(albums: List<Album>) {
     val limited = albums.take(6)
     val rows = (limited.size + 1) / 2
     val cardHeight = 80.dp
@@ -219,7 +220,7 @@ private fun AlbumsGrid(albums: List<HomeAlbum>) {
         contentPadding = PaddingValues(0.dp)
     ) {
         items(limited) { album ->
-            AlbumCard(title = album.title, artist = album.artist, cover = album.coverUri)
+            AlbumCard(title = album.name, artist = album.artist.name, cover = album.image[2].toString())
         }
     }
 }

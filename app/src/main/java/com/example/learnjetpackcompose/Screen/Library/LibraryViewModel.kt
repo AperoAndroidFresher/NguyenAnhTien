@@ -263,8 +263,7 @@ class LibraryViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 songDataRepository.refreshAllSongs()
-                // After refresh, update filtered list based on selected source
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     when (_state.value.selectedSource) {
                         LibrarySource.LOCAL -> loadLocalSongs()
                         LibrarySource.REMOTE -> loadRemoteSongs()
