@@ -1,6 +1,7 @@
 package com.example.learnjetpackcompose.Screen.Login
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learnjetpackcompose.data.model.UserManager
@@ -76,6 +77,7 @@ class LoginViewModel @Inject constructor(
                 _effect.send(LoginEffect.NavigateToHome)
             } else {
                 _state.update { it.copy(isLoading = false, error = "Invalid username or password") }
+                Toast.makeText(context, state.value.error, Toast.LENGTH_SHORT).show()
             }
         }
     }

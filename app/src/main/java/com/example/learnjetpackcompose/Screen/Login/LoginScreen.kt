@@ -83,7 +83,7 @@ fun LoginScreen(
                 .padding(16.dp)
         ) {
             Checkbox(
-                checked = false,
+                checked = state.rememberMe,
                 onCheckedChange = { viewModel.processIntent(LoginIntent.RememberMeChanged(it)) },
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp)
             )
