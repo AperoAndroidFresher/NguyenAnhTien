@@ -85,7 +85,7 @@ fun ArtistCard(name: String ="Taylor Swift", image: String? = "") {
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color(0xAA000000))
+                            colors = listOf(Color.Transparent, Color(0xFF789CB7))
                         )
                     )
             )

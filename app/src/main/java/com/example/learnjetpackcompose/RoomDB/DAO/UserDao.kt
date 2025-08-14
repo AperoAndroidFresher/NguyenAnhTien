@@ -15,12 +15,24 @@ interface UserDao {
     @Update
     suspend fun updateUser(user: User)
 
-    @Query("SELECT * FROM user_table WHERE username = :username")
+    @Query("""
+        SELECT * 
+        FROM user_table 
+        WHERE username = :username
+    """)
     suspend fun getUser(username: String): User?
 
-    @Query("SELECT * FROM user_table WHERE email = :email")
+    @Query("""
+        SELECT * 
+        FROM user_table 
+        WHERE email = :email
+    """)
     suspend fun getUserByEmail(email: String): User?
 
-    @Query("SELECT * FROM user_table WHERE userId = :userId")
+    @Query("""
+        SELECT * 
+        FROM user_table 
+        WHERE userId = :userId
+    """)
     suspend fun getUserById(userId: Int): User?
 }

@@ -104,7 +104,7 @@ fun TrackCard(
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color(0xAA000000))
+                            colors = listOf(Color.Transparent, Color(0xFF5C83A1))
                         )
                     )
             )

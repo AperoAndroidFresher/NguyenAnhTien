@@ -52,7 +52,7 @@ class MusicService : Service() {
         private const val NOTIFICATION_CHANNEL_NAME = "Music Playback"
         private const val NOTIFICATION_ID = 1001
 
-        private const val POSITION_UPDATE_INTERVAL = 1000L // 1 second
+        private const val POSITION_UPDATE_INTERVAL = 100L // 1 second
     }
 
     inner class MusicBinder : Binder() {
