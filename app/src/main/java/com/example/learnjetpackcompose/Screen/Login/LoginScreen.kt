@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
@@ -24,6 +26,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.unit.sp
 import com.example.learnjetpackcompose.Component.ImageContent
 import com.example.learnjetpackcompose.Component.InputTextField
+import com.example.learnjetpackcompose.Component.MyButton
 import com.example.learnjetpackcompose.Component.PasswordTextField
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -36,6 +39,7 @@ fun LoginScreen(
 ) {
 
     val state by viewModel.state.collectAsState()
+    val scrollState = rememberScrollState()
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
@@ -55,6 +59,7 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
+            .verticalScroll(scrollState)
     ) {
         ImageContent(painterResource(R.drawable.aperologo), "Log in")
 
@@ -96,28 +101,18 @@ fun LoginScreen(
             )
         }
 
-        Button(
-            onClick = { viewModel.processIntent(LoginIntent.LoginClick) },
+        MyButton(
+            onClick = {viewModel.processIntent(LoginIntent.LoginClick) },
+            label = "Login",
+            containerColor = Color(0xFF06A0B5),
+            contentColor = Color.White,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp)
-                .height(50.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF06A0B5),
-                contentColor = Color.White
-            )
-        ) {
-            Text(
-                text = "Login",
-                fontSize = 20.sp
-            )
-        }
-
+                .height(50.dp)
+        )
         Spacer(modifier = Modifier.height(16.dp))
-
         BottomText(onSignUpClick)
-
     }
 }
 
