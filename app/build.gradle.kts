@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.jetbrains.kotlin.serialization)
+    id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -40,6 +42,25 @@ android {
     buildFeatures {
         compose = true
     }
+
+    sourceSets {
+        getByName("main") {
+            java.srcDir("build/generated/ksp/main/kotlin")
+        }
+        getByName("debug") {
+            java.srcDir("build/generated/ksp/debug/kotlin")
+        }
+        getByName("release") {
+            java.srcDir("build/generated/ksp/release/kotlin")
+        }
+    }
+    androidResources {
+        generateLocaleConfig = true
+    }
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 dependencies {
@@ -55,6 +76,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.ads.mobile.sdk)
+    implementation(libs.androidx.palette.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -63,4 +86,37 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+//    Hilt Dependency Injection
+    implementation("com.google.dagger:hilt-android:2.57")
+    ksp("com.google.dagger:hilt-compiler:2.57")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+//    Room DB
+    val room_version = "2.7.2"
+    implementation("androidx.room:room-runtime:$room_version")
+    ksp("androidx.room:room-compiler:$room_version") // Use KSP for Kotlin
+    implementation("androidx.room:room-ktx:$room_version")
+
+    implementation ("com.google.code.gson:gson:2.10.1")
+
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+
+    // Converter (chuyển JSON thành object)
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // OkHttp (Logging Interceptor - để debug network)
+    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
+
+    implementation("com.airbnb.android:lottie-compose:6.1.0")
+
+    implementation("androidx.media:media:1.7.0")
+
+    // Drag & drop reorder for Jetpack Compose
+    implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
+
+    implementation("androidx.compose.foundation:foundation")
+
 }

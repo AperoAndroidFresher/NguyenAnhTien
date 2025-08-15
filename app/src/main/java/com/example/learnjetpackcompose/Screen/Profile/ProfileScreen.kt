@@ -1,22 +1,13 @@
 package com.example.learnjetpackcompose.Screen.Profile
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,26 +15,30 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.ui.theme.LearnJetPackComposeTheme
 import kotlinx.coroutines.delay
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.Icon
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
+import com.example.learnjetpackcompose.Component.IconButtonCustom
+import com.example.learnjetpackcompose.Component.MyButton
+import com.example.learnjetpackcompose.Screen.Profile.Component.HeaderProfile
+import com.example.learnjetpackcompose.Screen.Profile.Component.PopupSuccess
+import com.example.learnjetpackcompose.Screen.Profile.Component.ProfileInputField
 import kotlinx.coroutines.flow.collectLatest
 import java.io.File
 import java.io.FileOutputStream
@@ -51,16 +46,19 @@ import java.io.FileOutputStream
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
-fun MainProfileScreen() {
+fun MainProfileScreen(
+    viewModel: ProfileViewModel,
+    onLogout: () -> Unit,
+    navigateToLogin: () -> Unit
+) {
     var isEditing by remember { mutableStateOf(false) }
-    var isDark by remember { mutableStateOf(false) }
-    val viewModel = remember { ProfileViewModel() }
+    var isDark by remember { mutableStateOf(true) }
     Surface(color = MaterialTheme.colorScheme.background) {
         if (isEditing) {
             LearnJetPackComposeTheme(darkTheme = isDark) {
                 ProfileEditing(
                     viewModel = viewModel,
-                    onBackToView = { isEditing = false }
+                    onBackToView = { isEditing = false },
                 )
             }
         } else {
@@ -68,7 +66,9 @@ fun MainProfileScreen() {
                 ProfileNoEdit(
                     viewModel = viewModel,
                     onEditClick = { isEditing = true },
-                    isDark  = isDark, onToggleTheme = {isDark = !isDark}
+                    isDark  = isDark, onToggleTheme = {isDark = !isDark},
+                    logout = onLogout,
+                    navigateToLogin = navigateToLogin
                 )
             }
         }
@@ -77,173 +77,117 @@ fun MainProfileScreen() {
 
 @Composable
 fun ProfileNoEdit(
-    viewModel: ProfileViewModel = ProfileViewModel(),
+    viewModel: ProfileViewModel,
     onEditClick: () -> Unit,
     isDark: Boolean,
-    onToggleTheme: () -> Unit
+    onToggleTheme: () -> Unit,
+    logout: () -> Unit = {},
+    navigateToLogin: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    LaunchedEffect(Unit) {
+        viewModel.effect.collectLatest { effect ->
+            when (effect) {
+                is ProfileEffect.ShowError -> {
+                    Log.e("ProfileScreen", "Error: ${effect.message}")
+                }
+                is ProfileEffect.NavigateToLogin -> {
+                    navigateToLogin()
+                }
+                else -> {
+                    // Handle other effects if needed
+                }
+            }
+        }
+    }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    LaunchedEffect(Unit) {
+        viewModel.processIntent(ProfileIntent.LoadUserData)
+    }
 
-
-        Row(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(
+
+
+            Row(
                 modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .background(MaterialTheme.colorScheme.background)
-                    .size(40.dp),
-                onClick = {
-                    onToggleTheme()
-                },
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painter = painterResource( id = if (isDark) R.drawable.nightmode else R.drawable.daymode),
-                    contentDescription = "Menu",
-                    tint = MaterialTheme.colorScheme.primary
+                IconButtonCustom(
+                    onClick = { onToggleTheme() },
+                    icon = if (isDark) R.drawable.nightmode else R.drawable.daymode,
+                    title = "Switch Theme",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(36.dp)
                 )
+                Text(
+                    text = "MY INFORMATION",
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontSize = 24.sp
+                )
+                IconButtonCustom(onClick = { onEditClick() },
+                    icon = R.drawable.icon_edit, title = "Edit",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp))
             }
 
-            Text(
-                text = "MY INFORMATION",
-                modifier = Modifier.align(Alignment.CenterVertically),
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.headlineMedium,
-                fontSize = 24.sp
-            )
-            IconButton(
-                modifier = Modifier
-                    .align(Alignment.CenterVertically).background(MaterialTheme.colorScheme.background)
-                    .size(40.dp),
-                onClick = {onEditClick()}
+            Spacer(modifier = Modifier.height(24.dp))
+
+            imageAvatar(state.imagePath.toString())
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                ProfileInputField("NAME", state.displayName, {},
+                    "Enter your name...", null,
+                    isReadOnly =true, false, 1, Modifier.weight(1f))
+
+                ProfileInputField("PHONE NUMBER", state.phoneNumber, {},
+                    "Enter your phone...", null,
+                    isReadOnly =true, false, 1, Modifier.weight(1f))
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            ProfileInputField("UNIVERSITY NAME", state.universityName, {},
+                "Describe yourself...", null,
+                isReadOnly =true, false, 1, Modifier.fillMaxWidth())
+
+            Spacer(modifier = Modifier.height(24.dp))
+            ProfileInputField("DESCRIBE YOURSELF", state.description, {},
+                "Describe yourself...", null,
+                isReadOnly =true, false, 5, Modifier.fillMaxWidth())
+
+            Button(
+                onClick = logout,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF00C2CB)
+                )
             ){
-                Icon(
-                    painter = painterResource(id = R.drawable.edit),
-                    contentDescription = "Edit",
-                    modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                Row(){
+                    Icon(
+                        painter = painterResource(R.drawable.icon_logout),
+                        contentDescription = "Logout",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.Red
+                    )
+                    Text(text = "Logout", color = Color.Red, fontSize = 16.sp,
+                        modifier = Modifier.padding(start = 8.dp))
+                }
             }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        if (!state.imagePath.isNullOrEmpty()) {
-            AsyncImage(
-                model = state.imagePath,
-                contentDescription = "Profile Image",
-                modifier = Modifier
-                    .size(140.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, Color.LightGray, CircleShape),
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            Image(
-                painter = painterResource(id = R.drawable.rose),
-                contentDescription = "Profile Image",
-                modifier = Modifier
-                    .size(140.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, Color.LightGray, CircleShape),
-                contentScale = ContentScale.Crop
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = "NAME",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(4.dp))
-
-                OutlinedTextField(
-                    value = state.name,
-                    readOnly = true,
-                    shape = RoundedCornerShape(13.dp),
-                    modifier = Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(13.dp)),
-                    onValueChange = {},
-                    placeholder = { Text("Enter your name...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary)},
-                    singleLine = true
-                )
-            }
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = "PHONE NUMBER",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(4.dp))
-                OutlinedTextField(
-                    value = state.phoneNumber,
-                    readOnly = true,
-                    shape = RoundedCornerShape(13.dp),
-                    modifier = Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(13.dp)),
-                    onValueChange = {},
-                    placeholder = { Text("Enter your phone...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary)},
-                    singleLine = true
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text(text = "UNIVERSITY NAME",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(4.dp))
-            OutlinedTextField(
-                value = state.universityName,
-                readOnly = true,
-                shape = RoundedCornerShape(13.dp),
-                modifier = Modifier.fillMaxWidth().border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(13.dp)),
-                onValueChange = {},
-                placeholder = { Text("Enter university...",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary)},
-                singleLine = true
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text(text = "DESCRIBE YOURSELF",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(4.dp))
-            OutlinedTextField(
-                value = state.description,
-                readOnly = true,
-                shape = RoundedCornerShape(13.dp),
-                modifier = Modifier.fillMaxWidth().height(150.dp).border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(13.dp)),
-                onValueChange = {},
-                placeholder = { Text("Enter university...",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary)},
-
-                singleLine = false
-            )
         }
     }
 }
@@ -252,11 +196,15 @@ fun ProfileNoEdit(
 @Composable
 fun ProfileEditing(
     viewModel: ProfileViewModel,
-    onBackToView: () -> Unit
+    onBackToView: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
     var showSuccessPopup by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.processIntent(ProfileIntent.LoadUserData)
+    }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
@@ -267,11 +215,17 @@ fun ProfileEditing(
                     showSuccessPopup = false
                     onBackToView()
                 }
+                is ProfileEffect.ProfileSaved -> {
+                    showSuccessPopup = true
+                }
+                is ProfileEffect.ShowError -> {
+                }
+
+                ProfileEffect.NavigateToLogin -> {}
             }
         }
     }
 
-    // Launcher để chọn ảnh từ device
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -283,243 +237,77 @@ fun ProfileEditing(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        Row(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "MY INFORMATION",
-                modifier = Modifier.align(Alignment.CenterVertically),
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.headlineMedium,
-                fontSize = 24.sp
-            )
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            HeaderProfile()
+            Spacer(modifier = Modifier.height(24.dp))
+            ImageAvatarEdit(state.imagePath.toString(), onclick = {imagePickerLauncher.launch("image/*")} )
+            Spacer(modifier = Modifier.height(32.dp))
 
-        Box(
-            modifier = Modifier.fillMaxWidth()
-        ){
-            // Hiển thị ảnh dựa vào selectedImagePath hoặc ảnh mặc định
-            if (state.imagePath != null) {
-                AsyncImage(
-                    model = state.imagePath,
-                    contentDescription = "Profile Image",
-                    modifier = Modifier
-                        .size(140.dp)
-                        .clip(CircleShape)
-                        .border(2.dp, Color.LightGray, CircleShape)
-                        .align(Alignment.Center),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.rose),
-                    contentDescription = "Profile Image",
-                    modifier = Modifier
-                        .size(140.dp)
-                        .clip(CircleShape)
-                        .border(2.dp, Color.LightGray, CircleShape)
-                        .align(Alignment.Center),
-                    contentScale = ContentScale.Crop
-                )
-            }
-
-            Box(
-                modifier = Modifier.align(Alignment.BottomCenter)
-                    .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.5f)),
-            ){
-                IconButton(
-                    onClick = {
-                        // Mở image picker
-                        imagePickerLauncher.launch("image/*")
-                    }
-                ){
-                    Icon(
-                        painter = painterResource(id = R.drawable.camera),
-                        contentDescription = "Edit",
-                        tint = Color.White.copy(alpha = 0.8f),
-                        modifier = Modifier
-                            .size(30.dp)
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = "NAME",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(4.dp))
-                OutlinedTextField(
-                    value = state.name,
-                    onValueChange = {viewModel.processIntent(ProfileIntent.NameChanged(it))},
-                    placeholder = { Text("Enter name...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary) },
-                    colors = TextFieldDefaults.colors(MaterialTheme.colorScheme.primary),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    isError = state.errors.nameError != null,
-                    supportingText = {
-                        state.errors.nameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                    }
-                )
-            }
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = "PHONE NUMBER",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(4.dp))
-                OutlinedTextField(
-                    value = state.phoneNumber,
-                    onValueChange = {viewModel.processIntent(ProfileIntent.PhoneNumberChanged(it))},
-                    placeholder = { Text("Your phone...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.colors(MaterialTheme.colorScheme.primary),
-                    singleLine = true,
-                    isError = state.errors.phoneNumberError != null,
-                    supportingText = {
-                        state.errors.phoneNumberError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                    }
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text(text = "UNIVERSITY NAME",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(4.dp))
-            OutlinedTextField(
-                value = state.universityName,
-                onValueChange = { viewModel.processIntent(ProfileIntent.UniversityNameChanged(it))},
-                placeholder = { Text("Your university name...",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary) },
-                colors = TextFieldDefaults.colors(MaterialTheme.colorScheme.primary),
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                isError = state.errors.universityNameError != null,
-                supportingText = {
-                    state.errors.universityNameError?.let{Text(it, color = MaterialTheme.colorScheme.error)}
-                }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text(text = "DESCRIBE YOURSELF",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(4.dp))
-            OutlinedTextField(
-                value = state.description,
-                onValueChange = { viewModel.processIntent(ProfileIntent.DescriptionChanged(it))},
-                placeholder = { Text("Enter a description...",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary) },
-                shape = RoundedCornerShape(13.dp),
-                modifier = Modifier.fillMaxWidth().height(150.dp).border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(13.dp)),
-                singleLine = false
-            )
-        }
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Column {
-            Button(
-                onClick = {viewModel.processIntent(ProfileIntent.Submit)},
-                modifier = Modifier
-                    .width(150.dp)
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceTint,
-                    contentColor = MaterialTheme.colorScheme.onSecondary
-                ),
-                shape = RoundedCornerShape(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = "Submit",
-                    fontSize = 18.sp,
-                    style = MaterialTheme.typography.labelLarge,
+                ProfileInputField(
+                    label = "NAME",
+                    value = state.displayName,
+                    onValueChange = { viewModel.processIntent(ProfileIntent.DisplayNameChanged(it)) },
+                    placeholder = "Enter name...",
+                    errorMessage = state.errors.displayNameError,
+                    modifier = Modifier.weight(1f)
+                )
+                ProfileInputField(
+                    label = "PHONE NUMBER",
+                    value = state.phoneNumber,
+                    onValueChange = { viewModel.processIntent(ProfileIntent.PhoneNumberChanged(it)) },
+                    placeholder = "Your phone...",
+                    errorMessage = state.errors.phoneNumberError,
+                    modifier = Modifier.weight(1f)
                 )
             }
-        }
 
-        if (showSuccessPopup) {
-            Popup(
-                onDismissRequest = { showSuccessPopup = false },
-                properties = PopupProperties(focusable = true)
-            ) {
-                Box(
-                    modifier = Modifier.size(300.dp, 200.dp)
-                        .background(Color.White, shape = RoundedCornerShape(8.dp))
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ){
-                    Column(
-                        modifier = Modifier
-                            .wrapContentSize()
-                            .background(Color.White, shape = RoundedCornerShape(8.dp))
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.success),
-                            contentDescription = "Success Icon",
-                            modifier = Modifier
-                                .size(80.dp)
-                                .padding(8.dp)
-                                .clip(CircleShape)
-                                .background(Color.Green)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Success!",
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Green,
-                            modifier = Modifier
-                                .background(Color.LightGray, RoundedCornerShape(8.dp))
-                                .padding(horizontal = 16.dp, vertical = 4.dp)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Your information has been updated!",
-                            textAlign = TextAlign.Center
-                        )
-                    }
+            Spacer(modifier = Modifier.height(24.dp))
+            ProfileInputField(
+                label = "UNIVERSITY NAME",
+                value = state.universityName,
+                onValueChange = { viewModel.processIntent(ProfileIntent.UniversityNameChanged(it)) },
+                placeholder = "Your university name...",
+                errorMessage = state.errors.universityNameError,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+            ProfileInputField(
+                label = "DESCRIBE YOURSELF",
+                value = state.description,
+                onValueChange = { viewModel.processIntent(ProfileIntent.DescriptionChanged(it)) },
+                placeholder = "Enter a description...",
+                errorMessage = null,
+                singleLine = false,
+                minLines = 5,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            MyButton(onClick = {viewModel.processIntent(ProfileIntent.Submit)}, label = "Submit",
+                containerColor = MaterialTheme.colorScheme.surfaceTint,
+                contentColor = MaterialTheme.colorScheme.onSecondary,
+                modifier = Modifier.height(50.dp)
+            )
+
+            if (showSuccessPopup) {
+                PopupSuccess({showSuccessPopup = false})
+                LaunchedEffect(Unit) {
+                    delay(2000)
+                    showSuccessPopup = false
+                    onBackToView()
                 }
-            }
-
-            LaunchedEffect(Unit) {
-                delay(4000)
-                showSuccessPopup = false
-                onBackToView()
             }
         }
     }
@@ -547,6 +335,52 @@ fun resizeAndSaveImage(context: Context, uri: Uri): String? {
         null
     }
 }
+
+@Composable
+private fun imageAvatar(
+    imagePath: String,
+
+){
+    Box(
+        modifier = Modifier.fillMaxWidth()
+    ){
+        AsyncImage(
+            model = imagePath,
+            contentDescription = "Image Profile",
+            modifier = Modifier
+                .size(140.dp)
+                .clip(CircleShape)
+                .border(1.dp, Color.LightGray, CircleShape)
+                .align(Alignment.Center),
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(R.drawable.default_avatar),
+            error = painterResource(R.drawable.default_avatar),
+            fallback = painterResource(R.drawable.default_avatar)
+        )
+    }
+}
+
+@Composable
+fun ImageAvatarEdit(
+    imagePath: String,
+    onclick: () -> Unit
+){    Box(
+    modifier = Modifier.fillMaxWidth()
+){
+    imageAvatar(imagePath)
+    Box(
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .clip(CircleShape)
+            .background(Color.Black.copy(alpha = 0.5f)),
+    ){
+        IconButtonCustom(onclick, R.drawable.camera, "Edit",
+            tint = Color.White, Modifier.size(30.dp))
+    }
+}
+
+}
+
 
 @Preview(showBackground = true, widthDp = 360)
 @Composable

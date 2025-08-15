@@ -28,3 +28,39 @@ object ProfileNavKey : NavKey
 
 @Serializable
 object PlaylistNavKey : NavKey
+
+@Serializable
+object LibraryNavKey : NavKey
+
+@Serializable
+data class SongNavKey(
+    val playlistId: Int,
+    val playlistTitle: String
+) : NavKey
+
+@Serializable
+data class PlayerNavKey(
+    val songId: Long,
+    val title: String,
+    val artist: String,
+    val duration: String,
+    val data: String,
+    val albumArt: String?
+) : NavKey
+
+@Serializable
+object SettingNavKey: NavKey
+
+@Serializable
+object TopAlbumsNavKey: NavKey
+
+@Serializable
+object TopTracksNavKey: NavKey
+
+@Serializable
+object TopArtistNavKey: NavKey
+
+@Serializable
+data class SongSortedNavKey(
+    val playlistId: Int,
+): NavKey

@@ -5,15 +5,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -27,10 +23,11 @@ import androidx.compose.ui.unit.dp
 import com.example.learnjetpackcompose.R
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
+import com.example.learnjetpackcompose.Component.ImageContent
+import com.example.learnjetpackcompose.Component.InputTextField
+import com.example.learnjetpackcompose.Component.MyButton
+import com.example.learnjetpackcompose.Component.PasswordTextField
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
@@ -42,14 +39,14 @@ fun LoginScreen(
 ) {
 
     val state by viewModel.state.collectAsState()
-
-    // Sử dụng LaunchedEffect để xử lý các sự kiện một lần
+    val scrollState = rememberScrollState()
     LaunchedEffect(Unit) {
-        viewModel.effect.collectLatest{ effect ->
-            when (effect){
+        viewModel.effect.collectLatest { effect ->
+            when (effect) {
                 is LoginEffect.NavigateToHome -> {
                     onLoginSuccess()
                 }
+
                 is LoginEffect.NavigateToSignUp -> {
                     onSignUpClick()
                 }
@@ -58,94 +55,41 @@ fun LoginScreen(
         }
     }
 
-
     Column(
-        modifier = Modifier.fillMaxSize().background(Color.Black)
-    ){
-        Image(
-            painter = painterResource(id = R.drawable.aperologo),
-            contentDescription = "Logo Apero",
-            modifier = Modifier
-                .size(350.dp)
-                .align(Alignment.CenterHorizontally)
-        )
-        Text(
-            text = "Login to your account",
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.White,
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold
-        )
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .verticalScroll(scrollState)
+    ) {
+        ImageContent(painterResource(R.drawable.aperologo), "Log in")
 
         Spacer(modifier = Modifier.height(16.dp))
 
-//      UserName Textfield
-        OutlinedTextField(
+        InputTextField(
             value = state.username,
             onValueChange = {viewModel.processIntent(LoginIntent.UsernameChanged(it))},
-            label = { Text(text = "Username", color = Color.White.copy(0.7f)) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-            ),
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "User Icon",
-                    tint = Color.White.copy(alpha = 0.5f)
-
-                )
-            }
+            label = "UserName",
+            leadingIcon = painterResource(R.drawable.icon_user),
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
+        Spacer(modifier = Modifier.height(10.dp))
+        PasswordTextField(
             value = state.password,
             onValueChange = {viewModel.processIntent(LoginIntent.PasswordChanged(it))},
-            label = { Text(text = "Password", color = Color.White.copy(0.7f)) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
-            ),
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = "Password Icon",
-                    tint = Color.White.copy(alpha = 0.5f)
-
-                )
-            },
-            trailingIcon = {
-                IconButton(onClick = {
-                    viewModel.processIntent(LoginIntent.ShowPasswordVisibility)
-                }
-                ){
-                    Icon(
-                        painter = painterResource(id = R.drawable.visible),
-                        modifier = Modifier.size(24.dp),
-                        contentDescription = "Show password",
-                        tint = Color.White)
-                }
-            },
-            visualTransformation = if (state.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-
+            isPasswordVisible = state.isPasswordVisible,
+            onShowPassword = {viewModel.processIntent(LoginIntent.ShowPasswordVisibility)},
+            label = "Password",
+            modifier = Modifier.fillMaxWidth()
         )
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-        ){
+        ) {
             Checkbox(
-                checked = false,
-                onCheckedChange = { viewModel.processIntent(LoginIntent.RememberMeChanged(it))},
+                checked = state.rememberMe,
+                onCheckedChange = { viewModel.processIntent(LoginIntent.RememberMeChanged(it)) },
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp)
             )
 
@@ -157,51 +101,18 @@ fun LoginScreen(
             )
         }
 
-        Button(
-            onClick = {viewModel.processIntent(LoginIntent.LoginClick)},
+        MyButton(
+            onClick = {viewModel.processIntent(LoginIntent.LoginClick) },
+            label = "Login",
+            containerColor = Color(0xFF06A0B5),
+            contentColor = Color.White,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp).height(50.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF06A0B5),
-                contentColor = Color.White
-            )
-        ){
-            Text(
-                text = "Login",
-                fontSize = 20.sp
-            )
-        }
-
+                .padding(start = 16.dp, end = 16.dp)
+                .height(50.dp)
+        )
         Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.Center
-        ){
-            Text(
-                text = "Don't have an account?",
-                color = Color.White.copy(alpha = 0.8f),
-                fontSize = 20.sp,
-                modifier = Modifier.align(Alignment.CenterVertically)
-            )
-            TextButton(
-                onClick = onSignUpClick,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = Color(0xFF06A0B5)
-                )
-            ) {
-                Text(
-                    text = "Sign Up",
-                    fontSize = 20.sp,
-                    color = Color(0xFF06A0B5)
-                )
-            }
-        }
-
+        BottomText(onSignUpClick)
     }
 }
 
@@ -234,9 +145,38 @@ fun SplashScreen(onTimeout: () -> Unit) {
 }
 
 
-@Preview (showBackground = true)
+@Composable
+fun BottomText(
+    onSignUpClick: () -> Unit
+){
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Don't have an account?",
+            color = Color.White.copy(alpha = 0.8f),
+            fontSize = 20.sp,
+        )
+        TextButton(
+            onClick = onSignUpClick,
+            colors = ButtonDefaults.textButtonColors(
+                contentColor = Color(0xFF06A0B5)
+            ),
+        ) {
+            Text(
+                text = "Sign Up",
+                fontSize = 20.sp,
+                color = Color(0xFF06A0B5)
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-
-//    MainScreen()
 }

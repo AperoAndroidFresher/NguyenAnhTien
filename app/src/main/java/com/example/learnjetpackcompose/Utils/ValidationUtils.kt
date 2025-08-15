@@ -1,6 +1,6 @@
 package com.example.learnjetpackcompose.Utils
 
-import com.example.learnjetpackcompose.model.UserManager
+import com.example.learnjetpackcompose.data.model.UserManager
 
 object ValidationUtils {
 
