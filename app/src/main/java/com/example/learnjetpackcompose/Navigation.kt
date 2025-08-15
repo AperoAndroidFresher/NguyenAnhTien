@@ -158,9 +158,9 @@ fun NavigationApp() {
                     currentIndex = 1,
                     onNavigate = { idx ->
                         when (idx) {
-                            0 -> { backStack.add(HomeNavKey) }
+                            0 -> { playerVM.stopPreview();backStack.add(HomeNavKey) }
                             1 -> { backStack.add(LibraryNavKey) }
-                            2 -> { backStack.add(PlaylistNavKey) }
+                            2 -> { playerVM.stopPreview();backStack.add(PlaylistNavKey) }
                         }
                     },
                     backStack = backStack
@@ -171,6 +171,7 @@ fun NavigationApp() {
                         libraryViewModel = libraryViewModel,
                         playlistViewModel = hiltViewModel(),
                         onNavigateToPlaylist = {
+                            playerVM.stopPreview()
                             backStack.add(PlaylistNavKey)
                         },
                         onRequestPermission = {
