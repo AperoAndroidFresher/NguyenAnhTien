@@ -8,9 +8,6 @@ import android.Manifest
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
-/**
- * Kiểm tra quyền truy cập bộ nhớ để đọc nhạc.
- */
 fun Context.hasStoragePermission(): Boolean {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         ContextCompat.checkSelfPermission(
@@ -25,9 +22,6 @@ fun Context.hasStoragePermission(): Boolean {
     }
 }
 
-/**
- * Yêu cầu quyền truy cập bộ nhớ từ Activity.
- */
 fun requestStoragePermission(activity: Activity) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         ActivityCompat.requestPermissions(

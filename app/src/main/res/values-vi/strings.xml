@@ -12,7 +12,7 @@
     <string name="korean">Tiếng Hàn</string>
     <string name="french">Tiếng Pháp</string>
     <string name="vietnamese">Tiếng Việt</string>
-    <string name="welcome">Chào mừng trở lại</string>
+    <string name="welcome">Chào mừng trở lại !</string>
     <string name="rankings">Xếp hạng</string>
     <string name="home">Trang chủ</string>
     <string name="library">Thư viện</string>
@@ -20,4 +20,5 @@
     <string name="top_albums">Album hàng đầu</string>
     <string name="top_track">Bài hát hàng đầu</string>
     <string name="top_artist">Nghệ sĩ hàng đầu</string>
+    <string name="see_all">Xem tất cả</string>
 </resources>

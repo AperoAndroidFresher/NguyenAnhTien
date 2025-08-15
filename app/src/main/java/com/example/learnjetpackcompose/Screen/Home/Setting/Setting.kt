@@ -1,5 +1,6 @@
 package com.example.learnjetpackcompose.Screen.Home.Setting
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -45,7 +46,7 @@ fun SettingScreen(
                 languagePreferences.saveLanguage(selectedLanguage)
                 updateLocale(context, selectedLanguage)
                 // Recreate activity to apply new resources across the app
-                (context as? android.app.Activity)?.recreate()
+                (context as? Activity)?.recreate()
                 onSave()
             },
             showSaveIcon = selectedLanguage != currentLanguage
@@ -118,7 +119,8 @@ fun SelectLanguage(
 
         Box {
             Text(
-                text = selectedLanguage,
+//                text = selectedLanguage,
+                text = stringResource(R.string.language),
                 color = Color.White,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.clickable { expanded = true }

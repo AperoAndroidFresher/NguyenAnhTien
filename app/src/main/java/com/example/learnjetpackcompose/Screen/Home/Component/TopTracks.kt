@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,8 +50,7 @@ fun TopTracksScreen(
         .background(Color.Black)
         .padding(12.dp))
     {
-
-        HeaderTopAlbums(onBack, "Top Tracks")
+        HeaderTopAlbums(onBack, stringResource(R.string.top_track))
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier.fillMaxSize(),
@@ -104,7 +104,7 @@ fun TrackCard(
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color(0xAA000000))
+                            colors = listOf(Color.Transparent, Color(0xFF5C83A1))
                         )
                     )
             )

@@ -11,10 +11,18 @@ interface PlaylistDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertPlaylist(playlist: Playlist)
 
-    @Query("SELECT * FROM playlist_table WHERE userId = :userId")
+    @Query("""
+        SELECT * 
+        FROM playlist_table 
+        WHERE userId = :userId
+    """)
     suspend fun getPlaylistsForUser(userId: Int): List<Playlist>
 
-    @Query("DELETE FROM playlist_table WHERE playlistId = :playlistId")
+    @Query("""
+        DELETE 
+        FROM playlist_table 
+        WHERE playlistId = :playlistId
+    """)
     suspend fun deletePlaylist(playlistId: Int)
 
 

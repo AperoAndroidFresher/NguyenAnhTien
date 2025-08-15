@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learnjetpackcompose.Component.AlbumArt
@@ -46,6 +47,7 @@ import com.example.learnjetpackcompose.Component.ContentLoadFailure
 import com.example.learnjetpackcompose.Component.DropdownMenuItemWithIcon
 import com.example.learnjetpackcompose.Component.IconButtonCustom
 import com.example.learnjetpackcompose.Component.LoadingWithLottie
+import com.example.learnjetpackcompose.Component.SongItemPlaying
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.RoomDB.Entity.Song
 import com.example.learnjetpackcompose.Screen.Playlist.Component.ChoosePlaylistDialog
@@ -129,6 +131,7 @@ fun LibraryScreen(
                         LibrarySongCardList(
                             song = song,
                             isSelected = selectedSongId == song.songId,
+                            isplaying = state.isPlaying,
                             onAddToPlaylist = {
                                 libraryViewModel.processIntent(
                                     LibraryIntent.AddSongToPlaylist(
@@ -251,6 +254,7 @@ private fun SourceButton(
 private fun LibrarySongCardList(
     song: Song,
     isSelected: Boolean,
+    isplaying: Boolean = false,
     onAddToPlaylist: (Song) -> Unit,
     onPlaySong: (Song) -> Unit,
     onSelectSong: (Song) -> Unit,
@@ -281,7 +285,7 @@ private fun LibrarySongCardList(
                     }
             ) {
                 AlbumArt(albumArtUri = song.albumArt)
-                SongInfo(song.title, song.artist)
+                SongInfo(song.title, song.artist, isplaying)
             }
 
             Row(
@@ -311,17 +315,27 @@ private fun LibrarySongCardList(
 }
 
 @Composable
-fun SongInfo(title: String, artist: String) {
+fun SongInfo(title: String, artist: String, isplaying: Boolean = false) {
     Column(modifier = Modifier.padding(start = 10.dp)) {
-        Text(
-            text = title,
-            modifier = Modifier
-                .width(190.dp)
-                .basicMarquee(),
-            style = MaterialTheme.typography.titleSmall,
-            fontSize = 16.sp,
-            color = Color.White
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        ) {
+            if (isplaying){ SongItemPlaying()
+                Spacer(modifier = Modifier.width(6.dp))}
+
+            Text(
+                text = title,
+                modifier = Modifier
+                    .width(190.dp)
+                    .basicMarquee(),
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontSize = 16.sp,
+                    color = Color.White
+                )
+            )
+        }
+
         Text(
             text = artist,
             modifier = Modifier

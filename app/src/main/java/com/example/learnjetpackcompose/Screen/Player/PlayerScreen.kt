@@ -1,32 +1,20 @@
 package com.example.learnjetpackcompose.Screen.Player
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,17 +28,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.learnjetpackcompose.R
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
 import com.example.learnjetpackcompose.Component.IconButtonCustom
-import com.example.learnjetpackcompose.Screen.Player.Component.MiniSlider
 import com.example.learnjetpackcompose.Screen.Player.Component.ProgressSlider
-import kotlin.math.roundToLong
-
 
 @Composable
 fun PlayerScreen(
@@ -111,7 +90,6 @@ fun PlayerScreen(
         Content(currentSong?.title, currentSong?.artist, currentSong?.albumArt)
         Spacer(modifier = modifier.height(20.dp))
 
-        // Progress Slider Section
         ProgressSlider(
             currentPosition = currentPosition,
             duration = duration,
@@ -130,14 +108,6 @@ fun PlayerScreen(
             repeatMode,
             modifier)
     }
-}
-
-
-
-@Preview
-@Composable
-fun PlayerScreenPreview() {
-    PlayerScreen()
 }
 
 @Composable
@@ -217,27 +187,30 @@ fun ButtonControls(
     onRepeatClick: () -> Unit,
     isPlaying: Boolean = false,
     isShuffled: Boolean = false,
-    isRepeated: RepeatMode = RepeatMode.REPEAT_ONE,
+    isRepeated: RepeatMode = RepeatMode.NONE,
     modifier: Modifier = Modifier
-){
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
         IconButtonCustom(
-            onShuffleClick, R.drawable.icon_shuffle, "Shuffle", tint = Color.White,
-            if (isShuffled) Modifier
-                .size(36.dp)
-                .background(Color(0xFF00C2CB).copy(0.5f))
-            else Modifier.size(36.dp)
+            onShuffleClick,
+            R.drawable.icon_shuffle,
+            "Shuffle",
+            tint = if (isShuffled) Color(0xFF00C2CB) else Color.White,
+            Modifier.size(36.dp)
         )
+
         IconButtonCustom(
             onPreviousClick,
             R.drawable.icon_previous,
-            "Previous",tint = Color.White,
+            "Previous",
+            tint = Color.White,
             Modifier.size(36.dp)
         )
+
         IconButtonCustom(
             onPlayPauseClick,
             if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play,
@@ -248,13 +221,32 @@ fun ButtonControls(
                 .clip(CircleShape)
                 .background(Color(0xFF00C2CB))
         )
-        IconButtonCustom(onNextClick, R.drawable.icon_next, "Next",
-            tint = Color.White, Modifier.size(36.dp))
+
         IconButtonCustom(
-            onRepeatClick, R.drawable.icon_repeat, "Repeat",tint = Color.White,
-            Modifier
-                .size(36.dp)
-                .background(Color(0xFF00C2CB).copy(0.5f))
+            onNextClick,
+            R.drawable.icon_next,
+            "Next",
+            tint = Color.White,
+            Modifier.size(36.dp)
         )
+
+        IconButtonCustom(
+            onRepeatClick,
+            when (isRepeated) {
+                RepeatMode.NONE -> R.drawable.icon_repeat
+                RepeatMode.REPEAT_ALL -> R.drawable.icon_repeat
+                RepeatMode.REPEAT_ONE -> R.drawable.icon_repeat_one
+            },
+            when (isRepeated) {
+                RepeatMode.NONE -> "Repeat"
+                RepeatMode.REPEAT_ALL -> "Repeat All"
+                RepeatMode.REPEAT_ONE -> "Repeat One"
+            },
+            tint = when (isRepeated) {
+                RepeatMode.NONE -> Color.White
+                RepeatMode.REPEAT_ALL, RepeatMode.REPEAT_ONE -> Color(0xFF00C2CB) // màu khi bật repeat
+            }
+        )
+
     }
 }

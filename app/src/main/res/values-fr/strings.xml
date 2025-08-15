@@ -12,7 +12,7 @@
     <string name="korean">Coréen</string>
     <string name="french">Français</string>
     <string name="vietnamese">Vietnamien</string>
-    <string name="welcome">Content de te revoir</string>
+    <string name="welcome">Content de te revoir !</string>
     <string name="rankings">Classements</string>
     <string name="home">Maison</string>
     <string name="library">Bibliothèque</string>
@@ -20,5 +20,6 @@
     <string name="top_albums">Meilleurs albums</string>
     <string name="top_track">Meilleurs morceaux</string>
     <string name="top_artist">Meilleur artiste</string>
+    <string name="see_all">Voir tout</string>
 </resources>
 

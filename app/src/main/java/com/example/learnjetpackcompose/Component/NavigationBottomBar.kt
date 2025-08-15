@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import com.example.learnjetpackcompose.R
 
 data class NavBottomItems(val label: String, val icon: Int)
@@ -19,9 +20,9 @@ fun AppNavigationBottomBar(
     onNavigate: (Int) -> Unit
 ) {
     val navItemsList = listOf(
-        NavBottomItems("Home", R.drawable.icon_home),
-        NavBottomItems("Library", R.drawable.icon_library),
-        NavBottomItems("My Playlist", R.drawable.icon_playlist)
+        NavBottomItems(stringResource(R.string.home), R.drawable.icon_home),
+        NavBottomItems(stringResource(R.string.library), R.drawable.icon_library),
+        NavBottomItems(stringResource(R.string.playlist), R.drawable.icon_playlist)
     )
 
     val selectedColor = Color(0xFF00C2CB)

@@ -11,7 +11,7 @@
     <string name="korean">Korean</string>
     <string name="french">French</string>
     <string name="vietnamese">Vietnamese</string>
-    <string name="welcome">Welcome Back</string>
+    <string name="welcome">Welcome Back !</string>
     <string name="rankings">Rankings</string>
     <string name="home">Home</string>
     <string name="library">Library</string>
@@ -19,4 +19,5 @@
     <string name="top_albums">Top Albums</string>
     <string name="top_track">Top Tracks</string>
     <string name="top_artist">Top Artist</string>
+    <string name="see_all">See all</string>
 </resources>

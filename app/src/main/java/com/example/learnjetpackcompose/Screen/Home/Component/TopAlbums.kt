@@ -21,10 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.learnjetpackcompose.Component.AlbumArt
+import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.Screen.Home.HomeViewModel
 
 @Composable
@@ -38,7 +40,7 @@ fun TopAlbumsScreen(
             .fillMaxSize().background(Color.Black)
             .padding(12.dp)
     ){
-        HeaderTopAlbums(onBack, "Top Albums")
+        HeaderTopAlbums(onBack, stringResource(R.string.top_albums))
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(top = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -66,7 +68,7 @@ fun AlbumCard(title: String, artist: String, cover: String?) {
     ) {
         Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
             AlbumArt(cover,
-                modifier = Modifier.size(56.dp)
+                modifier = Modifier.size(60.dp)
                     .clip(RoundedCornerShape(10.dp)))
             Column(modifier = Modifier.padding(start = 12.dp, end = 8.dp)) {
                 Text(text = title, color = Color.White, fontSize = 14.sp, maxLines = 1)

@@ -52,7 +52,7 @@ class MusicService : Service() {
         private const val NOTIFICATION_CHANNEL_NAME = "Music Playback"
         private const val NOTIFICATION_ID = 1001
 
-        private const val POSITION_UPDATE_INTERVAL = 1000L // 1 second
+        private const val POSITION_UPDATE_INTERVAL = 100L // 1 second
     }
 
     inner class MusicBinder : Binder() {
@@ -321,22 +321,22 @@ class MusicService : Service() {
             .setOngoing(isPlaying)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .addAction(
-                android.R.drawable.ic_media_previous,
+                R.drawable.icon_previous,
                 "",
                 previousPendingIntent
             )
             .addAction(
-                if (isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play,
+                if (isPlaying) R.drawable.icon_pause else R.drawable.icon_play,
                 "",
                 pauseOrPlayPendingIntent
             )
             .addAction(
-                android.R.drawable.ic_media_next,
+                R.drawable.icon_next,
                 "",
                 nextPendingIntent
             )
             .addAction(
-                android.R.drawable.ic_menu_close_clear_cancel,
+                R.drawable.icon_no,
                 "",
                 stopPendingIntent
             )

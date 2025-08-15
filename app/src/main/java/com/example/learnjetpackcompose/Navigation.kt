@@ -39,6 +39,7 @@ import com.example.learnjetpackcompose.Screen.Home.Component.TopTracksScreen
 import com.example.learnjetpackcompose.Screen.Home.Setting.SettingScreen
 import com.example.learnjetpackcompose.Screen.Player.Component.PlayerBar
 import com.example.learnjetpackcompose.Screen.Player.PlayerViewModel
+import com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel
 import com.example.learnjetpackcompose.Screen.Playlist.Song.Component.SongSorted
 import com.example.learnjetpackcompose.Screen.Profile.ProfileIntent
 import com.example.learnjetpackcompose.Screen.Profile.ProfileViewModel
@@ -246,7 +247,7 @@ fun NavigationApp() {
             entry<SongSortedNavKey>{ key ->
                 SongSorted(
                     playlistId = key.playlistId,
-                    songs = hiltViewModel<com.example.learnjetpackcompose.Screen.Playlist.PlaylistViewModel>().state.value.playlists
+                    songs = hiltViewModel<PlaylistViewModel>().state.value.playlists
                         .find { it.playlistId == key.playlistId }?.songs ?: emptyList(),
                     onBackClick = { backStack.removeLastOrNull() },
                     onSaved = { backStack.removeLastOrNull() }

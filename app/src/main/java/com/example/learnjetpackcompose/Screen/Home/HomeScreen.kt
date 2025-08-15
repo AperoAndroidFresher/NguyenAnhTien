@@ -46,6 +46,7 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.learnjetpackcompose.Component.ContentLoadFailure
 import com.example.learnjetpackcompose.Component.IconButtonCustom
+import com.example.learnjetpackcompose.Component.LoadingWithLottie
 import com.example.learnjetpackcompose.R
 import com.example.learnjetpackcompose.data.api.Album
 import com.example.learnjetpackcompose.Screen.Home.Component.AlbumCard
@@ -83,23 +84,7 @@ fun HomeScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             when {
                 state.isLoading && isInitialLoad -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        val composition by rememberLottieComposition(
-                            LottieCompositionSpec.RawRes(R.raw.lottie_remote_item_loading)
-                        )
-                        val progress by animateLottieCompositionAsState(
-                            composition,
-                            iterations = LottieConstants.IterateForever
-                        )
-                        LottieAnimation(
-                            composition = composition,
-                            progress = { progress },
-                            modifier = Modifier.size(150.dp)
-                        )
-                    }
+                    LoadingWithLottie()
                 }
 
                 state.error != null && isInitialLoad -> {
@@ -229,9 +214,9 @@ private fun SectionHeader(title: String, onSeeAll: () -> Unit) {
     ) {
         Text(text = title, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         Text(
-            text = "See all",
+            text = stringResource(R.string.see_all),
             color = Color(0xFF00C2CB),
-            fontSize = 12.sp,
+            fontSize = 14.sp,
             modifier = Modifier.clickable { onSeeAll() }
         )
     }

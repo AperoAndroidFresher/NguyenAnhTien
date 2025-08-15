@@ -109,6 +109,7 @@ fun SongScreen(
                     songs = songs,
                     selectedSongId = selectedSongId,
                     onToggleView = { isGridView = false },
+                    onSortClick = onSortClick,
                     onRemoveSong = removeSong,
                     onPlaySong = { song ->
                         selectedSongId = song.songId
@@ -133,7 +134,6 @@ fun SongScreen(
                     onToggleView = { isGridView = true },
                     onRemoveSong = removeSong,
                     onSortClick = onSortClick,
-                    onReorder = reorder,
                     onPlaySong = { song ->
                         selectedSongId = song.songId
                         val startIndex = songs.indexOfFirst { it.songId == song.songId }.let { if (it >= 0) it else 0 }
@@ -161,7 +161,6 @@ fun SongLinear(
     onToggleView: () -> Unit,
     onRemoveSong: (Song) -> Unit,
     onSortClick: () -> Unit,
-    onReorder: (Int, Int) -> Unit,
     onPlaySong: (Song) -> Unit,
     onSelectSong: (Song) -> Unit,
     onShareSong: (Song) -> Unit,
@@ -224,6 +223,7 @@ fun SongGrid(
     onToggleView: () -> Unit,
     onRemoveSong: (Song) -> Unit,
     onPlaySong: (Song) -> Unit,
+    onSortClick: () -> Unit,
     onSelectSong: (Song) -> Unit,
     onShareSong: (Song) -> Unit,
     modifier: Modifier
@@ -252,7 +252,7 @@ fun SongGrid(
                     modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)
                 )
                 IconButtonCustom(
-                    onClick = {},
+                    onClick = onSortClick,
                     icon = R.drawable.right_alignment,
                     title = "Sort",
                     modifier = Modifier.padding(10.dp).align(Alignment.CenterVertically)

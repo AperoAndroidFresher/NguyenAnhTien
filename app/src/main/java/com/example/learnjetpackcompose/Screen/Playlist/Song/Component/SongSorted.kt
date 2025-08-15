@@ -50,7 +50,7 @@ fun SongSorted(
     songs: List<Song>,
     onBackClick: () -> Unit = {},
     onSaved: () -> Unit = {},
-){
+) {
     val playlistViewModel: PlaylistViewModel = hiltViewModel()
     val items = remember(songs) { mutableStateListOf<Song>().apply { addAll(songs) } }
 
@@ -61,6 +61,7 @@ fun SongSorted(
     var draggingIndex by remember { mutableStateOf<Int?>(null) }
     var startIndex by remember { mutableStateOf<Int?>(null) }
     var draggedOffset by remember { mutableStateOf(0f) }
+    var targetIndex by remember { mutableStateOf<Int?>(null) }
 
     Column(
         modifier = Modifier
@@ -94,16 +95,28 @@ fun SongSorted(
                                     draggingIndex = index
                                     startIndex = index
                                     draggedOffset = 0f
+                                    targetIndex = index
                                 },
                                 onDragEnd = {
+                                    if (draggingIndex != null && targetIndex != null && draggingIndex != targetIndex) {
+                                        val from = draggingIndex!!
+                                        val to = targetIndex!!
+                                        val moved = items.removeAt(from)
+                                        items.add(to, moved)
+                                        playlistViewModel.processIntent(
+                                            PlaylistIntent.ReorderSongsInPlaylist(playlistId, items.toList())
+                                        )
+                                    }
                                     draggingIndex = null
                                     startIndex = null
                                     draggedOffset = 0f
+                                    targetIndex = null
                                 },
                                 onDragCancel = {
                                     draggingIndex = null
                                     startIndex = null
                                     draggedOffset = 0f
+                                    targetIndex = null
                                 }
                             ) { change, dragAmount ->
                                 change.consume()
@@ -117,30 +130,21 @@ fun SongSorted(
                                     } else if (draggingIndex!! >= last - 1 && dragAmount.y > 0) {
                                         scope.launch { listState.scrollBy(dragAmount.y) }
                                     }
-                                }
-
-                                if (startIndex != null && draggingIndex != null) {
-                                    val shift = (draggedOffset / itemHeightPx).toInt()
-                                    val target = (startIndex!! + shift).coerceIn(0, items.lastIndex)
-                                    if (target != draggingIndex) {
-                                        val from = draggingIndex!!
-                                        val moved = items.removeAt(from)
-                                        items.add(target, moved)
-                                        draggingIndex = target
+                                    if (startIndex != null) {
+                                        val shift = (draggedOffset / itemHeightPx).toInt()
+                                        targetIndex = (startIndex!! + shift).coerceIn(0, items.lastIndex)
                                     }
                                 }
                             }
                         }
                         .graphicsLayer {
-                            if (isDragging && startIndex != null && draggingIndex != null) {
-                                val shift = (draggedOffset - (draggingIndex!! - startIndex!!) * itemHeightPx)
-                                translationY = shift
+                            if (isDragging && startIndex != null) {
+                                translationY = draggedOffset
                                 shadowElevation = 12f
                                 scaleX = 1.02f
                                 scaleY = 1.02f
                             }
                         }
-
                 )
             }
         }
@@ -168,7 +172,7 @@ private fun SongRowSortable(song: Song, isDragging: Boolean, modifier: Modifier 
             Spacer(modifier = Modifier.weight(1f))
             Text(text = song.duration, color = Color.White, fontSize = 14.sp)
             Spacer(modifier = Modifier.width(8.dp))
-            IconButtonCustom(onClick = {}, icon = R.drawable.menu, title = "Drag")
+            IconButtonCustom(onClick = {}, icon = R.drawable.hamburger_menu, title = "Drag")
         }
     }
 }
