@@ -144,6 +144,10 @@ fun SelectLanguage(
                 onVietnameseClick = {
                     onLanguageSelected("Vietnamese")
                     expanded = false
+                },
+                onChineseClick = {
+                    onLanguageSelected("Chinese")
+                    expanded = false
                 }
             )
         }
@@ -157,7 +161,8 @@ fun ShowDropDownMenu(
     onEnglishClick: () -> Unit,
     onKoreanClick: () -> Unit,
     onFrenchClick: () -> Unit,
-    onVietnameseClick: () -> Unit
+    onVietnameseClick: () -> Unit,
+    onChineseClick: () -> Unit
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -171,6 +176,7 @@ fun ShowDropDownMenu(
         DropdownMenuItemWithIcon(null, stringResource(R.string.korean), stringResource(R.string.korean), onKoreanClick)
         DropdownMenuItemWithIcon(null, stringResource(R.string.french), stringResource(R.string.french), onFrenchClick)
         DropdownMenuItemWithIcon(null, stringResource(R.string.vietnamese), stringResource(R.string.vietnamese), onVietnameseClick)
+        DropdownMenuItemWithIcon(null, stringResource(R.string.chinese), stringResource(R.string.chinese), onChineseClick)
     }
 }
 

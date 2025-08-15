@@ -2,6 +2,7 @@ package com.example.learnjetpackcompose.Screen.Player
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,11 +16,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import kotlinx.coroutines.delay
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,6 +36,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.learnjetpackcompose.R
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.TileMode
+import androidx.palette.graphics.Palette
+import coil.compose.rememberAsyncImagePainter
+import android.graphics.Bitmap
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalContext
+import coil.ImageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.example.learnjetpackcompose.Component.IconButtonCustom
 import com.example.learnjetpackcompose.Screen.Player.Component.ProgressSlider
 
@@ -48,6 +66,7 @@ fun PlayerScreen(
     val currentSong = viewModel.currentSong.collectAsState().value
     val currentPosition = viewModel.currentPosition.collectAsState().value
     val duration = viewModel.duration.collectAsState().value
+    var dominantColor by remember { mutableStateOf<Color>(Color.Black) }
 
     val handlePlayClick = {
         viewModel.togglePlayPause()
@@ -80,33 +99,74 @@ fun PlayerScreen(
         viewModel.seekTo(position)
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
-        Header(onBackClick, handleExitClick, modifier)
-        Spacer(modifier = modifier.height(10.dp))
-        Content(currentSong?.title, currentSong?.artist, currentSong?.albumArt)
-        Spacer(modifier = modifier.height(20.dp))
+    val context = LocalContext.current
+    LaunchedEffect(currentSong?.albumArt) {
+        currentSong?.albumArt?.let { albumArtUrl ->
+            val loader = ImageLoader(context)
+            val request = ImageRequest.Builder(context)
+                .data(albumArtUrl)
+                .allowHardware(false)
+                .build()
 
-        ProgressSlider(
-            currentPosition = currentPosition,
-            duration = duration,
-            onSeek = handleSeek,
-            modifier = Modifier.padding(horizontal = 20.dp)
+            val result = loader.execute(request)
+            if (result is SuccessResult) {
+                val bitmap = (result.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                bitmap?.let {
+                    val palette = Palette.from(it).generate()
+                    palette.dominantSwatch?.rgb?.let { color ->
+                        dominantColor = Color(color)
+                    }
+                }
+            }
+        }
+    }
+
+    Box(
+        modifier = modifier.fillMaxSize()
+    ) {
+        // Gradient background
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            dominantColor,
+                            dominantColor.copy(alpha = 0.5f),
+                            Color.Black
+                        ),
+                        tileMode = TileMode.Clamp
+                    )
+                )
         )
 
-        Spacer(modifier = modifier.height(20.dp))
-        ButtonControls(handleShuffleClick,
-            handlePreviousClick,
-            handlePlayClick,
-            handleNextClick,
-            handleRepeatClick,
-            isPlaying,
-            isShuffle,
-            repeatMode,
-            modifier)
+        // Content
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Header(onBackClick, handleExitClick, modifier)
+            Spacer(modifier = modifier.height(10.dp))
+            Content(currentSong?.title, currentSong?.artist, currentSong?.albumArt, isPlaying)
+            Spacer(modifier = modifier.height(20.dp))
+
+            ProgressSlider(
+                currentPosition = currentPosition,
+                duration = duration,
+                onSeek = handleSeek,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+
+            Spacer(modifier = modifier.height(20.dp))
+            ButtonControls(handleShuffleClick,
+                handlePreviousClick,
+                handlePlayClick,
+                handleNextClick,
+                handleRepeatClick,
+                isPlaying,
+                isShuffle,
+                repeatMode,
+                modifier)
+        }
     }
 }
 
@@ -142,26 +202,43 @@ private fun Header(
 fun Content(
     songTitle: String? = "Unknown Title",
     songArtist: String? = "Unknown Artist",
-    albumArtUrl: String? = null
+    albumArtUrl: String? = null,
+    isPlaying: Boolean = false
 ){
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(20.dp),
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ){
+        var rotation by remember { mutableStateOf(0f) }
 
-        AsyncImage(
-            model = albumArtUrl,
-            contentDescription = "Album Art",
+        LaunchedEffect(isPlaying) {
+            while(isPlaying) {
+                delay(50)
+                rotation = (rotation + 1) % 360
+            }
+        }
+
+        Box(
             modifier = Modifier
                 .size(350.dp)
-                .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop,
-            placeholder = painterResource(R.drawable.icon_music),
-            error = painterResource(R.drawable.icon_music),
-            fallback = painterResource(R.drawable.icon_music)
-        )
+                .clip(CircleShape)
+                .background(Color.DarkGray)
+        ) {
+            AsyncImage(
+                model = albumArtUrl,
+                contentDescription = "Album Art",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .rotate(rotation),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.icon_music),
+                error = painterResource(R.drawable.icon_music),
+                fallback = painterResource(R.drawable.icon_music)
+            )
+        }
 
         Spacer(modifier = Modifier.height(20.dp))
         Text(

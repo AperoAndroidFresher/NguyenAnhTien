@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Apero Music</string>
+    <string name="play">播放</string>
+    <string name="pause">暂停</string>
+    <string name="stop">停止</string>
+    <string name="previous">上一首</string>
+    <string name="Next">下一首</string>
+    <string name="settings">设置</string>
+    <string name="language">语言</string>
+    <string name="english">英语</string>
+    <string name="korean">韩语</string>
+    <string name="french">法语</string>
+    <string name="vietnamese">越南语</string>
+    <string name="chinese">中文</string>
+    <string name="welcome">欢迎回来！</string>
+    <string name="rankings">排行榜</string>
+    <string name="home">主页</string>
+    <string name="library">音乐库</string>
+    <string name="playlist">播放列表</string>
+    <string name="top_albums">热门专辑</string>
+    <string name="top_track">热门歌曲</string>
+    <string name="top_artist">热门艺术家</string>
+    <string name="see_all">查看全部</string>
+</resources>

@@ -10,6 +10,7 @@ fun updateLocale(context: Context, language: String): Context {
         "Korean" -> Locale("ko")
         "French" -> Locale("fr")
         "Vietnamese" -> Locale("vi")
+        "Chinese" -> Locale("zh")
         else -> Locale.getDefault()
     }
 
